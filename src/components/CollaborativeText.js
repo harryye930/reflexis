@@ -311,7 +311,11 @@ export default function CollaborativeText() {
             </div>
           )}
           {currentUserProfile && (
-            <div id="user-info" className="mb-6 p-4 rounded-lg" style={{ backgroundColor: currentUserProfile.color }}>
+            <div 
+              id="user-info" 
+              className="mb-6 p-4 rounded-lg"
+              style={{ backgroundColor: currentUserProfile.color }}
+            >
               <h3 className="font-bold text-white text-sm mb-1">Your Session:</h3>
               <p id="user-id-display" className="text-xs text-white break-all">ID: {currentUserProfile.name}</p>
             </div>
