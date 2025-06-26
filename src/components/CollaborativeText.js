@@ -448,8 +448,8 @@ export default function CollaborativeText() {
           <div>
             <h3 className="font-semibold text-gray-700 mb-3">Collaborator Legend</h3>
             <div id="legend-container" className="space-y-2">
-              {Object.values(userProfiles).map(profile => (
-                <div key={profile.name} className="flex items-center">
+              {Object.entries(userProfiles).map(([userId, profile]) => (
+                <div key={userId} className="flex items-center">
                   <span className="w-4 h-4 rounded-full mr-2" style={{ backgroundColor: profile.color }}></span>
                   <span className="text-sm text-gray-600">{profile.name} (Active)</span>
                 </div>
