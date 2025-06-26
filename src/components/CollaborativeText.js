@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { db, auth } from '../lib/firebase';
-import { collection, onSnapshot, addDoc, deleteDoc, doc, query, setDoc, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, deleteDoc, doc, query, setDoc, getDocs, getDoc } from 'firebase/firestore';
 import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 
 const appId = 'scholarmate-collab';
@@ -24,6 +24,7 @@ export default function CollaborativeText() {
   const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
   const [showModal, setShowModal] = useState(false);
   const [userProfiles, setUserProfiles] = useState({});
+  const [userProfilesLoaded, setUserProfilesLoaded] = useState(false);
   const [message, setMessage] = useState({ text: '', isError: false, show: false });
   const [loading, setLoading] = useState(true);
   
@@ -33,19 +34,52 @@ export default function CollaborativeText() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async user => {
       if (user) {
-        setCurrentUser(user);
-        setLoading(false);
-        // Create or update user profile using setDoc with user UID as document ID
-        const userDocRef = doc(db, `artifacts/${appId}/public/data/users`, user.uid);
-        const randomColor = userColors[Math.floor(Math.random() * userColors.length)];
-        const randomName = `User-${user.uid.substring(0, 4)}`;
-        await setDoc(userDocRef, {
-          userId: user.uid,
-          name: randomName,
-          color: randomColor,
-          lastSeen: new Date(),
-          isAnonymous: user.isAnonymous
-        }, { merge: true }); // merge: true allows updating existing document
+        try {
+          // Check if user document already exists to avoid overwriting existing data
+          const userDocRef = doc(db, `artifacts/${appId}/public/data/users`, user.uid);
+          const userDoc = await getDoc(userDocRef);
+          
+          if (!userDoc.exists()) {
+            // Only create new user document if it doesn't exist
+            const randomColor = userColors[Math.floor(Math.random() * userColors.length)];
+            const randomName = `User-${user.uid.substring(0, 4)}`;
+            await setDoc(userDocRef, {
+              userId: user.uid,
+              name: randomName,
+              color: randomColor,
+              lastSeen: new Date(),
+              isAnonymous: user.isAnonymous
+            });
+          } else {
+            const existingData = userDoc.data();
+            
+            // Check if existing document has all required fields
+            if (!existingData.userId || !existingData.name || !existingData.color) {
+              // Document exists but is incomplete, recreate it properly
+              const randomColor = userColors[Math.floor(Math.random() * userColors.length)];
+              const randomName = `User-${user.uid.substring(0, 4)}`;
+              await setDoc(userDocRef, {
+                userId: user.uid,
+                name: randomName,
+                color: randomColor,
+                lastSeen: new Date(),
+                isAnonymous: user.isAnonymous
+              });
+            } else {
+              // User exists with complete data, just update lastSeen
+              await setDoc(userDocRef, {
+                lastSeen: new Date()
+              }, { merge: true });
+            }
+          }
+          
+          // Only set current user AFTER the user document is ready
+          setCurrentUser(user);
+          setLoading(false);
+        } catch (error) {
+          console.error('Error setting up user:', error);
+          setLoading(false);
+        }
       } else {
         signInAnonymously(auth).catch(error => {
           console.error(error);
@@ -78,9 +112,14 @@ export default function CollaborativeText() {
       const profiles = {};
       snapshot.docs.forEach(doc => {
         const data = doc.data();
-        profiles[data.userId] = { name: data.name, color: data.color };
+        
+        // Ensure we have valid user data before adding to profiles
+        if (data.userId && data.name && data.color) {
+          profiles[data.userId] = { name: data.name, color: data.color };
+        }
       });
       setUserProfiles(profiles);
+      setUserProfilesLoaded(true);
     });
 
     return () => unsubscribe();
@@ -93,6 +132,7 @@ export default function CollaborativeText() {
     const updateActivity = async () => {
       try {
         const userDocRef = doc(db, `artifacts/${appId}/public/data/users`, currentUser.uid);
+        // Only update lastSeen, don't accidentally overwrite other fields
         await setDoc(userDocRef, {
           lastSeen: new Date()
         }, { merge: true });
@@ -502,9 +542,14 @@ export default function CollaborativeText() {
           <h2 className="text-xl font-bold text-gray-900 mb-4">Analysis Tools</h2>
 
           {/* User Info */}
-          {!currentUserProfile && (
+          {currentUser && !currentUserProfile && !userProfilesLoaded && (
             <div id="user-info-loading" className="mb-6 p-4 rounded-lg bg-gray-100 text-center">
               <p className="text-sm text-gray-600">Initializing user...</p>
+            </div>
+          )}
+          {currentUser && !currentUserProfile && userProfilesLoaded && (
+            <div id="user-info-error" className="mb-6 p-4 rounded-lg bg-red-100 text-center">
+              <p className="text-sm text-red-600">User profile not found. Please refresh the page.</p>
             </div>
           )}
           {currentUserProfile && (
@@ -541,8 +586,8 @@ export default function CollaborativeText() {
             <div id="legend-container" className="space-y-2">
               {Object.entries(userProfiles).map(([userId, profile]) => (
                 <div key={userId} className="flex items-center">
-                  <span className="w-4 h-4 rounded-full mr-2" style={{ backgroundColor: profile.color }}></span>
-                  <span className="text-sm text-gray-600">{profile.name} (Active)</span>
+                  <span className="w-4 h-4 rounded-full mr-2" style={{ backgroundColor: profile.color || '#e5e7eb' }}></span>
+                  <span className="text-sm text-gray-600">{profile.name || 'Loading...'} (Active)</span>
                 </div>
               ))}
             </div>
