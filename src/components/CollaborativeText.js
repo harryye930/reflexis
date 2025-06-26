@@ -43,7 +43,8 @@ export default function CollaborativeText() {
           userId: user.uid,
           name: randomName,
           color: randomColor,
-          lastSeen: new Date()
+          lastSeen: new Date(),
+          isAnonymous: user.isAnonymous
         }, { merge: true }); // merge: true allows updating existing document
       } else {
         signInAnonymously(auth).catch(error => {
@@ -83,6 +84,27 @@ export default function CollaborativeText() {
     });
 
     return () => unsubscribe();
+  }, [currentUser]);
+
+  // Update user activity periodically
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const updateActivity = async () => {
+      try {
+        const userDocRef = doc(db, `artifacts/${appId}/public/data/users`, currentUser.uid);
+        await setDoc(userDocRef, {
+          lastSeen: new Date()
+        }, { merge: true });
+      } catch (error) {
+        console.error('Error updating user activity:', error);
+      }
+    };
+
+    // Update activity every 5 minutes
+    const interval = setInterval(updateActivity, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
   }, [currentUser]);
 
   // Handle clicking outside to close modal

@@ -1,0 +1,29 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // This rule allows any authenticated user to read from the "public" path.
+    match /artifacts/{appId}/public/{document=**} {
+      allow read: if request.auth != null;
+    }
+
+    // This rule handles highlights specifically.
+    match /artifacts/{appId}/public/data/highlights/{highlightId} {
+        // Any authenticated user can create a highlight.
+        allow create: if request.auth != null 
+          && request.auth.uid == request.resource.data.userId;
+
+        // Only the user who created the highlight can update or delete it.
+        allow update, delete: if request.auth.uid == resource.data.userId;
+    }
+
+    // This rule handles user profiles.
+    match /artifacts/{appId}/public/data/users/{userId} {
+       // Any authenticated user can see who else is in the session.
+       allow read: if request.auth != null;
+
+       // A user can only create or update their own profile.
+       allow write: if request.auth.uid == userId;
+    }
+  }
+}
