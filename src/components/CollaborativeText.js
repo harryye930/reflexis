@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { db, auth } from '../lib/firebase';
-import { collection, onSnapshot, addDoc, deleteDoc, doc, query, setDoc } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, deleteDoc, doc, query, setDoc, getDocs } from 'firebase/firestore';
 import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 
 const appId = 'scholarmate-collab';
@@ -101,11 +101,95 @@ export default function CollaborativeText() {
       }
     };
 
-    // Update activity every 5 minutes
-    const interval = setInterval(updateActivity, 5 * 60 * 1000);
-
+    // Update immediately and then every 30 seconds
+    updateActivity();
+    const interval = setInterval(updateActivity, 30000);
     return () => clearInterval(interval);
   }, [currentUser]);
+
+  // Manual cleanup function
+  const handleManualCleanup = async () => {
+    const confirmCleanup = window.confirm(
+      '⚠️ COMPLETE CLEANUP WARNING ⚠️\n\n' +
+      'This will IMMEDIATELY delete:\n' +
+      '• ALL anonymous users (regardless of age)\n' +
+      '• ALL highlights and annotations\n' +
+      '• ALL user authentication records\n' +
+      '• ALL user profiles and data\n\n' +
+      'This will reset the entire application state!\n' +
+      'This action cannot be undone!\n\n' +
+      'Are you sure you want to proceed with the COMPLETE cleanup?'
+    );
+
+    if (!confirmCleanup) return;
+
+    const doubleConfirm = window.confirm(
+      'FINAL CONFIRMATION - COMPLETE RESET\n\n' +
+      'You are about to COMPLETELY RESET the application.\n' +
+      'This will delete ALL data for ALL users.\n' +
+      'The application will be returned to a clean state.\n\n' +
+      'Click OK to RESET EVERYTHING or Cancel to abort.'
+    );
+
+    if (!doubleConfirm) return;
+
+    setMessage({ text: 'Starting complete cleanup operation...', isError: false, show: true });
+
+    try {
+      // Call the backend cleanup function which has admin privileges
+      const response = await fetch('https://us-central1-scholarmate-collab.cloudfunctions.net/manualCleanup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ completeCleanup: true })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        const deletedUsers = result.result?.deletedCount || 0;
+        const deletedHighlights = result.result?.highlightsDeleted || 0;
+        
+        setMessage({ 
+          text: `✅ Complete cleanup successful! Removed ${deletedUsers} users and ${deletedHighlights} highlights. Refreshing...`, 
+          isError: false, 
+          show: true 
+        });
+        
+        // Reset local state immediately
+        setHighlights([]);
+        setUserProfiles({});
+        
+        // Force browser refresh immediately to register as new user
+        setTimeout(() => {
+          window.location.reload(true); // true forces reload from server, not cache
+        }, 1500);
+      } else {
+        setMessage({ 
+          text: `❌ Cleanup failed: ${result.error || 'Unknown error'}`, 
+          isError: true, 
+          show: true 
+        });
+      }
+    } catch (error) {
+      console.error('Cleanup error:', error);
+      setMessage({ 
+        text: `❌ Cleanup failed: ${error.message}`, 
+        isError: true, 
+        show: true 
+      });
+    }
+
+    // Hide message after 8 seconds
+    setTimeout(() => {
+      setMessage({ ...message, show: false });
+    }, 8000);
+  };
 
   // Handle clicking outside to close modal
   useEffect(() => {
@@ -373,6 +457,23 @@ export default function CollaborativeText() {
             </div>
           </div>
         </div>
+        
+        {/* Admin Controls - Moved to bottom */}
+        <div className="mt-6 pt-4 border-t border-gray-200">
+          <h3 className="font-semibold text-gray-700 mb-3">Admin Controls</h3>
+          <button
+            onClick={handleManualCleanup}
+            className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+            title="Complete cleanup - removes ALL data and resets application"
+          >
+            <span>🗑️</span>
+            <span>Complete Reset</span>
+          </button>
+          <p className="text-xs text-gray-500 mt-2">
+            Immediately removes ALL users, highlights, and data. Resets the entire application.
+          </p>
+        </div>
+        
         <div className="text-xs text-gray-400 mt-4 text-center">
           App ID: <span className="font-mono">{appId}</span>
         </div>
