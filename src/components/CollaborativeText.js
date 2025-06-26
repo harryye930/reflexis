@@ -13,13 +13,35 @@ const availableCodes = [
   { id: 'important_quote', label: 'Important Quote', color: 'bg-purple-200', textColor: 'text-purple-800' }
 ];
 
+// context: https://www.reddit.com/r/google/comments/hw5nsz/default_google_profile_pics_colors_dont_know_if_i/
 const userColors = [
-  '#fdba74', // warm orange
-  '#6ee7b7', // mint green
-  '#93c5fd', // soft blue
-  '#f9a8d4', // pink
-  '#c4b5fd', // lavender
-  '#fde047', // bright yellow
+  // '#fdba74', // warm orange
+  // '#6ee7b7', // mint green
+  // '#93c5fd', // soft blue
+  // '#f9a8d4', // pink
+  // '#c4b5fd', // lavender
+  // '#fde047', // bright yellow
+  "#9e4db6",
+  "#71269c",
+  "#7d8f9b",
+  "#4a5964",
+  "#da4f6f",
+  "#b22d5c",
+  "#5f6bba",
+  "#3b86cb",
+  "#235697",
+  "#4395a4",
+  "#3b867a",
+  "#1e4b40",
+  "#749e48",
+  "#416829",
+  "#876f65",
+  "#594139",
+  "#7859bc",
+  "#4c2fa1",
+  "#df742c",
+  "#e35d33",
+  "#b04021",
 ];
 
 const sourceText = `The rise of remote work has fundamentally altered the landscape of modern business operations. A recent study indicates that over 60% of companies plan to maintain some form of remote work policy post-pandemic, citing benefits such as increased employee satisfaction and reduced overhead costs. However, this shift is not without its challenges. Managers often express concerns about maintaining a cohesive company culture and ensuring equitable opportunities for career advancement among remote and in-office employees. Another key area of discussion revolves around cybersecurity. With employees accessing company data from various networks, the risk of security breaches has escalated, prompting significant investment in new security protocols and employee training programs. Furthermore, the long-term psychological effects of reduced social interaction in a professional setting are still not fully understood, representing a critical area for future research. The digital divide also presents a significant hurdle, as not all employees have access to reliable high-speed internet, potentially creating a new form of workplace inequality. Addressing these multifaceted issues requires a proactive and adaptable approach from leadership.`;
@@ -37,6 +59,38 @@ export default function CollaborativeText() {
   
   const textContainerRef = useRef(null);
 
+  // Function to get an available color, prioritizing unused ones
+  const getAvailableColor = async () => {
+    try {
+      // Get all existing users to see which colors are already in use
+      const usersCollection = collection(db, `artifacts/${appId}/public/data/users`);
+      const usersSnapshot = await getDocs(usersCollection);
+      
+      const usedColors = new Set();
+      usersSnapshot.docs.forEach(doc => {
+        const userData = doc.data();
+        if (userData.color) {
+          usedColors.add(userData.color);
+        }
+      });
+
+      // Find unused colors first
+      const availableColors = userColors.filter(color => !usedColors.has(color));
+      
+      if (availableColors.length > 0) {
+        // Return a random unused color
+        return availableColors[Math.floor(Math.random() * availableColors.length)];
+      } else {
+        // All colors are used, fall back to random selection
+        return userColors[Math.floor(Math.random() * userColors.length)];
+      }
+    } catch (error) {
+      console.error('Error getting available color:', error);
+      // Fallback to random color if there's an error
+      return userColors[Math.floor(Math.random() * userColors.length)];
+    }
+  };
+
   // Authentication effect
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async user => {
@@ -48,12 +102,12 @@ export default function CollaborativeText() {
           
           if (!userDoc.exists()) {
             // Only create new user document if it doesn't exist
-            const randomColor = userColors[Math.floor(Math.random() * userColors.length)];
+            const assignedColor = await getAvailableColor();
             const randomName = `User-${user.uid.substring(0, 4)}`;
             await setDoc(userDocRef, {
               userId: user.uid,
               name: randomName,
-              color: randomColor,
+              color: assignedColor,
               lastSeen: new Date(),
               isAnonymous: user.isAnonymous
             });
@@ -63,12 +117,12 @@ export default function CollaborativeText() {
             // Check if existing document has all required fields
             if (!existingData.userId || !existingData.name || !existingData.color) {
               // Document exists but is incomplete, recreate it properly
-              const randomColor = userColors[Math.floor(Math.random() * userColors.length)];
+              const assignedColor = await getAvailableColor();
               const randomName = `User-${user.uid.substring(0, 4)}`;
               await setDoc(userDocRef, {
                 userId: user.uid,
                 name: randomName,
-                color: randomColor,
+                color: assignedColor,
                 lastSeen: new Date(),
                 isAnonymous: user.isAnonymous
               });
@@ -283,7 +337,11 @@ export default function CollaborativeText() {
   };
 
   const getAbsoluteIndex = (container, node, offset) => {
-    let index = 0;
+    // Get all text content from the container
+    const fullText = container.textContent || container.innerText || '';
+    
+    // Find the position of this text node within the full text
+    let currentIndex = 0;
     const walker = document.createTreeWalker(
       container,
       NodeFilter.SHOW_TEXT,
@@ -292,12 +350,15 @@ export default function CollaborativeText() {
     );
 
     while (walker.nextNode()) {
-      if (walker.currentNode === node) {
-        return index + offset;
+      const textNode = walker.currentNode;
+      if (textNode === node) {
+        // Found our target node, return the current index plus offset
+        return currentIndex + offset;
       }
-      index += walker.currentNode.textContent.length;
+      currentIndex += textNode.textContent.length;
     }
-    return index;
+    
+    return currentIndex + offset;
   };
 
   const handleTextSelection = (e) => {
@@ -330,19 +391,81 @@ export default function CollaborativeText() {
     if (!currentSelection || !currentUser || !textContainerRef.current) return;
 
     const range = currentSelection.getRangeAt(0);
+    
+    // Get the selected text directly from the range
+    const selectedText = range.toString();
+    if (!selectedText || selectedText.trim() === '') return;
+    
+    // Get the full text content of the container
+    const containerText = textContainerRef.current.textContent || '';
+    
+    // Find the start position by searching for the selected text in the source
+    // We'll use the container's text content to map back to sourceText indices
     const startIndex = getAbsoluteIndex(textContainerRef.current, range.startContainer, range.startOffset);
     const endIndex = getAbsoluteIndex(textContainerRef.current, range.endContainer, range.endOffset);
+    
+    // Ensure we have valid indices
+    if (startIndex === endIndex || startIndex < 0 || endIndex < 0) {
+      console.warn('Invalid selection indices:', { startIndex, endIndex, selectedText });
+      return;
+    }
 
-    if (startIndex === endIndex) return;
+    // Map the container text indices to sourceText indices
+    // The container text should match sourceText exactly (just with added markup)
+    const cleanContainerText = containerText.replace(/\s+/g, ' ').trim();
+    const cleanSourceText = sourceText.replace(/\s+/g, ' ').trim();
+    
+    // Find the actual position in sourceText by comparing the selected text
+    let sourceStartIndex = sourceText.indexOf(selectedText.trim());
+    let sourceEndIndex = sourceStartIndex + selectedText.trim().length;
+    
+    // If direct search fails, try to find it by context
+    if (sourceStartIndex === -1) {
+      // Get some context around the selection
+      const contextBefore = containerText.substring(Math.max(0, startIndex - 20), startIndex);
+      const contextAfter = containerText.substring(endIndex, Math.min(containerText.length, endIndex + 20));
+      
+      // Try to find the selection within sourceText using context
+      const contextBeforeClean = contextBefore.replace(/\s+/g, ' ').trim();
+      const contextAfterClean = contextAfter.replace(/\s+/g, ' ').trim();
+      const selectedTextClean = selectedText.replace(/\s+/g, ' ').trim();
+      
+      const beforeIndex = sourceText.indexOf(contextBeforeClean);
+      if (beforeIndex !== -1) {
+        const searchStart = beforeIndex + contextBeforeClean.length;
+        sourceStartIndex = sourceText.indexOf(selectedTextClean, searchStart);
+        if (sourceStartIndex !== -1) {
+          sourceEndIndex = sourceStartIndex + selectedTextClean.length;
+        }
+      }
+    }
+    
+    // Fallback: use the calculated indices if we still can't find the text
+    if (sourceStartIndex === -1) {
+      console.warn('Could not map selection to source text, using calculated indices');
+      sourceStartIndex = Math.min(startIndex, endIndex);
+      sourceEndIndex = Math.max(startIndex, endIndex);
+      
+      // Ensure indices are within bounds
+      sourceStartIndex = Math.max(0, Math.min(sourceStartIndex, sourceText.length));
+      sourceEndIndex = Math.max(sourceStartIndex, Math.min(sourceEndIndex, sourceText.length));
+    }
+
+    console.log('Highlight indices:', { 
+      selectedText: selectedText.trim(), 
+      sourceStartIndex, 
+      sourceEndIndex,
+      extractedText: sourceText.substring(sourceStartIndex, sourceEndIndex)
+    });
 
     try {
       const highlightsCollection = collection(db, `artifacts/${appId}/public/data/highlights`);
       await addDoc(highlightsCollection, {
         userId: currentUser.uid,
         code,
-        startIndex: Math.min(startIndex, endIndex),
-        endIndex: Math.max(startIndex, endIndex),
-        text: sourceText.substring(Math.min(startIndex, endIndex), Math.max(startIndex, endIndex)),
+        startIndex: sourceStartIndex,
+        endIndex: sourceEndIndex,
+        text: sourceText.substring(sourceStartIndex, sourceEndIndex),
         createdAt: new Date()
       });
       showMessage('Highlight added!');
