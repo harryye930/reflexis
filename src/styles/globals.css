@@ -19,16 +19,26 @@
 
 /* Custom styles for highlights */
 .highlight {
-    padding: 2px 4px 2px 8px;
+    padding: 2px 4px;
     border-radius: 4px;
     cursor: pointer;
     position: relative;
-    margin-left: 4px; /* Space for the user indicator border */
+    transition: opacity 0.2s ease;
 }
 
 .highlight.multiple-highlights {
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
-    margin-left: 8px; /* More space for multiple user indicators */
+    border-radius: 6px;
+    /* Subtle animation for multiple highlights */
+    animation: subtle-pulse 2s ease-in-out infinite;
+}
+
+@keyframes subtle-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+
+.highlight:hover {
+    opacity: 1 !important; /* Full opacity on hover for better readability */
 }
 
 .highlight:hover .delete-highlight {
@@ -38,10 +48,8 @@
 .multiple-indicator {
     pointer-events: none;
     font-weight: bold;
-}
-
-.other-user-indicators {
-    pointer-events: none;
+    /* Small shadow for better visibility */
+    box-shadow: 0 0 2px rgba(0,0,0,0.3);
 }
 
 .highlight:hover .delete-highlight {

@@ -430,55 +430,61 @@ export default function CollaborativeText() {
         });
         const tooltip = tooltipParts.join('\n');
 
+        // Create blended background for multiple highlights
+        let backgroundColor;
+        let opacity = 1;
+        
+        if (currentHighlights.length === 1) {
+          backgroundColor = userColor;
+          opacity = 0.7; // Make single highlights slightly translucent
+        } else {
+          // Blend colors for multiple highlights with increased translucency
+          const colors = sortedHighlights.slice(0, 3).map(h => 
+            userProfiles[h.userId]?.color || '#e5e7eb'
+          );
+          
+          // Create a more subtle blended effect
+          if (colors.length === 2) {
+            backgroundColor = `linear-gradient(45deg, ${colors[0]} 50%, ${colors[1]} 50%)`;
+            opacity = 0.5;
+          } else {
+            backgroundColor = `linear-gradient(45deg, ${colors[0]} 33%, ${colors[1]} 33%, ${colors[1]} 67%, ${colors[2] || colors[1]} 67%)`;
+            opacity = 0.4;
+          }
+        }
+
         elements.push(
           <mark
             key={`highlight-${i}-${segmentEnd}`}
             className={`highlight ${currentHighlights.length > 1 ? 'multiple-highlights' : ''}`}
             style={{ 
-              backgroundColor: userColor,
-              position: 'relative'
+              background: backgroundColor,
+              opacity: opacity,
+              position: 'relative',
+              border: currentHighlights.length > 1 ? '1px dotted rgba(0,0,0,0.2)' : 'none'
             }}
             title={tooltip}
           >
-            {/* Multiple highlight indicator */}
+            {/* Small discrete indicator for multiple highlights */}
             {currentHighlights.length > 1 && (
               <span 
                 className="multiple-indicator"
                 style={{
                   position: 'absolute',
-                  top: '-2px',
-                  right: '2px',
-                  backgroundColor: 'rgba(0,0,0,0.7)',
+                  top: '-6px',
+                  right: '-2px',
+                  backgroundColor: 'rgba(0,0,0,0.8)',
                   color: 'white',
-                  fontSize: '10px',
-                  borderRadius: '8px',
-                  padding: '1px 4px',
+                  fontSize: '8px',
+                  borderRadius: '6px',
+                  padding: '1px 3px',
                   lineHeight: '1',
-                  zIndex: 5
+                  zIndex: 5,
+                  fontWeight: 'bold'
                 }}
               >
                 {currentHighlights.length}
               </span>
-            )}
-            
-            {/* Left border indicators for other users */}
-            {currentHighlights.length > 1 && (
-              <div 
-                className="other-user-indicators"
-                style={{
-                  position: 'absolute',
-                  left: '-4px',
-                  top: '0',
-                  bottom: '0',
-                  width: '4px',
-                  background: `linear-gradient(to bottom, ${
-                    sortedHighlights.slice(1, 4).map(h => 
-                      userProfiles[h.userId]?.color || '#e5e7eb'
-                    ).join(', ')
-                  })`,
-                  borderRadius: '2px 0 0 2px'
-                }}
-              />
             )}
 
             {/* Delete button for current user's highlight */}
