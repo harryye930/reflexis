@@ -19,10 +19,29 @@
 
 /* Custom styles for highlights */
 .highlight {
-    padding: 2px 0;
+    padding: 2px 4px 2px 8px;
     border-radius: 4px;
     cursor: pointer;
     position: relative;
+    margin-left: 4px; /* Space for the user indicator border */
+}
+
+.highlight.multiple-highlights {
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+    margin-left: 8px; /* More space for multiple user indicators */
+}
+
+.highlight:hover .delete-highlight {
+    opacity: 1;
+}
+
+.multiple-indicator {
+    pointer-events: none;
+    font-weight: bold;
+}
+
+.other-user-indicators {
+    pointer-events: none;
 }
 
 .highlight:hover .delete-highlight {

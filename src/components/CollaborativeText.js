@@ -322,60 +322,151 @@ export default function CollaborativeText() {
   };
 
   const renderTextWithHighlights = () => {
-    const sortedHighlights = [...highlights].sort((a, b) => a.startIndex - b.startIndex);
-    let elements = [];
-    let lastIndex = 0;
+    if (highlights.length === 0) {
+      return <span>{sourceText}</span>;
+    }
 
-    sortedHighlights.forEach((highlight, index) => {
-      // Add text before highlight
-      if (lastIndex < highlight.startIndex) {
-        elements.push(
-          <span key={`text-${index}`}>
-            {sourceText.substring(lastIndex, highlight.startIndex)}
-          </span>
-        );
+    // Create an array to track highlight coverage at each character position
+    const highlightMap = new Array(sourceText.length).fill(null).map(() => []);
+    
+    // Populate the highlight map
+    highlights.forEach(highlight => {
+      for (let i = highlight.startIndex; i < highlight.endIndex; i++) {
+        highlightMap[i].push(highlight);
       }
-
-      // Add highlighted text
-      const userColor = userProfiles[highlight.userId]?.color || '#e5e7eb';
-      const codeInfo = availableCodes.find(c => c.id === highlight.code);
-      const codeLabel = codeInfo ? codeInfo.label : 'Unknown';
-      const isOwner = currentUser && highlight.userId === currentUser.uid;
-
-      elements.push(
-        <mark
-          key={`highlight-${highlight.id}`}
-          className="highlight"
-          style={{ backgroundColor: userColor }}
-          title={`User: ${userProfiles[highlight.userId]?.name || '...'} | Code: ${codeLabel}`}
-        >
-          {isOwner && (
-            <span
-              className="delete-highlight"
-              data-id={highlight.id}
-              onClick={() => handleDeleteHighlight(highlight.id)}
-              title="Delete highlight"
-            >
-              ×
-            </span>
-          )}
-          {sourceText.substring(highlight.startIndex, highlight.endIndex)}
-        </mark>
-      );
-
-      lastIndex = highlight.endIndex;
     });
 
-    // Add remaining text
-    if (lastIndex < sourceText.length) {
-      elements.push(
-        <span key="text-end">
-          {sourceText.substring(lastIndex)}
-        </span>
-      );
+    let elements = [];
+    let i = 0;
+
+    while (i < sourceText.length) {
+      const currentHighlights = highlightMap[i];
+      
+      if (currentHighlights.length === 0) {
+        // No highlights at this position, find the next position with highlights
+        let nextHighlight = i + 1;
+        while (nextHighlight < sourceText.length && highlightMap[nextHighlight].length === 0) {
+          nextHighlight++;
+        }
+        
+        elements.push(
+          <span key={`text-${i}`}>
+            {sourceText.substring(i, nextHighlight)}
+          </span>
+        );
+        i = nextHighlight;
+      } else {
+        // Find the end of this highlight segment (where the highlight combination changes)
+        let segmentEnd = i + 1;
+        while (segmentEnd < sourceText.length && 
+               highlightMap[segmentEnd].length > 0 &&
+               arraysEqual(highlightMap[i].map(h => h.id), highlightMap[segmentEnd].map(h => h.id))) {
+          segmentEnd++;
+        }
+
+        // Render this segment with multiple highlights
+        const segmentText = sourceText.substring(i, segmentEnd);
+        const sortedHighlights = currentHighlights.sort((a, b) => {
+          // Prioritize current user's highlights first
+          if (currentUser) {
+            if (a.userId === currentUser.uid && b.userId !== currentUser.uid) return -1;
+            if (b.userId === currentUser.uid && a.userId !== currentUser.uid) return 1;
+          }
+          // Then sort by creation time
+          return new Date(a.createdAt) - new Date(b.createdAt);
+        });
+
+        const primaryHighlight = sortedHighlights[0];
+        const userColor = userProfiles[primaryHighlight.userId]?.color || '#e5e7eb';
+        const codeInfo = availableCodes.find(c => c.id === primaryHighlight.code);
+        const codeLabel = codeInfo ? codeInfo.label : 'Unknown';
+        const isOwner = currentUser && primaryHighlight.userId === currentUser.uid;
+        
+        // Build tooltip showing all highlights
+        const tooltipParts = sortedHighlights.map(h => {
+          const user = userProfiles[h.userId]?.name || '...';
+          const code = availableCodes.find(c => c.id === h.code)?.label || 'Unknown';
+          return `${user}: ${code}`;
+        });
+        const tooltip = tooltipParts.join('\n');
+
+        elements.push(
+          <mark
+            key={`highlight-${i}-${segmentEnd}`}
+            className={`highlight ${currentHighlights.length > 1 ? 'multiple-highlights' : ''}`}
+            style={{ 
+              backgroundColor: userColor,
+              position: 'relative'
+            }}
+            title={tooltip}
+          >
+            {/* Multiple highlight indicator */}
+            {currentHighlights.length > 1 && (
+              <span 
+                className="multiple-indicator"
+                style={{
+                  position: 'absolute',
+                  top: '-2px',
+                  right: '2px',
+                  backgroundColor: 'rgba(0,0,0,0.7)',
+                  color: 'white',
+                  fontSize: '10px',
+                  borderRadius: '8px',
+                  padding: '1px 4px',
+                  lineHeight: '1',
+                  zIndex: 5
+                }}
+              >
+                {currentHighlights.length}
+              </span>
+            )}
+            
+            {/* Left border indicators for other users */}
+            {currentHighlights.length > 1 && (
+              <div 
+                className="other-user-indicators"
+                style={{
+                  position: 'absolute',
+                  left: '-4px',
+                  top: '0',
+                  bottom: '0',
+                  width: '4px',
+                  background: `linear-gradient(to bottom, ${
+                    sortedHighlights.slice(1, 4).map(h => 
+                      userProfiles[h.userId]?.color || '#e5e7eb'
+                    ).join(', ')
+                  })`,
+                  borderRadius: '2px 0 0 2px'
+                }}
+              />
+            )}
+
+            {/* Delete button for current user's highlight */}
+            {isOwner && (
+              <span
+                className="delete-highlight"
+                data-id={primaryHighlight.id}
+                onClick={() => handleDeleteHighlight(primaryHighlight.id)}
+                title="Delete your highlight"
+              >
+                ×
+              </span>
+            )}
+            {segmentText}
+          </mark>
+        );
+
+        i = segmentEnd;
+      }
     }
 
     return elements;
+  };
+
+  // Helper function to compare arrays
+  const arraysEqual = (a, b) => {
+    if (a.length !== b.length) return false;
+    return a.every((val, index) => val === b[index]);
   };
 
   const currentUserProfile = currentUser && userProfiles[currentUser.uid];
