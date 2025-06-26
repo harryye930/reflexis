@@ -13,7 +13,14 @@ const availableCodes = [
   { id: 'important_quote', label: 'Important Quote', color: 'bg-purple-200', textColor: 'text-purple-800' }
 ];
 
-const userColors = ['#fdba74', '#6ee7b7', '#93c5fd', '#f9a8d4', '#c4b5fd', '#fde047'];
+const userColors = [
+  '#fdba74', // warm orange
+  '#6ee7b7', // mint green
+  '#93c5fd', // soft blue
+  '#f9a8d4', // pink
+  '#c4b5fd', // lavender
+  '#fde047', // bright yellow
+];
 
 const sourceText = `The rise of remote work has fundamentally altered the landscape of modern business operations. A recent study indicates that over 60% of companies plan to maintain some form of remote work policy post-pandemic, citing benefits such as increased employee satisfaction and reduced overhead costs. However, this shift is not without its challenges. Managers often express concerns about maintaining a cohesive company culture and ensuring equitable opportunities for career advancement among remote and in-office employees. Another key area of discussion revolves around cybersecurity. With employees accessing company data from various networks, the risk of security breaches has escalated, prompting significant investment in new security protocols and employee training programs. Furthermore, the long-term psychological effects of reduced social interaction in a professional setting are still not fully understood, representing a critical area for future research. The digital divide also presents a significant hurdle, as not all employees have access to reliable high-speed internet, potentially creating a new form of workplace inequality. Addressing these multifaceted issues requires a proactive and adaptable approach from leadership.`;
 
