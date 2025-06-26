@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', sans-serif;
+  }
+  
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: rgb(249 250 251);
+    color: rgb(31 41 55);
+  }
+}
+
+/* Custom styles for highlights */
+.highlight {
+    padding: 2px 0;
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+}
+
+.highlight:hover .delete-highlight {
+    opacity: 1;
+}
+
+.delete-highlight {
+    position: absolute;
+    top: -20px;
+    right: 0;
+    background: white;
+    color: #ef4444;
+    border: 1px solid #fecaca;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    z-index: 10;
+}
+
+.coding-modal {
+    position: absolute;
+    z-index: 50;
+}
+
+.message-box {
+    position: fixed;
+    top: 1.25rem;
+    right: 1.25rem;
+    z-index: 110;
+}
