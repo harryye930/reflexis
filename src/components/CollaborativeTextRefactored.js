@@ -8,6 +8,7 @@ import { useUserActivity } from '../hooks/useUserActivity.js';
 import HighlightedText from './collaboration/HighlightedText.js';
 import HighlightingModal from './collaboration/HighlightingModal.js';
 import MessageBox from './collaboration/MessageBox.js';
+import UserProfileSetup from './collaboration/UserProfileSetup.js';
 import Sidebar from './layout/Sidebar.js';
 
 export default function CollaborativeText() {
@@ -17,7 +18,7 @@ export default function CollaborativeText() {
   const [message, setMessage] = useState({ text: '', isError: false, show: false });
   
   // Custom hooks
-  const { currentUser, loading } = useAuth(appId);
+  const { currentUser, loading, needsProfileSetup, completeProfile } = useAuth(appId);
   const { highlights, addHighlight, deleteHighlight } = useHighlights(appId, currentUser);
   const { userProfiles, userProfilesLoaded } = useUserProfiles(appId, currentUser);
   useUserActivity(appId, currentUser);
@@ -195,6 +196,16 @@ export default function CollaborativeText() {
           modalPosition={modalPosition}
           onCodeSelect={handleAddHighlight}
           onClose={() => setShowModal(false)}
+        />
+      )}
+
+      {/* User Profile Setup Modal */}
+      {needsProfileSetup && currentUser && (
+        <UserProfileSetup
+          currentUser={currentUser}
+          appId={appId}
+          completeProfile={completeProfile}
+          onComplete={() => {/* Profile completion is handled by the hook */}}
         />
       )}
 

@@ -7,50 +7,59 @@ import { getAvailableColor } from '../lib/utils/colorUtils.js';
 export const useAuth = (appId) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [needsProfileSetup, setNeedsProfileSetup] = useState(false);
+
+  const completeProfile = async (displayName, researchBackground) => {
+    if (!currentUser) return;
+    
+    try {
+      const userDocRef = doc(db, `artifacts/${appId}/public/data/users`, currentUser.uid);
+      await setDoc(userDocRef, {
+        name: displayName,
+        researchBackground,
+        profileCompleted: true,
+        lastSeen: new Date()
+      }, { merge: true });
+      
+      setNeedsProfileSetup(false);
+    } catch (error) {
+      console.error('Error completing profile:', error);
+      throw error;
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async user => {
       if (user) {
         try {
-          // Check if user document already exists to avoid overwriting existing data
           const userDocRef = doc(db, `artifacts/${appId}/public/data/users`, user.uid);
           const userDoc = await getDoc(userDocRef);
           
           if (!userDoc.exists()) {
-            // Only create new user document if it doesn't exist
+            // Create new user document
             const assignedColor = await getAvailableColor(appId);
-            const randomName = `User-${user.uid.substring(0, 4)}`;
             await setDoc(userDocRef, {
               userId: user.uid,
-              name: randomName,
               color: assignedColor,
               lastSeen: new Date(),
-              isAnonymous: user.isAnonymous
+              isAnonymous: user.isAnonymous,
+              profileCompleted: false
             });
+            setNeedsProfileSetup(true);
           } else {
             const existingData = userDoc.data();
             
-            // Check if existing document has all required fields
-            if (!existingData.userId || !existingData.name || !existingData.color) {
-              // Document exists but is incomplete, recreate it properly
-              const assignedColor = await getAvailableColor(appId);
-              const randomName = `User-${user.uid.substring(0, 4)}`;
-              await setDoc(userDocRef, {
-                userId: user.uid,
-                name: randomName,
-                color: assignedColor,
-                lastSeen: new Date(),
-                isAnonymous: user.isAnonymous
-              });
-            } else {
-              // User exists with complete data, just update lastSeen
-              await setDoc(userDocRef, {
-                lastSeen: new Date()
-              }, { merge: true });
+            // Check if user has completed profile setup
+            if (!existingData.profileCompleted) {
+              setNeedsProfileSetup(true);
             }
+            
+            // Update lastSeen
+            await setDoc(userDocRef, {
+              lastSeen: new Date()
+            }, { merge: true });
           }
           
-          // Only set current user AFTER the user document is ready
           setCurrentUser(user);
           setLoading(false);
         } catch (error) {
@@ -67,5 +76,5 @@ export const useAuth = (appId) => {
     return () => unsubscribe();
   }, [appId]);
 
-  return { currentUser, loading };
+  return { currentUser, loading, needsProfileSetup, completeProfile };
 };
