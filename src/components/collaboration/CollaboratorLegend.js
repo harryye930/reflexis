@@ -3,7 +3,7 @@ import React from 'react';
 const CollaboratorLegend = ({ userProfiles }) => {
   return (
     <div>
-      <h3 className="font-semibold text-gray-700 mb-3">Collaborator Legend</h3>
+      <h3 className="font-semibold text-gray-700 mb-3">Collaborators</h3>
       <div id="legend-container" className="space-y-2">
         {Object.entries(userProfiles).map(([userId, profile]) => (
           <div key={userId} className="flex items-center">
