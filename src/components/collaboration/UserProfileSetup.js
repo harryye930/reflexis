@@ -51,77 +51,84 @@ const UserProfileSetup = ({ currentUser, appId, onComplete, completeProfile }) =
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop with blur effect */}
-      <div className="fixed inset-0 bg-gradient-to-br from-black/60 via-black/50 to-black/60 backdrop-blur-sm transition-opacity duration-300" />
+      {/* Backdrop with subtle blur effect */}
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-50/80 via-blue-50/60 to-indigo-50/70 backdrop-blur-md transition-opacity duration-500" />
+      
+      {/* Floating particles background effect */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-blue-400/10 rounded-full blur-2xl animate-pulse"></div>
+        <div className="absolute top-3/4 right-1/4 w-24 h-24 bg-purple-400/10 rounded-full blur-xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-3/4 w-20 h-20 bg-indigo-400/10 rounded-full blur-lg animate-pulse delay-500"></div>
+      </div>
       
       {/* Modal container */}
-      <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-        <div className="relative transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all duration-300 w-full max-w-lg mx-auto">
+      <div className="flex min-h-full items-center justify-center p-6 text-center sm:p-4">
+        <div className="relative transform overflow-hidden rounded-3xl bg-white/70 backdrop-blur-xl shadow-2xl border border-white/40 transition-all duration-500 w-full max-w-lg mx-auto hover:shadow-3xl hover:bg-white/75">
           
-          {/* Gradient header background */}
-          <div className="absolute top-0 left-0 right-0 h-48 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 opacity-90" />
+          {/* Subtle gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-blue-50/20 rounded-3xl" />
           
           {/* Content */}
-          <div className="relative px-8 pt-8 pb-8">
+          <div className="relative px-8 pt-10 pb-8">
             
             {/* Welcome icon and text */}
-            <div className="text-center mb-8">
-              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-white/20 backdrop-blur-sm mb-4 ring-2 ring-white/30">
-                <svg className="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            <div className="text-center mb-10">
+              <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 backdrop-blur-sm mb-6 border border-white/30 shadow-lg">
+                <svg className="h-10 w-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
-              <h2 className="text-3xl font-bold text-white mb-3 tracking-tight">
-                Welcome to ScholarMate
+              <h2 className="text-3xl font-light text-slate-800 mb-3 tracking-wide">
+                Welcome to <span className="font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">ScholarMate</span>
               </h2>
-              <p className="text-white/90 text-lg font-medium max-w-md mx-auto leading-relaxed">
-                Let&apos;s set up your profile for collaborative research
+              <p className="text-slate-600 text-base font-light max-w-md mx-auto leading-relaxed">
+                Set up your research profile to begin collaborative analysis
               </p>
             </div>
             
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-6 bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+            <form onSubmit={handleSubmit} className="space-y-6 bg-white/40 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/50">
               
               {/* Display Name Field */}
-              <div className="space-y-2">
-                <label htmlFor="displayName" className="flex items-center text-sm font-semibold text-gray-700">
-                  <svg className="h-4 w-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              <div className="space-y-3">
+                <label htmlFor="displayName" className="flex items-center text-sm font-medium text-slate-700">
+                  <svg className="h-4 w-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                   </svg>
                   Display Name
-                  <span className="text-red-500 ml-1">*</span>
+                  <span className="text-red-400 ml-1">*</span>
                 </label>
-                <div className="relative">
+                <div className="relative group">
                   <input
                     type="text"
                     id="displayName"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-0 font-medium placeholder-gray-400 ${
+                    className={`w-full px-4 py-3.5 rounded-xl border transition-all duration-200 focus:outline-none focus:ring-2 font-light placeholder-slate-400 bg-white/70 backdrop-blur-sm shadow-sm ${
                       errors.displayName 
-                        ? 'border-red-300 focus:border-red-500 bg-red-50' 
-                        : 'border-gray-200 focus:border-blue-500 bg-gray-50 focus:bg-white'
+                        ? 'border-red-300 focus:border-red-400 focus:ring-red-200/50 bg-red-50/60' 
+                        : 'border-slate-200/80 focus:border-blue-400 focus:ring-blue-200/30 hover:border-blue-300 focus:bg-white/90'
                     }`}
                     placeholder="e.g., Dr. Sarah Chen"
                     maxLength={50}
                     disabled={loading}
                   />
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                    <span className="text-xs text-gray-400 font-medium">
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-4">
+                    <span className="text-xs text-slate-500 font-light bg-white/80 px-2 py-1 rounded-lg backdrop-blur-sm border border-slate-200/50">
                       {displayName.length}/50
                     </span>
                   </div>
                 </div>
                 {errors.displayName && (
-                  <p className="text-sm text-red-600 flex items-center">
-                    <svg className="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <p className="text-sm text-red-500 flex items-center">
+                    <svg className="h-4 w-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
                     {errors.displayName}
                   </p>
                 )}
-                <p className="text-xs text-gray-500 flex items-center">
-                  <svg className="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <p className="text-xs text-slate-500 flex items-center font-light">
+                  <svg className="h-3 w-3 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                   </svg>
                   Visible to other collaborators
@@ -129,45 +136,45 @@ const UserProfileSetup = ({ currentUser, appId, onComplete, completeProfile }) =
               </div>
               
               {/* Research Background Field */}
-              <div className="space-y-2">
-                <label htmlFor="researchBackground" className="flex items-center text-sm font-semibold text-gray-700">
-                  <svg className="h-4 w-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              <div className="space-y-3">
+                <label htmlFor="researchBackground" className="flex items-center text-sm font-medium text-slate-700">
+                  <svg className="h-4 w-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
                   Research Background
-                  <span className="text-red-500 ml-1">*</span>
+                  <span className="text-red-400 ml-1">*</span>
                 </label>
-                <div className="relative">
+                <div className="relative group">
                   <textarea
                     id="researchBackground"
                     rows={4}
                     value={researchBackground}
                     onChange={(e) => setResearchBackground(e.target.value)}
-                    className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 focus:outline-none focus:ring-0 resize-none font-medium placeholder-gray-400 ${
+                    className={`w-full px-4 py-3.5 rounded-xl border transition-all duration-200 focus:outline-none focus:ring-2 resize-none font-light placeholder-slate-400 bg-white/70 backdrop-blur-sm shadow-sm ${
                       errors.researchBackground 
-                        ? 'border-red-300 focus:border-red-500 bg-red-50' 
-                        : 'border-gray-200 focus:border-blue-500 bg-gray-50 focus:bg-white'
+                        ? 'border-red-300 focus:border-red-400 focus:ring-red-200/50 bg-red-50/60' 
+                        : 'border-slate-200/80 focus:border-blue-400 focus:ring-blue-200/30 hover:border-blue-300 focus:bg-white/90'
                     }`}
                     placeholder="e.g., PhD in Psychology specializing in cognitive behavior analysis, with background in statistical modeling ..."
                     maxLength={500}
                     disabled={loading}
                   />
-                  <div className="absolute bottom-2 right-2">
-                    <span className="text-xs text-gray-400 font-medium bg-white px-2 py-1 rounded">
+                  <div className="absolute bottom-3 right-3">
+                    <span className="text-xs text-slate-500 font-light bg-white/80 px-2 py-1 rounded-lg backdrop-blur-sm border border-slate-200/50">
                       {researchBackground.length}/500
                     </span>
                   </div>
                 </div>
                 {errors.researchBackground && (
-                  <p className="text-sm text-red-600 flex items-center justify-start">
-                    <svg className="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <p className="text-sm text-red-500 flex items-center justify-start">
+                    <svg className="h-4 w-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
                     {errors.researchBackground}
                   </p>
                 )}
-                <p className="text-xs text-gray-500 flex items-center">
-                  <svg className="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <p className="text-xs text-slate-500 flex items-center font-light">
+                  <svg className="h-3 w-3 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                   </svg>
                   Helps contextualize your analysis perspective
@@ -176,12 +183,12 @@ const UserProfileSetup = ({ currentUser, appId, onComplete, completeProfile }) =
               
               {/* Error Message */}
               {errors.submit && (
-                <div className="p-4 bg-red-50 border-l-4 border-red-400 rounded-r-lg">
-                  <div className="flex">
-                    <svg className="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                <div className="p-4 bg-red-100/60 backdrop-blur-sm border border-red-200/60 rounded-xl">
+                  <div className="flex items-center">
+                    <svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                     </svg>
-                    <p className="ml-3 text-sm text-red-700 font-medium">{errors.submit}</p>
+                    <p className="ml-3 text-sm text-red-600 font-medium">{errors.submit}</p>
                   </div>
                 </div>
               )}
@@ -190,7 +197,7 @@ const UserProfileSetup = ({ currentUser, appId, onComplete, completeProfile }) =
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-4 px-6 rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-4 focus:ring-blue-500/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
+                className="w-full relative overflow-hidden bg-gradient-to-r from-blue-500/80 to-purple-500/80 backdrop-blur-sm text-white font-medium py-4 px-6 rounded-xl hover:from-blue-600/90 hover:to-purple-600/90 focus:outline-none focus:ring-4 focus:ring-blue-400/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.01] active:scale-[0.99] shadow-lg hover:shadow-xl border border-white/20"
               >
                 {loading ? (
                   <div className="flex items-center justify-center">
@@ -198,13 +205,13 @@ const UserProfileSetup = ({ currentUser, appId, onComplete, completeProfile }) =
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <span>Setting up your profile...</span>
+                    <span className="font-light">Setting up your profile...</span>
                   </div>
                 ) : (
                   <div className="flex items-center justify-center">
-                    <span>Complete Profile Setup</span>
+                    <span className="font-light">Complete Profile Setup</span>
                     <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
                   </div>
                 )}
