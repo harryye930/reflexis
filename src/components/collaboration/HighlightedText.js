@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { sourceText, availableCodes } from '../../constants/index.js';
+import { sourceText } from '../../constants/index.js';
 import { getAbsoluteIndex, arraysEqual } from '../../lib/utils/selectionUtils.js';
 
 const HighlightedText = ({ 
@@ -7,7 +7,8 @@ const HighlightedText = ({
   userProfiles, 
   currentUser, 
   onTextSelection, 
-  onDeleteHighlight 
+  onDeleteHighlight,
+  allCodes 
 }) => {
   const textContainerRef = useRef(null);
 
@@ -99,7 +100,7 @@ const HighlightedText = ({
         // Build tooltip showing all highlights
         const tooltipParts = sortedHighlights.map(h => {
           const user = userProfiles[h.userId]?.name || '...';
-          const code = availableCodes.find(c => c.id === h.code)?.label || 'Unknown';
+          const code = allCodes?.find(c => c.id === h.code)?.label || 'Unknown';
           return `${user}: ${code}`;
         });
         const tooltip = tooltipParts.join('\n');

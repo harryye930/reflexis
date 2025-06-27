@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth.js';
 import { useHighlights } from '../hooks/useHighlights.js';
 import { useUserProfiles } from '../hooks/useUserProfiles.js';
 import { useUserActivity } from '../hooks/useUserActivity.js';
+import { useCodes } from '../hooks/useCodes.js';
 import HighlightedText from './collaboration/HighlightedText.js';
 import HighlightingModal from './collaboration/HighlightingModal.js';
 import MessageBox from './collaboration/MessageBox.js';
@@ -21,6 +22,7 @@ export default function CollaborativeText() {
   const { currentUser, loading, needsProfileSetup, completeProfile } = useAuth(appId);
   const { highlights, addHighlight, deleteHighlight } = useHighlights(appId, currentUser);
   const { userProfiles, userProfilesLoaded } = useUserProfiles(appId, currentUser);
+  const { allCodes, addCode, updateCode, deleteCode } = useCodes(appId, currentUser);
   useUserActivity(appId, currentUser);
 
   // Handle clicking outside to close modal
@@ -154,6 +156,37 @@ export default function CollaborativeText() {
     }
   };
 
+  const checkCodeUsage = async (codeId) => {
+    // Check how many highlights use this code
+    const codeHighlights = highlights.filter(highlight => highlight.code === codeId);
+    return {
+      count: codeHighlights.length,
+      highlights: codeHighlights
+    };
+  };
+
+  const deleteHighlightsByCode = async (codeId) => {
+    try {
+      // Find all highlights that use this code
+      const codeHighlights = highlights.filter(highlight => highlight.code === codeId);
+      
+      // Delete each highlight
+      const deletePromises = codeHighlights.map(highlight => deleteHighlight(highlight.id));
+      const results = await Promise.all(deletePromises);
+      
+      // Check if all deletions were successful
+      const allSuccessful = results.every(result => result.success);
+      
+      return { 
+        success: allSuccessful, 
+        deletedCount: allSuccessful ? codeHighlights.length : 0 
+      };
+    } catch (error) {
+      console.error('Error deleting highlights by code:', error);
+      return { success: false, error };
+    }
+  };
+
   const currentUserProfile = currentUser && userProfiles[currentUser.uid];
 
   return (
@@ -176,6 +209,7 @@ export default function CollaborativeText() {
             currentUser={currentUser}
             onTextSelection={handleTextSelection}
             onDeleteHighlight={handleDeleteHighlight}
+            allCodes={allCodes}
           />
         </div>
       </main>
@@ -188,12 +222,19 @@ export default function CollaborativeText() {
         onCodeSelect={handleAddHighlight}
         onMessage={showMessage}
         isSelectionActive={!!currentSelection}
+        allCodes={allCodes}
+        onAddCode={addCode}
+        onUpdateCode={updateCode}
+        onDeleteCode={deleteCode}
+        onCheckCodeUsage={checkCodeUsage}
+        onDeleteHighlightsByCode={deleteHighlightsByCode}
       />
 
       {/* Coding Modal */}
       {showModal && (
         <HighlightingModal
           modalPosition={modalPosition}
+          allCodes={allCodes}
           onCodeSelect={handleAddHighlight}
           onClose={() => setShowModal(false)}
         />
