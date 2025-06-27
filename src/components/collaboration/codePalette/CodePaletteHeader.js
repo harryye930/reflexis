@@ -1,0 +1,35 @@
+import React from 'react';
+
+const CodePaletteHeader = ({ 
+  showDescriptions, 
+  onToggleDescriptions, 
+  showAddForm, 
+  onToggleAddForm,
+  currentUser,
+  title = "Available Codes"
+}) => {
+  return (
+    <div className="flex items-center justify-between mb-4">
+      <h3 className="font-semibold text-gray-700">{title}</h3>
+      <div className="flex gap-2">
+        <button
+          onClick={onToggleDescriptions}
+          className="text-xs px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full transition-colors"
+          title={showDescriptions ? 'Hide descriptions' : 'Show descriptions'}
+        >
+          {showDescriptions ? '👁️‍🗨️ Hide Info' : '👁️ Show Info'}
+        </button>
+        {currentUser && (
+          <button
+            onClick={onToggleAddForm}
+            className="text-xs px-3 py-1 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
+          >
+            {showAddForm ? 'Cancel' : '+ Add'}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default CodePaletteHeader;
