@@ -36,7 +36,7 @@ The original `CollaborativeText.js` was a monolithic component containing:
 - `Sidebar.js` - Main sidebar assembling all collaboration components
 
 ### 📁 **src/components/**
-- `CollaborativeTextRefactored.js` - Main component orchestrating everything
+- `CollaborativeText.js` - Main component orchestrating everything
 
 ## Benefits Achieved
 

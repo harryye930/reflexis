@@ -1,4 +1,4 @@
-import CollaborativeText from '@/components/CollaborativeTextRefactored';
+import CollaborativeText from '@/components/CollaborativeText';
 import Head from 'next/head';
 
 export default function Home() {
