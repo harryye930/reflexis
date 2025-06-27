@@ -1,5 +1,6 @@
 import React from 'react';
 import UserInfo from '../collaboration/UserInfo.js';
+import CollaboratorLegend from '../collaboration/CollaboratorLegend.js';
 import CodeManagement from '../collaboration/codePalette/CodeManagement.js';
 import AdminControls from '../collaboration/AdminControls.js';
 
@@ -30,6 +31,7 @@ const Sidebar = ({
           userProfilesLoaded={userProfilesLoaded}
         />
 
+
         <CodeManagement 
           allCodes={allCodes}
           onCodeSelect={onCodeSelect}
@@ -42,6 +44,10 @@ const Sidebar = ({
           onMessage={onMessage}
           onCheckCodeUsage={onCheckCodeUsage}
           onDeleteHighlightsByCode={onDeleteHighlightsByCode}
+        />
+
+        <CollaboratorLegend 
+          userProfiles={userProfiles}
         />
       </div>
       
