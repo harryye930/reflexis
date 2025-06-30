@@ -23,7 +23,7 @@ const HighlightingModal = ({ modalPosition, allCodes, onCodeSelect, onClose }) =
           return (
             <button
               key={code.id}
-              className={`color-option px-3 py-1 rounded-full text-sm font-medium ${bgColor} ${textColor} hover:opacity-80 transition-opacity border border-gray-200`}
+              className={`code-palette-unified px-3 py-1 rounded-full text-sm font-medium ${bgColor} ${textColor} hover:scale-[1.02] hover:shadow-md transition-all duration-200 border border-gray-100`}
               data-code={code.id}
               onClick={() => onCodeSelect(code.id)}
               title={code.description}
