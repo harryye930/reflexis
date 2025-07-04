@@ -2,6 +2,7 @@ import React from 'react';
 import UserInfo from '../collaboration/UserInfo.js';
 import CollaboratorLegend from '../collaboration/CollaboratorLegend.js';
 import CodeManagement from '../collaboration/codePalette/CodeManagement.js';
+import DocumentSelector from '../collaboration/DocumentSelector.js';
 import AdminControls from '../collaboration/AdminControls.js';
 
 const Sidebar = ({ 
@@ -12,13 +13,18 @@ const Sidebar = ({
   onCodeSelect, 
   onMessage,
   isSelectionActive,
-  // New props for code management
+  // Code management props
   allCodes,
   onAddCode,
   onUpdateCode,
   onDeleteCode,
   onCheckCodeUsage,
-  onDeleteHighlightsByCode
+  onDeleteHighlightsByCode,
+  // Document management props
+  documents,
+  activeDocument,
+  onDocumentSwitch,
+  onAddDocument
 }) => {
   return (
     <aside className="w-full md:w-1/3 lg:w-1/4 bg-white border-l border-gray-200 flex flex-col h-screen">
@@ -31,6 +37,14 @@ const Sidebar = ({
           userProfilesLoaded={userProfilesLoaded}
         />
 
+        <DocumentSelector
+          documents={documents}
+          activeDocument={activeDocument}
+          onDocumentSwitch={onDocumentSwitch}
+          onAddDocument={onAddDocument}
+          onMessage={onMessage}
+          currentUser={currentUser}
+        />
 
         <CodeManagement 
           allCodes={allCodes}

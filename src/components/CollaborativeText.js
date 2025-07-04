@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { sourceText, appId } from '../constants/index.js';
+import { appId } from '../constants/index.js';
 import { getAbsoluteIndex } from '../lib/utils/selectionUtils.js';
 import { useAuth } from '../hooks/useAuth.js';
+import { useDocuments } from '../hooks/useDocuments.js';
 import { useHighlights } from '../hooks/useHighlights.js';
 import { useUserProfiles } from '../hooks/useUserProfiles.js';
 import { useUserActivity } from '../hooks/useUserActivity.js';
@@ -20,7 +21,8 @@ export default function CollaborativeText() {
   
   // Custom hooks
   const { currentUser, loading, needsProfileSetup, completeProfile } = useAuth(appId);
-  const { highlights, addHighlight, deleteHighlight } = useHighlights(appId, currentUser);
+  const { documents, activeDocument, activeDocumentId, documentsLoaded, addDocument, updateDocument, deleteDocument, switchActiveDocument } = useDocuments(appId, currentUser);
+  const { highlights, addHighlight, deleteHighlight } = useHighlights(appId, currentUser, activeDocumentId);
   const { userProfiles, userProfilesLoaded } = useUserProfiles(appId, currentUser);
   const { allCodes, addCode, updateCode, deleteCode } = useCodes(appId, currentUser);
   useUserActivity(appId, currentUser);
@@ -54,7 +56,7 @@ export default function CollaborativeText() {
   };
 
   const handleAddHighlight = async (code) => {
-    if (!currentSelection || !currentUser) return;
+    if (!currentSelection || !currentUser || !activeDocument) return;
 
     const textContainer = document.getElementById('text-container');
     if (!textContainer) return;
@@ -67,6 +69,9 @@ export default function CollaborativeText() {
     
     // Get the full text content of the container
     const containerText = textContainer.textContent || '';
+    
+    // Use the active document's content
+    const sourceText = activeDocument.content;
     
     // Find the start position by searching for the selected text in the source
     // We'll use the container's text content to map back to sourceText indices
@@ -124,14 +129,16 @@ export default function CollaborativeText() {
       selectedText: selectedText.trim(), 
       sourceStartIndex, 
       sourceEndIndex,
-      extractedText: sourceText.substring(sourceStartIndex, sourceEndIndex)
+      extractedText: sourceText.substring(sourceStartIndex, sourceEndIndex),
+      documentId: activeDocumentId
     });
 
     const result = await addHighlight({
       code,
       startIndex: sourceStartIndex,
       endIndex: sourceEndIndex,
-      text: sourceText.substring(sourceStartIndex, sourceEndIndex)
+      text: sourceText.substring(sourceStartIndex, sourceEndIndex),
+      documentId: activeDocumentId
     });
 
     if (result.success) {
@@ -157,8 +164,10 @@ export default function CollaborativeText() {
   };
 
   const checkCodeUsage = async (codeId) => {
-    // Check how many highlights use this code
-    const codeHighlights = highlights.filter(highlight => highlight.code === codeId);
+    // Check how many highlights use this code in the current document
+    const codeHighlights = highlights.filter(highlight => 
+      highlight.code === codeId && highlight.documentId === activeDocumentId
+    );
     return {
       count: codeHighlights.length,
       highlights: codeHighlights
@@ -167,8 +176,10 @@ export default function CollaborativeText() {
 
   const deleteHighlightsByCode = async (codeId) => {
     try {
-      // Find all highlights that use this code
-      const codeHighlights = highlights.filter(highlight => highlight.code === codeId);
+      // Find all highlights that use this code in the current document
+      const codeHighlights = highlights.filter(highlight => 
+        highlight.code === codeId && highlight.documentId === activeDocumentId
+      );
       
       // Delete each highlight
       const deletePromises = codeHighlights.map(highlight => deleteHighlight(highlight.id));
@@ -194,8 +205,15 @@ export default function CollaborativeText() {
       {/* Main Content Area */}
       <main className="w-full md:w-2/3 lg:w-3/4 p-6 md:p-8 overflow-y-auto">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Research Document</h1>
-          <p className="text-gray-500 mb-6">Select text with your mouse to apply a code.</p>
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              {activeDocument?.title || 'Research Document'}
+            </h1>
+            {activeDocument?.description && (
+              <p className="text-gray-600 mb-2">{activeDocument.description}</p>
+            )}
+            <p className="text-gray-500">Select text with your mouse to apply a code.</p>
+          </div>
 
           {loading && (
             <div id="loading-text" className="text-center p-8">
@@ -203,14 +221,17 @@ export default function CollaborativeText() {
             </div>
           )}
 
-          <HighlightedText
-            highlights={highlights}
-            userProfiles={userProfiles}
-            currentUser={currentUser}
-            onTextSelection={handleTextSelection}
-            onDeleteHighlight={handleDeleteHighlight}
-            allCodes={allCodes}
-          />
+          {!loading && documentsLoaded && (
+            <HighlightedText
+              highlights={highlights}
+              userProfiles={userProfiles}
+              currentUser={currentUser}
+              onTextSelection={handleTextSelection}
+              onDeleteHighlight={handleDeleteHighlight}
+              allCodes={allCodes}
+              activeDocument={activeDocument}
+            />
+          )}
         </div>
       </main>
 
@@ -228,6 +249,10 @@ export default function CollaborativeText() {
         onDeleteCode={deleteCode}
         onCheckCodeUsage={checkCodeUsage}
         onDeleteHighlightsByCode={deleteHighlightsByCode}
+        documents={documents}
+        activeDocument={activeDocument}
+        onDocumentSwitch={switchActiveDocument}
+        onAddDocument={addDocument}
       />
 
       {/* Coding Modal */}

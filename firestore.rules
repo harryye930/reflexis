@@ -29,6 +29,18 @@ service cloud.firestore {
         allow update, delete: if request.auth != null;
     }
 
+    // This rule handles documents management.
+    match /artifacts/{appId}/public/data/documents/{documentId} {
+        // Any authenticated user can read documents.
+        allow read: if request.auth != null;
+
+        // Any authenticated user can create a document.
+        allow create: if request.auth != null;
+
+        // Any authenticated user can update or delete any document.
+        allow update, delete: if request.auth != null;
+    }
+
     // This rule handles user profiles.
     match /artifacts/{appId}/public/data/users/{userId} {
        // Any authenticated user can see who else is in the session.

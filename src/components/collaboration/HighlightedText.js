@@ -1,5 +1,4 @@
 import React, { useRef, useEffect } from 'react';
-import { sourceText } from '../../constants/index.js';
 import { getAbsoluteIndex, arraysEqual } from '../../lib/utils/selectionUtils.js';
 
 const HighlightedText = ({ 
@@ -8,9 +7,13 @@ const HighlightedText = ({
   currentUser, 
   onTextSelection, 
   onDeleteHighlight,
-  allCodes 
+  allCodes,
+  activeDocument
 }) => {
   const textContainerRef = useRef(null);
+
+  // Use the text from the active document
+  const sourceText = activeDocument?.content || '';
 
   const handleTextSelection = (e) => {
     const selection = window.getSelection();
@@ -191,7 +194,11 @@ const HighlightedText = ({
       className="text-lg leading-relaxed bg-white p-8 rounded-lg shadow-sm prose max-w-none"
       onMouseUp={handleTextSelection}
     >
-      {renderTextWithHighlights()}
+      {sourceText ? renderTextWithHighlights() : (
+        <div className="text-gray-500 italic">
+          No document content available. Please select a document or add a new one.
+        </div>
+      )}
     </div>
   );
 };
