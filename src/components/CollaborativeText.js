@@ -8,7 +8,6 @@ import { useUserActivity } from '../hooks/useUserActivity.js';
 import { useCodes } from '../hooks/useCodes.js';
 import { useHighlightManagement } from '../hooks/useHighlightManagement.js';
 import { useMessageHandler } from '../hooks/useMessageHandler.js';
-import { useMobileNotifications } from '../hooks/useMobileNotifications.js';
 import { NotificationProvider, useNotificationContext } from '../contexts/NotificationContext.js';
 
 // Components
@@ -17,11 +16,7 @@ import HighlightingModal from './collaboration/HighlightingModal.js';
 import MessageBox from './collaboration/MessageBox.js';
 import UserProfileSetup from './collaboration/UserProfileSetup.js';
 import DocumentBrowser from './collaboration/DocumentBrowser.js';
-import MobileNotificationBell from './collaboration/MobileNotificationBell.js';
-import MobileNotificationPanel from './collaboration/MobileNotificationPanel.js';
-import MobileCodingPanel from './collaboration/MobileCodingPanel.js';
 import Sidebar from './layout/Sidebar.js';
-import MobileDocumentSelector from './layout/MobileDocumentSelector.js';
 import DocumentHeader from './layout/DocumentHeader.js';
 
 function CollaborativeTextContent() {
@@ -35,12 +30,6 @@ function CollaborativeTextContent() {
   // Custom hooks for UI management
   const { message, showMessage } = useMessageHandler();
   const { initializeWithWelcome } = useNotificationContext();
-  const { 
-    showMobileNotifications, 
-    unreadCount, 
-    toggleMobileNotifications, 
-    closeMobileNotifications 
-  } = useMobileNotifications();
   
   // Highlight management hook
   const {
@@ -99,7 +88,7 @@ function CollaborativeTextContent() {
   return (
     <div className="flex h-screen">
       {/* Document Browser - Left Panel */}
-      <div className="w-80 flex-shrink-0 hidden lg:block">
+      <div className="w-80 flex-shrink-0">
         <DocumentBrowser
           documents={documents}
           activeDocument={activeDocument}
@@ -111,15 +100,8 @@ function CollaborativeTextContent() {
       </div>
 
       {/* Main Content Area */}
-      <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto">
+      <main className="flex-1 p-8 overflow-y-auto">
         <div className="max-w-4xl mx-auto">
-          {/* Mobile Document Selector */}
-          <MobileDocumentSelector
-            documents={documents}
-            activeDocument={activeDocument}
-            onDocumentSwitch={switchActiveDocument}
-          />
-
           <DocumentHeader activeDocument={activeDocument} />
 
           {loading && (
@@ -143,7 +125,7 @@ function CollaborativeTextContent() {
       </main>
 
       {/* Analysis Tools Sidebar - Right Panel */}
-      <div className="w-80 xl:w-96 flex-shrink-0 hidden md:block">
+      <div className="w-80 xl:w-96 flex-shrink-0">
         <Sidebar
           currentUser={currentUser}
           currentUserProfile={currentUserProfile}
@@ -160,13 +142,6 @@ function CollaborativeTextContent() {
           onDeleteHighlightsByCode={deleteHighlightsByCode}
         />
       </div>
-
-      {/* Mobile Components */}
-      <MobileCodingPanel
-        allCodes={allCodes}
-        currentSelection={currentSelection}
-        onCodeSelect={handleAddHighlight}
-      />
 
       {/* Modals and Overlays */}
       {showModal && (
@@ -186,17 +161,6 @@ function CollaborativeTextContent() {
           onComplete={() => {/* Profile completion is handled by the hook */}}
         />
       )}
-
-      {/* Notification Components */}
-      <MobileNotificationBell
-        unreadCount={unreadCount}
-        onClick={toggleMobileNotifications}
-      />
-
-      <MobileNotificationPanel
-        isVisible={showMobileNotifications}
-        onClose={closeMobileNotifications}
-      />
 
       {/* Message System */}
       <MessageBox message={message} />
