@@ -11,6 +11,7 @@ import HighlightedText from './collaboration/HighlightedText.js';
 import HighlightingModal from './collaboration/HighlightingModal.js';
 import MessageBox from './collaboration/MessageBox.js';
 import UserProfileSetup from './collaboration/UserProfileSetup.js';
+import DocumentBrowser from './collaboration/DocumentBrowser.js';
 import Sidebar from './layout/Sidebar.js';
 
 export default function CollaborativeText() {
@@ -201,18 +202,45 @@ export default function CollaborativeText() {
   const currentUserProfile = currentUser && userProfiles[currentUser.uid];
 
   return (
-    <div className="flex flex-col md:flex-row h-screen">
+    <div className="flex h-screen">
+      {/* Document Browser - Left Panel */}
+      <div className="w-80 flex-shrink-0 hidden lg:block">
+        <DocumentBrowser
+          documents={documents}
+          activeDocument={activeDocument}
+          onDocumentSwitch={switchActiveDocument}
+          onAddDocument={addDocument}
+          onMessage={showMessage}
+          currentUser={currentUser}
+        />
+      </div>
+
       {/* Main Content Area */}
-      <main className="w-full md:w-2/3 lg:w-3/4 p-6 md:p-8 overflow-y-auto">
+      <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto">
         <div className="max-w-4xl mx-auto">
+          {/* Mobile Document Selector */}
+          <div className="lg:hidden mb-4">
+            <select
+              value={activeDocument?.id || ''}
+              onChange={(e) => switchActiveDocument(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              {documents.map((doc) => (
+                <option key={doc.id} value={doc.id}>
+                  {doc.title}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
               {activeDocument?.title || 'Research Document'}
             </h1>
             {activeDocument?.description && (
               <p className="text-gray-600 mb-2">{activeDocument.description}</p>
             )}
-            <p className="text-gray-500">Select text with your mouse to apply a code.</p>
+            <p className="text-gray-500 text-sm md:text-base">Select text with your mouse to apply a code.</p>
           </div>
 
           {loading && (
@@ -235,25 +263,56 @@ export default function CollaborativeText() {
         </div>
       </main>
 
-      <Sidebar
-        currentUser={currentUser}
-        currentUserProfile={currentUserProfile}
-        userProfiles={userProfiles}
-        userProfilesLoaded={userProfilesLoaded}
-        onCodeSelect={handleAddHighlight}
-        onMessage={showMessage}
-        isSelectionActive={!!currentSelection}
-        allCodes={allCodes}
-        onAddCode={addCode}
-        onUpdateCode={updateCode}
-        onDeleteCode={deleteCode}
-        onCheckCodeUsage={checkCodeUsage}
-        onDeleteHighlightsByCode={deleteHighlightsByCode}
-        documents={documents}
-        activeDocument={activeDocument}
-        onDocumentSwitch={switchActiveDocument}
-        onAddDocument={addDocument}
-      />
+      {/* Analysis Tools Sidebar - Right Panel */}
+      <div className="w-80 xl:w-96 flex-shrink-0 hidden md:block">
+        <Sidebar
+          currentUser={currentUser}
+          currentUserProfile={currentUserProfile}
+          userProfiles={userProfiles}
+          userProfilesLoaded={userProfilesLoaded}
+          onCodeSelect={handleAddHighlight}
+          onMessage={showMessage}
+          isSelectionActive={!!currentSelection}
+          allCodes={allCodes}
+          onAddCode={addCode}
+          onUpdateCode={updateCode}
+          onDeleteCode={deleteCode}
+          onCheckCodeUsage={checkCodeUsage}
+          onDeleteHighlightsByCode={deleteHighlightsByCode}
+        />
+      </div>
+
+      {/* Mobile Coding Panel - Bottom Sheet for smaller screens */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 max-h-96 overflow-y-auto">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-semibold text-gray-900">Analysis Tools</h3>
+          <button 
+            className="text-gray-500 hover:text-gray-700"
+            onClick={() => {/* Toggle mobile panel */}}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-2">
+            {allCodes.slice(0, 6).map((code) => (
+              <button
+                key={code.id}
+                onClick={() => handleAddHighlight(code)}
+                disabled={!currentSelection}
+                className={`p-2 rounded-md text-xs font-medium transition-colors ${code.color} ${code.textColor} ${
+                  !currentSelection ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-80'
+                }`}
+              >
+                {code.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* Coding Modal */}
       {showModal && (

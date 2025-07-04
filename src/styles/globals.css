@@ -26,6 +26,23 @@
     transition: opacity 0.2s ease;
 }
 
+/* Line clamp utilities for text truncation */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
 .highlight.multiple-highlights {
     border-radius: 6px;
     /* Subtle animation for multiple highlights */
