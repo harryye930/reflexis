@@ -1,202 +1,97 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { appId } from '../constants/index.js';
-import { getAbsoluteIndex } from '../lib/utils/selectionUtils.js';
 import { useAuth } from '../hooks/useAuth.js';
 import { useDocuments } from '../hooks/useDocuments.js';
 import { useHighlights } from '../hooks/useHighlights.js';
 import { useUserProfiles } from '../hooks/useUserProfiles.js';
 import { useUserActivity } from '../hooks/useUserActivity.js';
 import { useCodes } from '../hooks/useCodes.js';
+import { useHighlightManagement } from '../hooks/useHighlightManagement.js';
+import { useMessageHandler } from '../hooks/useMessageHandler.js';
+import { useMobileNotifications } from '../hooks/useMobileNotifications.js';
+import { NotificationProvider, useNotificationContext } from '../contexts/NotificationContext.js';
+
+// Components
 import HighlightedText from './collaboration/HighlightedText.js';
 import HighlightingModal from './collaboration/HighlightingModal.js';
 import MessageBox from './collaboration/MessageBox.js';
 import UserProfileSetup from './collaboration/UserProfileSetup.js';
 import DocumentBrowser from './collaboration/DocumentBrowser.js';
+import MobileNotificationBell from './collaboration/MobileNotificationBell.js';
+import MobileNotificationPanel from './collaboration/MobileNotificationPanel.js';
+import MobileCodingPanel from './collaboration/MobileCodingPanel.js';
 import Sidebar from './layout/Sidebar.js';
+import MobileDocumentSelector from './layout/MobileDocumentSelector.js';
+import DocumentHeader from './layout/DocumentHeader.js';
 
-export default function CollaborativeText() {
-  const [currentSelection, setCurrentSelection] = useState(null);
-  const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
-  const [showModal, setShowModal] = useState(false);
-  const [message, setMessage] = useState({ text: '', isError: false, show: false });
-  
-  // Custom hooks
+function CollaborativeTextContent() {
+  // Custom hooks for data management
   const { currentUser, loading, needsProfileSetup, completeProfile } = useAuth(appId);
   const { documents, activeDocument, activeDocumentId, documentsLoaded, addDocument, updateDocument, deleteDocument, switchActiveDocument } = useDocuments(appId, currentUser);
   const { highlights, addHighlight, deleteHighlight } = useHighlights(appId, currentUser, activeDocumentId);
   const { userProfiles, userProfilesLoaded } = useUserProfiles(appId, currentUser);
   const { allCodes, addCode, updateCode, deleteCode } = useCodes(appId, currentUser);
+  
+  // Custom hooks for UI management
+  const { message, showMessage } = useMessageHandler();
+  const { initializeWithWelcome } = useNotificationContext();
+  const { 
+    showMobileNotifications, 
+    unreadCount, 
+    toggleMobileNotifications, 
+    closeMobileNotifications 
+  } = useMobileNotifications();
+  
+  // Highlight management hook
+  const {
+    currentSelection,
+    modalPosition,
+    showModal,
+    handleTextSelection,
+    handleAddHighlight: baseHandleAddHighlight,
+    handleDeleteHighlight: baseHandleDeleteHighlight,
+    checkCodeUsage,
+    deleteHighlightsByCode,
+    closeModal,
+    isSelectionActive
+  } = useHighlightManagement(
+    currentUser, 
+    activeDocument, 
+    activeDocumentId, 
+    highlights, 
+    addHighlight, 
+    deleteHighlight, 
+    allCodes
+  );
+
   useUserActivity(appId, currentUser);
 
-  // Handle clicking outside to close modal
+  // Initialize notifications when user is available
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (!e.target.closest('#text-container') && 
-          !e.target.closest('#coding-modal')) {
-        setShowModal(false);
-      }
-    };
-
-    if (showModal) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+    if (currentUser) {
+      initializeWithWelcome();
     }
-  }, [showModal]);
+  }, [currentUser, initializeWithWelcome]);
 
-  const showMessage = (text, isError = false) => {
-    setMessage({ text, isError, show: true });
-    setTimeout(() => {
-      setMessage(prev => ({ ...prev, show: false }));
-    }, isError ? 8000 : 3000);
-  };
-
-  const handleTextSelection = (selection, position, shouldShow) => {
-    setCurrentSelection(selection);
-    if (position) setModalPosition(position);
-    setShowModal(shouldShow);
-  };
-
+  // Enhanced handlers with message feedback
   const handleAddHighlight = async (code) => {
-    if (!currentSelection || !currentUser || !activeDocument) return;
-
-    const textContainer = document.getElementById('text-container');
-    if (!textContainer) return;
-
-    const range = currentSelection.getRangeAt(0);
-    
-    // Get the selected text directly from the range
-    const selectedText = range.toString();
-    if (!selectedText || selectedText.trim() === '') return;
-    
-    // Get the full text content of the container
-    const containerText = textContainer.textContent || '';
-    
-    // Use the active document's content
-    const sourceText = activeDocument.content;
-    
-    // Find the start position by searching for the selected text in the source
-    // We'll use the container's text content to map back to sourceText indices
-    const startIndex = getAbsoluteIndex(textContainer, range.startContainer, range.startOffset);
-    const endIndex = getAbsoluteIndex(textContainer, range.endContainer, range.endOffset);
-    
-    // Ensure we have valid indices
-    if (startIndex === endIndex || startIndex < 0 || endIndex < 0) {
-      console.warn('Invalid selection indices:', { startIndex, endIndex, selectedText });
-      return;
-    }
-
-    // Map the container text indices to sourceText indices
-    // The container text should match sourceText exactly (just with added markup)
-    const cleanContainerText = containerText.replace(/\s+/g, ' ').trim();
-    const cleanSourceText = sourceText.replace(/\s+/g, ' ').trim();
-    
-    // Find the actual position in sourceText by comparing the selected text
-    let sourceStartIndex = sourceText.indexOf(selectedText.trim());
-    let sourceEndIndex = sourceStartIndex + selectedText.trim().length;
-    
-    // If direct search fails, try to find it by context
-    if (sourceStartIndex === -1) {
-      // Get some context around the selection
-      const contextBefore = containerText.substring(Math.max(0, startIndex - 20), startIndex);
-      const contextAfter = containerText.substring(endIndex, Math.min(containerText.length, endIndex + 20));
-      
-      // Try to find the selection within sourceText using context
-      const contextBeforeClean = contextBefore.replace(/\s+/g, ' ').trim();
-      const contextAfterClean = contextAfter.replace(/\s+/g, ' ').trim();
-      const selectedTextClean = selectedText.replace(/\s+/g, ' ').trim();
-      
-      const beforeIndex = sourceText.indexOf(contextBeforeClean);
-      if (beforeIndex !== -1) {
-        const searchStart = beforeIndex + contextBeforeClean.length;
-        sourceStartIndex = sourceText.indexOf(selectedTextClean, searchStart);
-        if (sourceStartIndex !== -1) {
-          sourceEndIndex = sourceStartIndex + selectedTextClean.length;
-        }
-      }
-    }
-    
-    // Fallback: use the calculated indices if we still can't find the text
-    if (sourceStartIndex === -1) {
-      console.warn('Could not map selection to source text, using calculated indices');
-      sourceStartIndex = Math.min(startIndex, endIndex);
-      sourceEndIndex = Math.max(startIndex, endIndex);
-      
-      // Ensure indices are within bounds
-      sourceStartIndex = Math.max(0, Math.min(sourceStartIndex, sourceText.length));
-      sourceEndIndex = Math.max(sourceStartIndex, Math.min(sourceEndIndex, sourceText.length));
-    }
-
-    console.log('Highlight indices:', { 
-      selectedText: selectedText.trim(), 
-      sourceStartIndex, 
-      sourceEndIndex,
-      extractedText: sourceText.substring(sourceStartIndex, sourceEndIndex),
-      documentId: activeDocumentId
-    });
-
-    const result = await addHighlight({
-      code,
-      startIndex: sourceStartIndex,
-      endIndex: sourceEndIndex,
-      text: sourceText.substring(sourceStartIndex, sourceEndIndex),
-      documentId: activeDocumentId
-    });
-
+    const result = await baseHandleAddHighlight(code);
     if (result.success) {
       showMessage('Highlight added!');
     } else {
       showMessage('Failed to add highlight.', true);
     }
-
-    setShowModal(false);
-    window.getSelection().removeAllRanges();
-    setCurrentSelection(null);
+    return result;
   };
 
   const handleDeleteHighlight = async (id) => {
-    if (!confirm("Are you sure you want to delete this highlight?")) return;
-
-    const result = await deleteHighlight(id);
+    const result = await baseHandleDeleteHighlight(id);
     if (result.success) {
       showMessage('Highlight deleted.');
     } else {
       showMessage('Failed to delete highlight.', true);
     }
-  };
-
-  const checkCodeUsage = async (codeId) => {
-    // Check how many highlights use this code in the current document
-    const codeHighlights = highlights.filter(highlight => 
-      highlight.code === codeId && highlight.documentId === activeDocumentId
-    );
-    return {
-      count: codeHighlights.length,
-      highlights: codeHighlights
-    };
-  };
-
-  const deleteHighlightsByCode = async (codeId) => {
-    try {
-      // Find all highlights that use this code in the current document
-      const codeHighlights = highlights.filter(highlight => 
-        highlight.code === codeId && highlight.documentId === activeDocumentId
-      );
-      
-      // Delete each highlight
-      const deletePromises = codeHighlights.map(highlight => deleteHighlight(highlight.id));
-      const results = await Promise.all(deletePromises);
-      
-      // Check if all deletions were successful
-      const allSuccessful = results.every(result => result.success);
-      
-      return { 
-        success: allSuccessful, 
-        deletedCount: allSuccessful ? codeHighlights.length : 0 
-      };
-    } catch (error) {
-      console.error('Error deleting highlights by code:', error);
-      return { success: false, error };
-    }
+    return result;
   };
 
   const currentUserProfile = currentUser && userProfiles[currentUser.uid];
@@ -219,29 +114,13 @@ export default function CollaborativeText() {
       <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto">
         <div className="max-w-4xl mx-auto">
           {/* Mobile Document Selector */}
-          <div className="lg:hidden mb-4">
-            <select
-              value={activeDocument?.id || ''}
-              onChange={(e) => switchActiveDocument(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              {documents.map((doc) => (
-                <option key={doc.id} value={doc.id}>
-                  {doc.title}
-                </option>
-              ))}
-            </select>
-          </div>
+          <MobileDocumentSelector
+            documents={documents}
+            activeDocument={activeDocument}
+            onDocumentSwitch={switchActiveDocument}
+          />
 
-          <div className="mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-              {activeDocument?.title || 'Research Document'}
-            </h1>
-            {activeDocument?.description && (
-              <p className="text-gray-600 mb-2">{activeDocument.description}</p>
-            )}
-            <p className="text-gray-500 text-sm md:text-base">Select text with your mouse to apply a code.</p>
-          </div>
+          <DocumentHeader activeDocument={activeDocument} />
 
           {loading && (
             <div id="loading-text" className="text-center p-8">
@@ -272,7 +151,7 @@ export default function CollaborativeText() {
           userProfilesLoaded={userProfilesLoaded}
           onCodeSelect={handleAddHighlight}
           onMessage={showMessage}
-          isSelectionActive={!!currentSelection}
+          isSelectionActive={isSelectionActive}
           allCodes={allCodes}
           onAddCode={addCode}
           onUpdateCode={updateCode}
@@ -282,49 +161,23 @@ export default function CollaborativeText() {
         />
       </div>
 
-      {/* Mobile Coding Panel - Bottom Sheet for smaller screens */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 max-h-96 overflow-y-auto">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-lg font-semibold text-gray-900">Analysis Tools</h3>
-          <button 
-            className="text-gray-500 hover:text-gray-700"
-            onClick={() => {/* Toggle mobile panel */}}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-2">
-            {allCodes.slice(0, 6).map((code) => (
-              <button
-                key={code.id}
-                onClick={() => handleAddHighlight(code)}
-                disabled={!currentSelection}
-                className={`p-2 rounded-md text-xs font-medium transition-colors ${code.color} ${code.textColor} ${
-                  !currentSelection ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-80'
-                }`}
-              >
-                {code.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* Mobile Components */}
+      <MobileCodingPanel
+        allCodes={allCodes}
+        currentSelection={currentSelection}
+        onCodeSelect={handleAddHighlight}
+      />
 
-      {/* Coding Modal */}
+      {/* Modals and Overlays */}
       {showModal && (
         <HighlightingModal
           modalPosition={modalPosition}
           allCodes={allCodes}
           onCodeSelect={handleAddHighlight}
-          onClose={() => setShowModal(false)}
+          onClose={closeModal}
         />
       )}
 
-      {/* User Profile Setup Modal */}
       {needsProfileSetup && currentUser && (
         <UserProfileSetup
           currentUser={currentUser}
@@ -334,7 +187,27 @@ export default function CollaborativeText() {
         />
       )}
 
+      {/* Notification Components */}
+      <MobileNotificationBell
+        unreadCount={unreadCount}
+        onClick={toggleMobileNotifications}
+      />
+
+      <MobileNotificationPanel
+        isVisible={showMobileNotifications}
+        onClose={closeMobileNotifications}
+      />
+
+      {/* Message System */}
       <MessageBox message={message} />
     </div>
+  );
+}
+
+export default function CollaborativeText() {
+  return (
+    <NotificationProvider>
+      <CollaborativeTextContent />
+    </NotificationProvider>
   );
 }
