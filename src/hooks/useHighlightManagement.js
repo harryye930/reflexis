@@ -37,16 +37,15 @@ export const useHighlightManagement = (
     tempDiv.appendChild(range.cloneContents());
     
     // Remove all UI elements (buttons, indicators, etc.)
-    const uiElements = tempDiv.querySelectorAll('.delete-highlight, .multiple-indicator');
+    const uiElements = tempDiv.querySelectorAll('.delete-highlight, .multiple-indicator, .highlight-count-indicator');
     uiElements.forEach(el => el.remove());
     
     // Get the cleaned text content
     let selectedTextClean = tempDiv.textContent || tempDiv.innerText || '';
     
-    // Additional cleanup for any remaining artifacts
+    // Simple cleanup for any remaining artifacts
     selectedTextClean = selectedTextClean
       .replace(/[×]/g, '') // Remove any remaining delete symbols
-      .replace(/\d+×/g, '') // Remove count indicators like "2×"
       .replace(/\s+/g, ' ') // Normalize whitespace
       .trim();
     
@@ -54,7 +53,6 @@ export const useHighlightManagement = (
     if (!selectedTextClean && rawSelectedText) {
       selectedTextClean = rawSelectedText
         .replace(/[×]/g, '')
-        .replace(/\d+×/g, '')
         .replace(/\s+/g, ' ')
         .trim();
     }
@@ -68,7 +66,6 @@ export const useHighlightManagement = (
     const containerText = textContainer.textContent || '';
     const containerTextClean = containerText
       .replace(/[×]/g, '')
-      .replace(/\d+×/g, '')
       .replace(/\s+/g, ' ');
     
     // Get DOM-based indices for fallback, but we'll primarily rely on text search

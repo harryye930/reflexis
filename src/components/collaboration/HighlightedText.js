@@ -1,16 +1,9 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { getAbsoluteIndex, arraysEqual } from '../../lib/utils/selectionUtils.js';
-import { getUserDisplayColor } from '../../lib/utils/hoverUtils.js';
-import { hexToRgba } from '../../lib/utils/colorUtils.js';
 import HighlightTooltip from './HighlightTooltip.js';
 import HighlightManagementPanel from './HighlightManagementPanel.js';
-
-// Opacity constants based on total number of codes
-const OPACITY = {
-  ONE_CODE: 0.4,
-  TWO_CODES: 0.6,
-  THREE_PLUS_CODES: 0.8
-};
+import HighlightSegment from './HighlightSegment.js';
+import { useTextSegmentation } from '../../hooks/features/useTextSegmentation.js';
 
 const HighlightedText = ({ 
   highlights, 
@@ -109,162 +102,28 @@ const HighlightedText = ({
     setManagementPanel(prev => ({ ...prev, visible: false }));
   };
 
-  // Helper function to determine background style for a segment
-  const getBackgroundStyle = (segment, userProfiles, showAuthorInfo) => {
-    const totalCodes = segment.highlights.length;
-    const uniqueUsers = [...new Set(segment.highlights.map(h => h.userId))];
-    const userColors = uniqueUsers.map(userId => {
-      const user = userProfiles[userId];
-      return getUserDisplayColor(user, showAuthorInfo);
-    });
 
-    // Determine opacity based on total number of codes
-    let opacity;
-    if (totalCodes === 1) {
-      opacity = OPACITY.ONE_CODE;
-    } else if (totalCodes === 2) {
-      opacity = OPACITY.TWO_CODES;
-    } else {
-      opacity = OPACITY.THREE_PLUS_CODES;
-    }
 
-    // Single highlight
-    if (totalCodes === 1) {
-      const user = userProfiles[segment.highlights[0].userId];
-      const userColor = getUserDisplayColor(user, showAuthorInfo);
-      return {
-        backgroundColor: hexToRgba(userColor, opacity)
-      };
-    }
-
-    // Multiple highlights - create gradient patterns based on unique users
-    if (userColors.length === 1) {
-      // Same user, multiple codes
-      return {
-        backgroundColor: hexToRgba(userColors[0], opacity)
-      };
-    } else if (userColors.length === 2) {
-      // Two different users
-      return {
-        background: `linear-gradient(45deg, 
-          ${hexToRgba(userColors[0], opacity)} 50%, 
-          ${hexToRgba(userColors[1], opacity)} 50%)`
-      };
-    } else if (userColors.length === 3) {
-      // Three different users
-      return {
-        background: `linear-gradient(45deg, 
-          ${hexToRgba(userColors[0], opacity)} 0%, 
-          ${hexToRgba(userColors[0], opacity)} 33%, 
-          ${hexToRgba(userColors[1], opacity)} 33%, 
-          ${hexToRgba(userColors[1], opacity)} 67%, 
-          ${hexToRgba(userColors[2], opacity)} 67%, 
-          ${hexToRgba(userColors[2], opacity)} 100%)`
-      };
-    } else {
-      // Four or more different users
-      const colorStops = userColors.map((color, i) => {
-        const start = (i / userColors.length) * 100;
-        const end = ((i + 1) / userColors.length) * 100;
-        return `${hexToRgba(color, opacity)} ${start}%, ${hexToRgba(color, opacity)} ${end}%`;
-      }).join(', ');
-
-      return {
-        background: `linear-gradient(45deg, ${colorStops})`
-      };
-    }
-  };
+  // Use the custom hook for text segmentation
+  const segments = useTextSegmentation(highlights, sourceText);
 
   const renderTextWithHighlights = () => {
-    // Early return for no highlights
-    if (highlights.length === 0) {
-      return <span>{sourceText}</span>;
-    }
-
-    // Create segments based on highlight boundaries
-    const segments = [];
-    const boundaries = new Set([0, sourceText.length]);
-    
-    // Add all highlight start and end positions as boundaries
-    highlights.forEach(h => {
-      boundaries.add(h.startIndex);
-      boundaries.add(h.endIndex);
-    });
-    
-    const sortedBoundaries = Array.from(boundaries).sort((a, b) => a - b);
-    
-    // Create segments between boundaries
-    for (let i = 0; i < sortedBoundaries.length - 1; i++) {
-      const start = sortedBoundaries[i];
-      const end = sortedBoundaries[i + 1];
-      const text = sourceText.substring(start, end);
-      
-      // Find all highlights that cover this segment
-      const segmentHighlights = highlights.filter(h => 
-        h.startIndex <= start && h.endIndex >= end
-      );
-      
-      segments.push({
-        text,
-        startIndex: start,
-        endIndex: end,
-        highlights: segmentHighlights
-      });
-    }
-    
-    // Render segments with consistent logic
-    const renderedSegments = segments.map((segment, index) => {
-      // Early return for segments without highlights
-      if (segment.highlights.length === 0) {
-        return <span key={index}>{segment.text}</span>;
-      }
-
-      // Get background style using helper function
-      const backgroundStyle = getBackgroundStyle(segment, userProfiles, showAuthorInfo);
-      
-      // Determine if current user owns any of these highlights
-      const isOwner = segment.highlights.some(h => currentUser && h.userId === currentUser.uid);
-      
-      // Determine CSS classes
-      const highlightClasses = [
-        'highlight',
-        segment.highlights.length > 1 ? 'multiple-highlights' : '',
-        isOwner ? 'owned-highlight' : ''
-      ].filter(Boolean).join(' ');
-
-      // Determine outline style
-      const outlineStyle = segment.highlights.length > 1 ? '1px dotted rgba(0,0,0,0.2)' : 'none';
-
-      return (
-        <mark
-          key={index}
-          className={highlightClasses}
-          style={{
-            ...backgroundStyle,
-            position: 'relative',
-            borderRadius: '2px',
-            padding: '1px 2px',
-            margin: '0 -1px',
-            cursor: 'pointer',
-            border: 'none',
-            outline: outlineStyle
-          }}
-          onClick={(e) => handleHighlightClick(e, segment.highlights)}
-          onMouseEnter={(e) => handleHighlightHover(e, segment.highlights)}
-          onMouseLeave={handleHighlightLeave}
-        >
-          {/* Visual indicators for multiple highlights */}
-          {segment.highlights.length > 1 && (
-            <span className="absolute -top-1 -right-1 text-xs bg-gray-800 text-white rounded-full w-4 h-4 flex items-center justify-center font-bold">
-              {segment.highlights.length}
-            </span>
-          )}
-          {segment.text}
-        </mark>
-      );
-    });
-
-    return <span>{renderedSegments}</span>;
+    return (
+      <span>
+        {segments.map((segment, index) => (
+          <HighlightSegment
+            key={index}
+            segment={segment}
+            userProfiles={userProfiles}
+            currentUser={currentUser}
+            showAuthorInfo={showAuthorInfo}
+            onHighlightClick={handleHighlightClick}
+            onHighlightHover={handleHighlightHover}
+            onHighlightLeave={handleHighlightLeave}
+          />
+        ))}
+      </span>
+    );
   };
 
   return (
