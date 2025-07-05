@@ -57,3 +57,16 @@ export const getAvailableColor = async (appId) => {
     return userColors[Math.floor(Math.random() * userColors.length)];
   }
 };
+
+/**
+ * Convert hex color to rgba with specified opacity
+ * @param {string} hex - Hex color string (e.g., "#ff0000")
+ * @param {number} opacity - Opacity value between 0 and 1
+ * @returns {string} RGBA color string
+ */
+export const hexToRgba = (hex, opacity) => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+};

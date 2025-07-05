@@ -8,7 +8,7 @@ const HoverSettings = ({
 }) => {
   return (
     <div className="space-y-3">
-      <h4 className="font-semibold text-gray-700 text-sm">Highlight Hover Settings</h4>
+      <h4 className="font-semibold text-gray-700 text-sm">Highlight Display Settings</h4>
       
       <div className="space-y-2">
         {/* Toggle for showing hover tooltips */}
@@ -31,22 +31,21 @@ const HoverSettings = ({
           </button>
         </div>
 
-        {/* Toggle for showing author info (only when hover tooltips are enabled) */}
-        <div className={`flex items-center justify-between ${!showHoverTooltips ? 'opacity-50' : ''}`}>
+        {/* Toggle for showing author info (now independent) */}
+        <div className="flex items-center justify-between">
           <div className="flex-1">
             <label className="text-sm text-gray-600">Show author info</label>
-            <p className="text-xs text-gray-500">Display author details and individual colors</p>
+            <p className="text-xs text-gray-500">Display author details and individual colors in highlights</p>
           </div>
           <button
             onClick={onToggleAuthorInfo}
-            disabled={!showHoverTooltips}
-            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed ${
-              showAuthorInfo && showHoverTooltips ? 'bg-blue-600' : 'bg-gray-200'
+            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+              showAuthorInfo ? 'bg-blue-600' : 'bg-gray-200'
             }`}
           >
             <span
               className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                showAuthorInfo && showHoverTooltips ? 'translate-x-5' : 'translate-x-1'
+                showAuthorInfo ? 'translate-x-5' : 'translate-x-1'
               }`}
             />
           </button>
