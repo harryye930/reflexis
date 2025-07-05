@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAbsoluteIndex } from '../lib/utils/selectionUtils.js';
+import { getAbsoluteIndex, findTextWithContext } from '../lib/utils/selectionUtils.js';
 
 export const useHighlightManagement = (
   currentUser, 
@@ -28,67 +28,96 @@ export const useHighlightManagement = (
 
     const range = currentSelection.getRangeAt(0);
     
-    // Get the selected text directly from the range
-    const selectedText = range.toString();
-    if (!selectedText || selectedText.trim() === '') return { success: false };
+    // Get the selected text using a robust approach that mimics browser copy behavior
+    const rawSelectedText = range.toString();
+    if (!rawSelectedText || rawSelectedText.trim() === '') return { success: false };
     
-    // Get the full text content of the container
-    const containerText = textContainer.textContent || '';
+    // Create a temporary container to properly extract clean text without UI elements
+    const tempDiv = document.createElement('div');
+    tempDiv.appendChild(range.cloneContents());
     
-    // Use the active document's content
+    // Remove all UI elements (buttons, indicators, etc.)
+    const uiElements = tempDiv.querySelectorAll('.delete-highlight, .multiple-indicator');
+    uiElements.forEach(el => el.remove());
+    
+    // Get the cleaned text content
+    let selectedTextClean = tempDiv.textContent || tempDiv.innerText || '';
+    
+    // Additional cleanup for any remaining artifacts
+    selectedTextClean = selectedTextClean
+      .replace(/[×]/g, '') // Remove any remaining delete symbols
+      .replace(/\d+×/g, '') // Remove count indicators like "2×"
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .trim();
+    
+    // Fallback to basic cleaning if the above didn't work
+    if (!selectedTextClean && rawSelectedText) {
+      selectedTextClean = rawSelectedText
+        .replace(/[×]/g, '')
+        .replace(/\d+×/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+    
+    if (!selectedTextClean) return { success: false };
+    
+    // Use the active document's content as our source of truth
     const sourceText = activeDocument.content;
     
-    // Find the start position by searching for the selected text in the source
-    const startIndex = getAbsoluteIndex(textContainer, range.startContainer, range.startOffset);
-    const endIndex = getAbsoluteIndex(textContainer, range.endContainer, range.endOffset);
+    // Get clean text content from container for context (also removing UI elements)
+    const containerText = textContainer.textContent || '';
+    const containerTextClean = containerText
+      .replace(/[×]/g, '')
+      .replace(/\d+×/g, '')
+      .replace(/\s+/g, ' ');
     
-    // Ensure we have valid indices
-    if (startIndex === endIndex || startIndex < 0 || endIndex < 0) {
-      console.warn('Invalid selection indices:', { startIndex, endIndex, selectedText });
-      return { success: false };
-    }
+    // Get DOM-based indices for fallback, but we'll primarily rely on text search
+    const rawStartIndex = getAbsoluteIndex(textContainer, range.startContainer, range.startOffset);
+    const rawEndIndex = getAbsoluteIndex(textContainer, range.endContainer, range.endOffset);
+    const startIndex = Math.min(rawStartIndex, rawEndIndex);
+    const endIndex = Math.max(rawStartIndex, rawEndIndex);
 
-    // Map the container text indices to sourceText indices
-    let sourceStartIndex = sourceText.indexOf(selectedText.trim());
-    let sourceEndIndex = sourceStartIndex + selectedText.trim().length;
+    // Build context for text search - use cleaned container text
+    let contextBefore = '';
+    let contextAfter = '';
     
-    // If direct search fails, try to find it by context
+    if (startIndex >= 0 && endIndex > startIndex) {
+      const contextStart = Math.max(0, startIndex - 50);
+      const contextEnd = Math.min(containerTextClean.length, endIndex + 50);
+      contextBefore = containerTextClean.substring(contextStart, startIndex);
+      contextAfter = containerTextClean.substring(endIndex, contextEnd);
+    }
+    
+    // Try context-aware search first
+    let sourceStartIndex = findTextWithContext(sourceText, selectedTextClean, contextBefore, contextAfter);
+    let sourceEndIndex = sourceStartIndex !== -1 ? sourceStartIndex + selectedTextClean.length : -1;
+    
+    // If context search fails, try simpler approaches
     if (sourceStartIndex === -1) {
-      const contextBefore = containerText.substring(Math.max(0, startIndex - 20), startIndex);
-      const contextAfter = containerText.substring(endIndex, Math.min(containerText.length, endIndex + 20));
+      // Simple indexOf search on normalized text
+      const normalizedSource = sourceText.replace(/\s+/g, ' ');
+      const normalizedTarget = selectedTextClean.replace(/\s+/g, ' ');
       
-      const contextBeforeClean = contextBefore.replace(/\s+/g, ' ').trim();
-      const contextAfterClean = contextAfter.replace(/\s+/g, ' ').trim();
-      const selectedTextClean = selectedText.replace(/\s+/g, ' ').trim();
-      
-      const beforeIndex = sourceText.indexOf(contextBeforeClean);
-      if (beforeIndex !== -1) {
-        const searchStart = beforeIndex + contextBeforeClean.length;
-        sourceStartIndex = sourceText.indexOf(selectedTextClean, searchStart);
-        if (sourceStartIndex !== -1) {
-          sourceEndIndex = sourceStartIndex + selectedTextClean.length;
-        }
+      sourceStartIndex = normalizedSource.indexOf(normalizedTarget);
+      if (sourceStartIndex !== -1) {
+        sourceEndIndex = sourceStartIndex + normalizedTarget.length;
+      } else {
+        return { success: false, error: 'Selected text not found in source document' };
       }
     }
-    
-    // Fallback: use the calculated indices if we still can't find the text
-    if (sourceStartIndex === -1) {
-      console.warn('Could not map selection to source text, using calculated indices');
-      sourceStartIndex = Math.min(startIndex, endIndex);
-      sourceEndIndex = Math.max(startIndex, endIndex);
-      
-      // Ensure indices are within bounds
-      sourceStartIndex = Math.max(0, Math.min(sourceStartIndex, sourceText.length));
-      sourceEndIndex = Math.max(sourceStartIndex, Math.min(sourceEndIndex, sourceText.length));
-    }
 
-    console.log('Highlight indices:', { 
-      selectedText: selectedText.trim(), 
-      sourceStartIndex, 
-      sourceEndIndex,
-      extractedText: sourceText.substring(sourceStartIndex, sourceEndIndex),
-      documentId: activeDocumentId
-    });
+    // Validate that our mapping is reasonable before creating the highlight
+    const extractedText = sourceText.substring(sourceStartIndex, sourceEndIndex);
+    const normalizedSelected = selectedTextClean.replace(/\s+/g, ' ').trim();
+    const normalizedExtracted = extractedText.replace(/\s+/g, ' ').trim();
+    
+    if (normalizedSelected !== normalizedExtracted) {
+      // Only reject if the mismatch is very significant
+      const lengthRatio = normalizedExtracted.length / normalizedSelected.length;
+      if (normalizedExtracted.length === 0 || lengthRatio > 5 || lengthRatio < 0.2) {
+        return { success: false, error: 'Text selection mapping failed severely' };
+      }
+    }
 
     const result = await addHighlight({
       code,

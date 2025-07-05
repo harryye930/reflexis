@@ -26,6 +26,16 @@
     transition: opacity 0.2s ease;
 }
 
+/* Make all buttons and UI elements within highlights non-selectable */
+.highlight button,
+.highlight .delete-highlight,
+.highlight .multiple-indicator {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
 /* Line clamp utilities for text truncation */
 .line-clamp-2 {
     display: -webkit-box;
@@ -67,6 +77,10 @@
     font-weight: bold;
     /* Small shadow for better visibility */
     box-shadow: 0 0 2px rgba(0,0,0,0.3);
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
 
 .highlight:hover .delete-highlight {
@@ -93,6 +107,11 @@
     transition: opacity 0.2s;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     z-index: 10;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    pointer-events: auto;
 }
 
 .coding-modal {
