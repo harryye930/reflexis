@@ -1,18 +1,15 @@
 import { useEffect } from 'react';
-import { doc, setDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase.js';
+import { AuthService } from '../services/api/firebase/authService.js';
 
 export const useUserActivity = (appId, currentUser) => {
   useEffect(() => {
     if (!currentUser) return;
 
+    const authService = new AuthService(appId);
+
     const updateActivity = async () => {
       try {
-        const userDocRef = doc(db, `artifacts/${appId}/public/data/users`, currentUser.uid);
-        // Only update lastSeen, don't accidentally overwrite other fields
-        await setDoc(userDocRef, {
-          lastSeen: new Date()
-        }, { merge: true });
+        await authService.updateLastSeen(currentUser.uid);
       } catch (error) {
         console.error('Error updating user activity:', error);
       }

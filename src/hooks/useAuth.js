@@ -1,27 +1,22 @@
 import { useState, useEffect } from 'react';
-import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../lib/firebase.js';
-import { getAvailableColor } from '../lib/utils/colorUtils.js';
+import { AuthService } from '../services/api/firebase/authService.js';
 
 export const useAuth = (appId) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [needsProfileSetup, setNeedsProfileSetup] = useState(false);
+  const [authService] = useState(() => new AuthService(appId));
 
   const completeProfile = async (displayName, researchBackground) => {
     if (!currentUser) return;
     
     try {
-      const userDocRef = doc(db, `artifacts/${appId}/public/data/users`, currentUser.uid);
-      await setDoc(userDocRef, {
-        name: displayName,
-        researchBackground,
-        profileCompleted: true,
-        lastSeen: new Date()
-      }, { merge: true });
-      
-      setNeedsProfileSetup(false);
+      const result = await authService.completeProfile(currentUser.uid, displayName, researchBackground);
+      if (result.success) {
+        setNeedsProfileSetup(false);
+      } else {
+        throw new Error(result.error);
+      }
     } catch (error) {
       console.error('Error completing profile:', error);
       throw error;
@@ -29,25 +24,22 @@ export const useAuth = (appId) => {
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async user => {
+    const unsubscribe = authService.onAuthStateChange(async user => {
       if (user) {
         try {
-          const userDocRef = doc(db, `artifacts/${appId}/public/data/users`, user.uid);
-          const userDoc = await getDoc(userDocRef);
+          // Check if user document exists
+          const userDocResult = await authService.getUserDocument(user.uid);
           
-          if (!userDoc.exists()) {
+          if (!userDocResult.success) {
             // Create new user document
-            const assignedColor = await getAvailableColor(appId);
-            await setDoc(userDocRef, {
-              userId: user.uid,
-              color: assignedColor,
-              lastSeen: new Date(),
-              isAnonymous: user.isAnonymous,
-              profileCompleted: false
-            });
-            setNeedsProfileSetup(true);
+            const setupResult = await authService.setupNewUser(user.uid, user.isAnonymous);
+            if (setupResult.success) {
+              setNeedsProfileSetup(true);
+            } else {
+              throw new Error(setupResult.error);
+            }
           } else {
-            const existingData = userDoc.data();
+            const existingData = userDocResult.data;
             
             // Check if user has completed profile setup
             if (!existingData.profileCompleted) {
@@ -55,9 +47,7 @@ export const useAuth = (appId) => {
             }
             
             // Update lastSeen
-            await setDoc(userDocRef, {
-              lastSeen: new Date()
-            }, { merge: true });
+            await authService.updateLastSeen(user.uid);
           }
           
           setCurrentUser(user);
@@ -67,14 +57,17 @@ export const useAuth = (appId) => {
           setLoading(false);
         }
       } else {
-        signInAnonymously(auth).catch(error => {
-          console.error(error);
+        // Sign in anonymously
+        const signInResult = await authService.signInAnonymously();
+        if (!signInResult.success) {
+          console.error('Error signing in anonymously:', signInResult.error);
           setLoading(false);
-        });
+        }
       }
     });
+    
     return () => unsubscribe();
-  }, [appId]);
+  }, [appId, authService]);
 
   return { currentUser, loading, needsProfileSetup, completeProfile };
 };
