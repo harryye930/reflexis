@@ -14,7 +14,9 @@ const CodeItem = ({
   const getAuthorName = (code) => {
     if (code.isDefault) return null;
     if (code.createdBy && userProfiles[code.createdBy]) {
-      return userProfiles[code.createdBy].name;
+      const authorName = userProfiles[code.createdBy].name;
+      const isCurrentUser = currentUser && code.createdBy === currentUser.uid;
+      return isCurrentUser ? `${authorName} (you)` : authorName;
     }
     return 'Unknown';
   };

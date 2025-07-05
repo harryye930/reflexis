@@ -9,6 +9,7 @@ import { useCodes } from '../hooks/useCodes.js';
 import { useHighlightManagement } from '../hooks/useHighlightManagement.js';
 import { useMessageHandler } from '../hooks/useMessageHandler.js';
 import { NotificationProvider, useNotificationContext } from '../contexts/NotificationContext.js';
+import { useHoverPreferences } from '../hooks/useHoverPreferences.js';
 
 // Components
 import HighlightedText from './collaboration/HighlightedText.js';
@@ -30,6 +31,14 @@ function CollaborativeTextContent() {
   // Custom hooks for UI management
   const { message, showMessage } = useMessageHandler();
   const { initializeWithWelcome } = useNotificationContext();
+  
+  // Hover preferences
+  const { 
+    showHoverTooltips, 
+    showAuthorInfo, 
+    toggleHoverTooltips, 
+    toggleAuthorInfo 
+  } = useHoverPreferences(appId);
   
   // Highlight management hook
   const {
@@ -119,6 +128,8 @@ function CollaborativeTextContent() {
               onDeleteHighlight={handleDeleteHighlight}
               allCodes={allCodes}
               activeDocument={activeDocument}
+              showHoverTooltips={showHoverTooltips}
+              showAuthorInfo={showAuthorInfo}
             />
           )}
         </div>
@@ -140,6 +151,10 @@ function CollaborativeTextContent() {
           onDeleteCode={deleteCode}
           onCheckCodeUsage={checkCodeUsage}
           onDeleteHighlightsByCode={deleteHighlightsByCode}
+          showHoverTooltips={showHoverTooltips}
+          showAuthorInfo={showAuthorInfo}
+          onToggleHoverTooltips={toggleHoverTooltips}
+          onToggleAuthorInfo={toggleAuthorInfo}
         />
       </div>
 

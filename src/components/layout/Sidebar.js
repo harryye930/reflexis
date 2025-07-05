@@ -21,7 +21,12 @@ const Sidebar = ({
   onUpdateCode,
   onDeleteCode,
   onCheckCodeUsage,
-  onDeleteHighlightsByCode
+  onDeleteHighlightsByCode,
+  // Hover preferences props
+  showHoverTooltips,
+  showAuthorInfo,
+  onToggleHoverTooltips,
+  onToggleAuthorInfo
 }) => {
   const [activeTab, setActiveTab] = useState('analysis');
   
@@ -74,6 +79,7 @@ const Sidebar = ({
 
             <CollaboratorLegend 
               userProfiles={userProfiles}
+              currentUser={currentUser}
             />
           </div>
         ) : (
@@ -113,7 +119,13 @@ const Sidebar = ({
       {/* Footer - Only show on Analysis Tools page */}
       {activeTab === 'analysis' && (
         <div className="flex-shrink-0 border-t border-gray-200 p-6">
-          <AdminControls onMessage={onMessage} />
+          <AdminControls 
+            onMessage={onMessage}
+            showHoverTooltips={showHoverTooltips}
+            showAuthorInfo={showAuthorInfo}
+            onToggleHoverTooltips={onToggleHoverTooltips}
+            onToggleAuthorInfo={onToggleAuthorInfo}
+          />
         </div>
       )}
     </aside>

@@ -1,5 +1,6 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { getAbsoluteIndex, arraysEqual } from '../../lib/utils/selectionUtils.js';
+import HighlightTooltip from './HighlightTooltip.js';
 
 const HighlightedText = ({ 
   highlights, 
@@ -8,9 +9,16 @@ const HighlightedText = ({
   onTextSelection, 
   onDeleteHighlight,
   allCodes,
-  activeDocument
+  activeDocument,
+  showHoverTooltips = true,
+  showAuthorInfo = true
 }) => {
   const textContainerRef = useRef(null);
+  const [tooltip, setTooltip] = useState({
+    visible: false,
+    highlights: [],
+    position: { x: 0, y: 0 }
+  });
 
   // Use the text from the active document
   const sourceText = activeDocument?.content || '';
@@ -39,6 +47,24 @@ const HighlightedText = ({
     };
 
     onTextSelection(selection, modalPosition, true);
+  };
+
+  const handleHighlightHover = (e, currentHighlights) => {
+    if (!showHoverTooltips || currentHighlights.length === 0) return;
+
+    const rect = e.target.getBoundingClientRect();
+    setTooltip({
+      visible: true,
+      highlights: currentHighlights,
+      position: {
+        x: window.scrollX + rect.left + rect.width / 2,
+        y: window.scrollY + rect.top - 5
+      }
+    });
+  };
+
+  const handleHighlightLeave = () => {
+    setTooltip(prev => ({ ...prev, visible: false }));
   };
 
   const renderTextWithHighlights = () => {
@@ -100,13 +126,17 @@ const HighlightedText = ({
         const userColor = userProfiles[primaryHighlight.userId]?.color || '#e5e7eb';
         const isOwner = currentUser && primaryHighlight.userId === currentUser.uid;
         
-        // Build tooltip showing all highlights
+        // Build simple tooltip for fallback (when enhanced tooltips are disabled)
         const tooltipParts = sortedHighlights.map(h => {
-          const user = userProfiles[h.userId]?.name || '...';
+          const user = showAuthorInfo ? (userProfiles[h.userId]?.name || '...') : 'Someone';
           const code = allCodes?.find(c => c.id === h.code)?.label || 'Unknown';
-          return `${user}: ${code}`;
+          const isCurrentUser = currentUser && h.userId === currentUser.uid;
+          const userDisplay = showAuthorInfo 
+            ? (isCurrentUser ? `${user} (you)` : user) 
+            : 'Someone';
+          return showAuthorInfo ? `${userDisplay}: ${code}` : code;
         });
-        const tooltip = tooltipParts.join('\n');
+        const simpleTooltip = tooltipParts.join('\n');
 
         // Create blended background for multiple highlights
         let backgroundColor;
@@ -141,7 +171,9 @@ const HighlightedText = ({
               position: 'relative',
               border: currentHighlights.length > 1 ? '1px dotted rgba(0,0,0,0.2)' : 'none'
             }}
-            title={tooltip}
+            title={showHoverTooltips ? '' : simpleTooltip}
+            onMouseEnter={(e) => handleHighlightHover(e, currentHighlights)}
+            onMouseLeave={handleHighlightLeave}
           >
             {/* Small discrete indicator for multiple highlights */}
             {currentHighlights.length > 1 && (
@@ -199,6 +231,17 @@ const HighlightedText = ({
           No document content available. Please select a document or add a new one.
         </div>
       )}
+      
+      {/* Enhanced tooltip component */}
+      <HighlightTooltip
+        highlights={tooltip.highlights}
+        userProfiles={userProfiles}
+        allCodes={allCodes}
+        showAuthorInfo={showAuthorInfo}
+        currentUser={currentUser}
+        position={tooltip.position}
+        visible={tooltip.visible}
+      />
     </div>
   );
 };

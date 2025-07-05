@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
 import { appId } from '../../constants/index.js';
+import HoverSettings from './HoverSettings.js';
 
-const AdminControls = ({ onMessage }) => {
+const AdminControls = ({ 
+  onMessage,
+  showHoverTooltips,
+  showAuthorInfo,
+  onToggleHoverTooltips,
+  onToggleAuthorInfo
+}) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleManualCleanup = async () => {
@@ -75,18 +82,33 @@ const AdminControls = ({ onMessage }) => {
   return (
     <div className="mt-6 pt-4 border-t border-gray-200">
       <h3 className="font-semibold text-gray-700 mb-3">Admin Controls</h3>
-      <button
-        onClick={handleManualCleanup}
-        disabled={isLoading}
-        className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white text-sm font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
-        title="Complete cleanup - removes ALL data and resets application"
-      >
-        <span>🗑️</span>
-        <span>{isLoading ? 'Cleaning...' : 'Complete Reset'}</span>
-      </button>
-      <p className="text-xs text-gray-500 mt-2">
-        Immediately removes ALL users, highlights, and data. Resets the entire application.
-      </p>
+      
+      {/* Hover Settings */}
+      <div className="mb-6">
+        <HoverSettings
+          showHoverTooltips={showHoverTooltips}
+          showAuthorInfo={showAuthorInfo}
+          onToggleHoverTooltips={onToggleHoverTooltips}
+          onToggleAuthorInfo={onToggleAuthorInfo}
+        />
+      </div>
+      
+      {/* Reset Control */}
+      <div className="pt-4 border-t border-gray-100">
+        <h4 className="font-semibold text-gray-700 text-sm mb-3">System Reset</h4>
+        <button
+          onClick={handleManualCleanup}
+          disabled={isLoading}
+          className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white text-sm font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+          title="Complete cleanup - removes ALL data and resets application"
+        >
+          <span>🗑️</span>
+          <span>{isLoading ? 'Cleaning...' : 'Complete Reset'}</span>
+        </button>
+        <p className="text-xs text-gray-500 mt-2">
+          Immediately removes ALL users, highlights, and data. Resets the entire application.
+        </p>
+      </div>
       
       <div className="text-xs text-gray-400 mt-4 text-center">
         App ID: <span className="font-mono">{appId}</span>
