@@ -34,8 +34,8 @@ const HoverSettings = ({
         {/* Toggle for showing author info (only when hover tooltips are enabled) */}
         <div className={`flex items-center justify-between ${!showHoverTooltips ? 'opacity-50' : ''}`}>
           <div className="flex-1">
-            <label className="text-sm text-gray-600">Show author information</label>
-            <p className="text-xs text-gray-500">Display who tagged each highlight</p>
+            <label className="text-sm text-gray-600">Show codes only</label>
+            <p className="text-xs text-gray-500">Display only code information, hide author details</p>
           </div>
           <button
             onClick={onToggleAuthorInfo}

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 
 export const useHoverPreferences = (appId) => {
   const [showHoverTooltips, setShowHoverTooltips] = useState(true);
-  const [showAuthorInfo, setShowAuthorInfo] = useState(true);
+  const [showCodesOnly, setShowCodesOnly] = useState(false); // Show codes without author info
 
   // Load preferences from localStorage on mount
   useEffect(() => {
@@ -11,7 +11,7 @@ export const useHoverPreferences = (appId) => {
       try {
         const prefs = JSON.parse(savedPrefs);
         setShowHoverTooltips(prefs.showHoverTooltips ?? true);
-        setShowAuthorInfo(prefs.showAuthorInfo ?? true);
+        setShowCodesOnly(prefs.showAuthorInfo ?? false); // Default to false for new semantic
       } catch (error) {
         console.warn('Error loading hover preferences:', error);
       }
@@ -22,23 +22,23 @@ export const useHoverPreferences = (appId) => {
   useEffect(() => {
     const prefs = {
       showHoverTooltips,
-      showAuthorInfo
+      showAuthorInfo: showCodesOnly // Keep the same key for backwards compatibility
     };
     localStorage.setItem(`hoverPrefs_${appId}`, JSON.stringify(prefs));
-  }, [appId, showHoverTooltips, showAuthorInfo]);
+  }, [appId, showHoverTooltips, showCodesOnly]);
 
   const toggleHoverTooltips = () => {
     setShowHoverTooltips(prev => !prev);
   };
 
-  const toggleAuthorInfo = () => {
-    setShowAuthorInfo(prev => !prev);
+  const toggleCodesOnly = () => {
+    setShowCodesOnly(prev => !prev);
   };
 
   return {
     showHoverTooltips,
-    showAuthorInfo,
+    showAuthorInfo: showCodesOnly, // Export with old name for compatibility
     toggleHoverTooltips,
-    toggleAuthorInfo
+    toggleAuthorInfo: toggleCodesOnly // Export with old name for compatibility
   };
 };

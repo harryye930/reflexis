@@ -46,7 +46,7 @@ const HighlightTooltip = ({
                   </span>
                   
                   {/* Author info (if enabled) */}
-                  {showAuthorInfo && (
+                  {!showAuthorInfo && (
                     <div className="flex items-center gap-1 text-xs text-gray-600">
                       {/* User color indicator */}
                       <span 

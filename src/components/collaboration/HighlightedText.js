@@ -128,13 +128,13 @@ const HighlightedText = ({
         
         // Build simple tooltip for fallback (when enhanced tooltips are disabled)
         const tooltipParts = sortedHighlights.map(h => {
-          const user = showAuthorInfo ? (userProfiles[h.userId]?.name || '...') : 'Someone';
+          const user = !showAuthorInfo ? (userProfiles[h.userId]?.name || '...') : 'Someone';
           const code = allCodes?.find(c => c.id === h.code)?.label || 'Unknown';
           const isCurrentUser = currentUser && h.userId === currentUser.uid;
-          const userDisplay = showAuthorInfo 
+          const userDisplay = !showAuthorInfo 
             ? (isCurrentUser ? `${user} (you)` : user) 
             : 'Someone';
-          return showAuthorInfo ? `${userDisplay}: ${code}` : code;
+          return !showAuthorInfo ? `${userDisplay}: ${code}` : code;
         });
         const simpleTooltip = tooltipParts.join('\n');
 
