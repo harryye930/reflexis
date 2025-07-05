@@ -81,14 +81,14 @@ const HighlightManagementPanel = ({
             return (
               <div 
                 key={highlight.id} 
-                className={`rounded-lg border transition-all duration-200 ${
+                className={`code-palette-unified ${code?.color || 'bg-gray-200'} rounded-xl border transition-all duration-200 ${
                   isOwner 
                     ? 'border-blue-200' 
                     : 'border-gray-200'
-                } ${code?.color || 'bg-gray-200'}`}
+                }`}
               >
                 {/* Header with code and user info */}
-                <div className={`p-3 border-b border-gray-100 ${code?.color || 'bg-gray-200'}`}>
+                <div className="p-3 border-b border-gray-100">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       {/* Code label with matching text color */}
@@ -101,7 +101,7 @@ const HighlightManagementPanel = ({
                     {isOwner && (
                       <button
                         onClick={() => handleDeleteClick(highlight)}
-                        className={`hover:bg-red-100 rounded-md p-1.5 transition-colors ${code?.textColor || 'text-gray-800'} hover:text-red-700`}
+                        className={`hover:bg-red-100 rounded-md p-1.5 transition-colors hover:text-red-700`}
                         title="Delete this highlight"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
