@@ -154,6 +154,7 @@ export const useHighlightManagement = (
       if (!e.target.closest('#text-container') && 
           !e.target.closest('#coding-modal')) {
         setShowModal(false);
+        setCurrentSelection(null); // Clear selection when clicking outside
       }
     };
 
@@ -162,6 +163,21 @@ export const useHighlightManagement = (
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [showModal]);
+
+  // Listen for global selection changes to clear state when text is deselected
+  useEffect(() => {
+    const handleSelectionChange = () => {
+      const selection = window.getSelection();
+      if (selection.isCollapsed && currentSelection) {
+        // Selection was cleared, update our state
+        setCurrentSelection(null);
+        setShowModal(false);
+      }
+    };
+
+    document.addEventListener('selectionchange', handleSelectionChange);
+    return () => document.removeEventListener('selectionchange', handleSelectionChange);
+  }, [currentSelection]);
 
   return {
     currentSelection,

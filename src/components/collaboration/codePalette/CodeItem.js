@@ -21,18 +21,43 @@ const CodeItem = ({
     return 'Unknown';
   };
 
+  // Enhanced disabled state logic
+  // - disabled + hoverable: Shows visual feedback on hover but prevents clicks
+  // - enabled: Full interactivity with hover effects
+  // This provides better UX by giving visual feedback even when functionality is disabled
+  const getCodeStateClass = () => {
+    if (variant === "management") {
+      return ""; // Management mode doesn't use disabled states
+    }
+
+    if (disabled) {
+      // When disabled, show visual feedback on hover but prevent clicks
+      return "code-palette-disabled-hoverable";
+    } else {
+      // When enabled, full interactivity
+      return "code-palette-enabled";
+    }
+  };
+
+  const handleCodeClick = (e) => {
+    if (disabled) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    if (onCodeSelect) {
+      onCodeSelect(code.id);
+    }
+  };
+
   const isManagementMode = variant === "management";
   const containerClass = isManagementMode 
     ? "code-preview flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-all"
-    : "code-palette-card group";
+    : "code-palette-card group relative"; // Added relative positioning for absolute indicator
   
   const codeClass = isManagementMode
     ? `px-3 py-1 text-sm rounded-full ${code.color} ${code.textColor} font-medium`
-    : `code-palette-unified w-full text-left p-4 rounded-xl border border-gray-100 ${code.color} ${code.textColor} ${
-        disabled 
-          ? 'opacity-50 cursor-not-allowed' 
-          : 'cursor-pointer hover:shadow-md hover:scale-[1.02]'
-      } transition-all duration-200`;
+    : `code-palette-unified w-full text-left p-4 rounded-xl border border-gray-100 ${code.color} ${code.textColor} ${getCodeStateClass()} font-medium transition-all duration-200`;
 
   return (
     <div className={containerClass}>
@@ -76,11 +101,20 @@ const CodeItem = ({
           )}
         </>
       ) : (
-        // Selection mode layout (original)
+        // Selection mode layout with enhanced disabled state handling
         <div
           className={codeClass}
           data-code={code.id}
-          onClick={() => !disabled && onCodeSelect && onCodeSelect(code.id)}
+          onClick={handleCodeClick}
+          role="button"
+          aria-disabled={disabled}
+          tabIndex={disabled ? -1 : 0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleCodeClick(e);
+            }
+          }}
         >
           <div className="flex items-start justify-between mb-2">
             <div className="flex-1">
@@ -106,6 +140,7 @@ const CodeItem = ({
                   }}
                   className="text-xs px-2 py-1 text-blue-600 hover:bg-blue-50 rounded-md transition-colors opacity-0 group-hover:opacity-100"
                   title="Edit code"
+                  tabIndex={-1}
                 >
                   ✏️
                 </button>
@@ -117,6 +152,7 @@ const CodeItem = ({
                     }}
                     className="text-xs px-2 py-1 text-red-600 hover:bg-red-50 rounded-md transition-colors opacity-0 group-hover:opacity-100"
                     title="Delete code"
+                    tabIndex={-1}
                   >
                     🗑️
                   </button>

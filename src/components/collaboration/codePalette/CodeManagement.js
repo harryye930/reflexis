@@ -110,6 +110,7 @@ const CodeManagement = ({
           onToggleAddForm={handleToggleAddForm}
           currentUser={currentUser}
           title={componentTitle}
+          disabled={disabled}
         />
       ) : (
         // Management Mode Header
@@ -183,7 +184,6 @@ const CodeManagement = ({
       
       {isSelectionMode && (
         <CodePaletteFooter
-          disabled={disabled}
           currentUser={currentUser}
         />
       )}
