@@ -58,8 +58,7 @@ function CollaborativeTextContent() {
     activeDocumentId, 
     highlights, 
     addHighlight, 
-    deleteHighlight, 
-    allCodes
+    deleteHighlight
   );
 
   useUserActivity(appId, currentUser);

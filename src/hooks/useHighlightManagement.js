@@ -7,8 +7,7 @@ export const useHighlightManagement = (
   activeDocumentId, 
   highlights, 
   addHighlight, 
-  deleteHighlight, 
-  allCodes
+  deleteHighlight
 ) => {
   const [currentSelection, setCurrentSelection] = useState(null);
   const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
@@ -21,52 +20,38 @@ export const useHighlightManagement = (
   };
 
   const handleAddHighlight = async (code) => {
-    if (!currentSelection || !currentUser || !activeDocument) return { success: false };
+    if (!currentSelection || !currentUser || !activeDocument) {
+      return { success: false };
+    }
 
     const textContainer = document.getElementById('text-container');
-    if (!textContainer) return { success: false };
+    if (!textContainer) {
+      return { success: false };
+    }
 
     const range = currentSelection.getRangeAt(0);
     
     // Get the selected text using a robust approach that mimics browser copy behavior
     const rawSelectedText = range.toString();
-    if (!rawSelectedText || rawSelectedText.trim() === '') return { success: false };
     
-    // Create a temporary container to properly extract clean text without UI elements
-    const tempDiv = document.createElement('div');
-    tempDiv.appendChild(range.cloneContents());
+    if (!rawSelectedText || rawSelectedText.trim() === '') {
+      return { success: false };
+    }
     
-    // Remove all UI elements (buttons, indicators, etc.)
-    const uiElements = tempDiv.querySelectorAll('.delete-highlight, .multiple-indicator, .highlight-count-indicator');
-    uiElements.forEach(el => el.remove());
-    
-    // Get the cleaned text content
-    let selectedTextClean = tempDiv.textContent || tempDiv.innerText || '';
-    
-    // Simple cleanup for any remaining artifacts
-    selectedTextClean = selectedTextClean
-      .replace(/[×]/g, '') // Remove any remaining delete symbols
+    // Get the selected text directly from the range
+    let selectedTextClean = rawSelectedText
       .replace(/\s+/g, ' ') // Normalize whitespace
       .trim();
     
-    // Fallback to basic cleaning if the above didn't work
-    if (!selectedTextClean && rawSelectedText) {
-      selectedTextClean = rawSelectedText
-        .replace(/[×]/g, '')
-        .replace(/\s+/g, ' ')
-        .trim();
+    if (!selectedTextClean) {
+      return { success: false };
     }
-    
-    if (!selectedTextClean) return { success: false };
     
     // Use the active document's content as our source of truth
     const sourceText = activeDocument.content;
     
-    // Get clean text content from container for context (also removing UI elements)
+    // Get container text for context building
     const containerText = textContainer.textContent || '';
-    const containerTextClean = containerText
-      .replace(/[×]/g, '')
-      .replace(/\s+/g, ' ');
     
     // Get DOM-based indices for fallback, but we'll primarily rely on text search
     const rawStartIndex = getAbsoluteIndex(textContainer, range.startContainer, range.startOffset);
@@ -74,15 +59,15 @@ export const useHighlightManagement = (
     const startIndex = Math.min(rawStartIndex, rawEndIndex);
     const endIndex = Math.max(rawStartIndex, rawEndIndex);
 
-    // Build context for text search - use cleaned container text
+    // Build context for text search
     let contextBefore = '';
     let contextAfter = '';
     
     if (startIndex >= 0 && endIndex > startIndex) {
       const contextStart = Math.max(0, startIndex - 50);
-      const contextEnd = Math.min(containerTextClean.length, endIndex + 50);
-      contextBefore = containerTextClean.substring(contextStart, startIndex);
-      contextAfter = containerTextClean.substring(endIndex, contextEnd);
+      const contextEnd = Math.min(containerText.length, endIndex + 50);
+      contextBefore = containerText.substring(contextStart, startIndex);
+      contextAfter = containerText.substring(endIndex, contextEnd);
     }
     
     // Try context-aware search first
@@ -103,17 +88,13 @@ export const useHighlightManagement = (
       }
     }
 
-    // Validate that our mapping is reasonable before creating the highlight
+    // Validate that our mapping is correct
     const extractedText = sourceText.substring(sourceStartIndex, sourceEndIndex);
     const normalizedSelected = selectedTextClean.replace(/\s+/g, ' ').trim();
     const normalizedExtracted = extractedText.replace(/\s+/g, ' ').trim();
     
     if (normalizedSelected !== normalizedExtracted) {
-      // Only reject if the mismatch is very significant
-      const lengthRatio = normalizedExtracted.length / normalizedSelected.length;
-      if (normalizedExtracted.length === 0 || lengthRatio > 5 || lengthRatio < 0.2) {
-        return { success: false, error: 'Text selection mapping failed severely' };
-      }
+      return { success: false, error: 'Text selection mapping failed' };
     }
 
     const result = await addHighlight({
