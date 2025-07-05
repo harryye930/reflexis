@@ -80,6 +80,7 @@ const Sidebar = ({
             <CollaboratorLegend 
               userProfiles={userProfiles}
               currentUser={currentUser}
+              showAuthorInfo={showAuthorInfo}
             />
           </div>
         ) : (

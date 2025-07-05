@@ -19,21 +19,86 @@
 
 /* Custom styles for highlights */
 .highlight {
-    padding: 2px 4px;
-    border-radius: 4px;
+    padding: 1px 2px;
+    margin: 0 -1px;
+    border-radius: 3px;
     cursor: pointer;
     position: relative;
-    transition: opacity 0.2s ease;
+    transition: all 0.2s ease;
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
 }
 
-/* Make all buttons and UI elements within highlights non-selectable */
-.highlight button,
-.highlight .delete-highlight,
-.highlight .multiple-indicator {
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
+.highlight:hover {
+    transform: scale(1.02);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+}
+
+.multiple-highlights {
+    outline: 1px dotted rgba(0, 0, 0, 0.2);
+    outline-offset: -1px;
+}
+
+.multiple-highlights:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    outline: 2px solid rgba(59, 130, 246, 0.3);
+    outline-offset: -2px;
+}
+
+.owned-highlight {
+    box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.6);
+}
+
+.owned-highlight:hover {
+    box-shadow: inset 0 0 0 2px rgba(16, 185, 129, 0.8), 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.highlight-codes {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 2px;
+    vertical-align: middle;
+}
+
+/* Text container improvements */
+#text-container {
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+}
+
+/* Management panel specific styles */
+.highlight-management-panel {
+    animation: management-panel-enter 0.2s ease-out;
+    position: absolute;
+    z-index: 2000;
+    pointer-events: auto;
+}
+
+.highlight-tooltip {
+    position: absolute;
+    z-index: 2000;
+    pointer-events: auto;
+}
+
+@keyframes management-panel-enter {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.highlight-preview {
+    display: inline-block;
+    word-break: break-word;
 }
 
 /* Line clamp utilities for text truncation */
@@ -53,39 +118,6 @@
     overflow: hidden;
 }
 
-.highlight.multiple-highlights {
-    border-radius: 6px;
-    /* Subtle animation for multiple highlights */
-    animation: subtle-pulse 2s ease-in-out infinite;
-}
-
-@keyframes subtle-pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-}
-
-.highlight:hover {
-    opacity: 1 !important; /* Full opacity on hover for better readability */
-}
-
-.highlight:hover .delete-highlight {
-    opacity: 1;
-}
-
-.multiple-indicator {
-    pointer-events: none;
-    font-weight: bold;
-    /* Small shadow for better visibility */
-    box-shadow: 0 0 2px rgba(0,0,0,0.3);
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-}
-
-.highlight:hover .delete-highlight {
-    opacity: 1;
-}
 
 .delete-highlight {
     position: absolute;

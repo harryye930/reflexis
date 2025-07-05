@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 
 export const useHoverPreferences = (appId) => {
   const [showHoverTooltips, setShowHoverTooltips] = useState(true);
-  const [showCodesOnly, setShowCodesOnly] = useState(false); // Show codes without author info
+  const [showAuthor, setShowAuthor] = useState(true); // Show author info by default - true = show individual colors and names, false = unified color and no names
 
   // Load preferences from localStorage on mount
   useEffect(() => {
@@ -11,7 +11,8 @@ export const useHoverPreferences = (appId) => {
       try {
         const prefs = JSON.parse(savedPrefs);
         setShowHoverTooltips(prefs.showHoverTooltips ?? true);
-        setShowCodesOnly(prefs.showAuthorInfo ?? false); // Default to false for new semantic
+        // Handle legacy storage key: showAuthorInfo was inverted logic (codes only)
+        setShowAuthor(!(prefs.showAuthorInfo ?? false)); // Invert legacy value
       } catch (error) {
         console.warn('Error loading hover preferences:', error);
       }
@@ -22,23 +23,23 @@ export const useHoverPreferences = (appId) => {
   useEffect(() => {
     const prefs = {
       showHoverTooltips,
-      showAuthorInfo: showCodesOnly // Keep the same key for backwards compatibility
+      showAuthorInfo: !showAuthor // Keep legacy key but invert for backwards compatibility
     };
     localStorage.setItem(`hoverPrefs_${appId}`, JSON.stringify(prefs));
-  }, [appId, showHoverTooltips, showCodesOnly]);
+  }, [appId, showHoverTooltips, showAuthor]);
 
   const toggleHoverTooltips = () => {
     setShowHoverTooltips(prev => !prev);
   };
 
-  const toggleCodesOnly = () => {
-    setShowCodesOnly(prev => !prev);
+  const toggleAuthor = () => {
+    setShowAuthor(prev => !prev);
   };
 
   return {
     showHoverTooltips,
-    showAuthorInfo: showCodesOnly, // Export with old name for compatibility
+    showAuthorInfo: showAuthor, // Export with correct logic
     toggleHoverTooltips,
-    toggleAuthorInfo: toggleCodesOnly // Export with old name for compatibility
+    toggleAuthorInfo: toggleAuthor
   };
 };

@@ -1,4 +1,5 @@
 import React from 'react';
+import { getUserDisplayColor, getUserDisplayName, shouldShowAuthorInfo } from '../../lib/utils/hoverUtils';
 
 const HighlightTooltip = ({ 
   highlights, 
@@ -36,6 +37,11 @@ const HighlightTooltip = ({
             // Get code colors, fallback to gray if not found
             const codeColor = code?.color || 'bg-gray-200';
             const codeTextColor = code?.textColor || 'text-gray-800';
+            
+            // Use hover utilities for user display
+            const userColor = getUserDisplayColor(user, showAuthorInfo);
+            const userName = getUserDisplayName(user, showAuthorInfo, currentUser, highlight.userId);
+            const shouldShowAuthor = shouldShowAuthorInfo(showAuthorInfo);
 
             return (
               <div key={highlight.id} className="space-y-2">
@@ -46,17 +52,14 @@ const HighlightTooltip = ({
                   </span>
                   
                   {/* Author info (if enabled) */}
-                  {!showAuthorInfo && (
+                  {shouldShowAuthor && userName && (
                     <div className="flex items-center gap-1 text-xs text-gray-600">
                       {/* User color indicator */}
                       <span 
                         className="w-2 h-2 rounded-full" 
-                        style={{ backgroundColor: user?.color || '#e5e7eb' }}
+                        style={{ backgroundColor: userColor }}
                       />
-                      <span>
-                        {user?.name || 'Anonymous'}
-                        {currentUser && highlight.userId === currentUser.uid && ' (you)'}
-                      </span>
+                      <span>{userName}</span>
                     </div>
                   )}
                 </div>

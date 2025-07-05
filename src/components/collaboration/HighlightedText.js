@@ -1,6 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { getAbsoluteIndex, arraysEqual } from '../../lib/utils/selectionUtils.js';
+import { getUserDisplayColor } from '../../lib/utils/hoverUtils.js';
 import HighlightTooltip from './HighlightTooltip.js';
+import HighlightManagementPanel from './HighlightManagementPanel.js';
 
 const HighlightedText = ({ 
   highlights, 
@@ -19,6 +21,11 @@ const HighlightedText = ({
     highlights: [],
     position: { x: 0, y: 0 }
   });
+  const [managementPanel, setManagementPanel] = useState({
+    visible: false,
+    highlights: [],
+    position: { x: 0, y: 0 }
+  });
 
   // Use the text from the active document
   const sourceText = activeDocument?.content || '';
@@ -32,8 +39,8 @@ const HighlightedText = ({
       return;
     }
 
-    // Don't show modal if clicking on a delete button
-    if (e.target.classList.contains('delete-highlight')) {
+    // Don't show modal if clicking on a delete button or management panel
+    if (e.target.closest('.delete-highlight') || e.target.closest('.highlight-management-panel')) {
       return;
     }
 
@@ -67,156 +74,174 @@ const HighlightedText = ({
     setTooltip(prev => ({ ...prev, visible: false }));
   };
 
+  const handleHighlightClick = (e, clickedHighlights) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Always show management panel for all highlight clicks for consistency
+    const rect = e.target.getBoundingClientRect();
+    setManagementPanel({
+      visible: true,
+      highlights: clickedHighlights,
+      position: {
+        x: window.scrollX + rect.left + rect.width / 2,
+        y: window.scrollY + rect.bottom + 5
+      }
+    });
+  };
+
+  const handleManagementPanelClose = () => {
+    setManagementPanel(prev => ({ ...prev, visible: false }));
+  };
+
   const renderTextWithHighlights = () => {
     if (highlights.length === 0) {
       return <span>{sourceText}</span>;
     }
 
-    // Create an array to track highlight coverage at each character position
-    const highlightMap = new Array(sourceText.length).fill(null).map(() => []);
+    // Create segments based on highlight boundaries
+    const segments = [];
+    const boundaries = new Set([0, sourceText.length]);
     
-    // Populate the highlight map
-    highlights.forEach(highlight => {
-      for (let i = highlight.startIndex; i < highlight.endIndex; i++) {
-        highlightMap[i].push(highlight);
-      }
+    // Add all highlight start and end positions as boundaries
+    highlights.forEach(h => {
+      boundaries.add(h.startIndex);
+      boundaries.add(h.endIndex);
     });
-
-    let elements = [];
-    let i = 0;
-
-    while (i < sourceText.length) {
-      const currentHighlights = highlightMap[i];
+    
+    const sortedBoundaries = Array.from(boundaries).sort((a, b) => a - b);
+    
+    // Create segments between boundaries
+    for (let i = 0; i < sortedBoundaries.length - 1; i++) {
+      const start = sortedBoundaries[i];
+      const end = sortedBoundaries[i + 1];
+      const text = sourceText.substring(start, end);
       
-      if (currentHighlights.length === 0) {
-        // No highlights at this position, find the next position with highlights
-        let nextHighlight = i + 1;
-        while (nextHighlight < sourceText.length && highlightMap[nextHighlight].length === 0) {
-          nextHighlight++;
-        }
-        
-        elements.push(
-          <span key={`text-${i}`}>
-            {sourceText.substring(i, nextHighlight)}
-          </span>
-        );
-        i = nextHighlight;
-      } else {
-        // Find the end of this highlight segment (where the highlight combination changes)
-        let segmentEnd = i + 1;
-        while (segmentEnd < sourceText.length && 
-               highlightMap[segmentEnd].length > 0 &&
-               arraysEqual(highlightMap[i].map(h => h.id), highlightMap[segmentEnd].map(h => h.id))) {
-          segmentEnd++;
-        }
-
-        // Render this segment with multiple highlights
-        const segmentText = sourceText.substring(i, segmentEnd);
-        const sortedHighlights = currentHighlights.sort((a, b) => {
-          // Prioritize current user's highlights first
-          if (currentUser) {
-            if (a.userId === currentUser.uid && b.userId !== currentUser.uid) return -1;
-            if (b.userId === currentUser.uid && a.userId !== currentUser.uid) return 1;
-          }
-          // Then sort by creation time
-          return new Date(a.createdAt) - new Date(b.createdAt);
-        });
-
-        const primaryHighlight = sortedHighlights[0];
-        const userColor = userProfiles[primaryHighlight.userId]?.color || '#e5e7eb';
-        const isOwner = currentUser && primaryHighlight.userId === currentUser.uid;
-        
-        // Build simple tooltip for fallback (when enhanced tooltips are disabled)
-        const tooltipParts = sortedHighlights.map(h => {
-          const user = !showAuthorInfo ? (userProfiles[h.userId]?.name || '...') : 'Someone';
-          const code = allCodes?.find(c => c.id === h.code)?.label || 'Unknown';
-          const isCurrentUser = currentUser && h.userId === currentUser.uid;
-          const userDisplay = !showAuthorInfo 
-            ? (isCurrentUser ? `${user} (you)` : user) 
-            : 'Someone';
-          return !showAuthorInfo ? `${userDisplay}: ${code}` : code;
-        });
-        const simpleTooltip = tooltipParts.join('\n');
-
-        // Create blended background for multiple highlights
-        let backgroundColor;
-        let opacity = 1;
-        
-        if (currentHighlights.length === 1) {
-          backgroundColor = userColor;
-          opacity = 0.7; // Make single highlights slightly translucent
-        } else {
-          // Blend colors for multiple highlights with increased translucency
-          const colors = sortedHighlights.slice(0, 3).map(h => 
-            userProfiles[h.userId]?.color || '#e5e7eb'
-          );
-          
-          // Create a more subtle blended effect
-          if (colors.length === 2) {
-            backgroundColor = `linear-gradient(45deg, ${colors[0]} 50%, ${colors[1]} 50%)`;
-            opacity = 0.5;
-          } else {
-            backgroundColor = `linear-gradient(45deg, ${colors[0]} 33%, ${colors[1]} 33%, ${colors[1]} 67%, ${colors[2] || colors[1]} 67%)`;
-            opacity = 0.4;
-          }
-        }
-
-        elements.push(
-          <mark
-            key={`highlight-${i}-${segmentEnd}`}
-            className={`highlight ${currentHighlights.length > 1 ? 'multiple-highlights' : ''}`}
-            style={{ 
-              background: backgroundColor,
-              opacity: opacity,
-              position: 'relative',
-              border: currentHighlights.length > 1 ? '1px dotted rgba(0,0,0,0.2)' : 'none'
-            }}
-            title={showHoverTooltips ? '' : simpleTooltip}
-            onMouseEnter={(e) => handleHighlightHover(e, currentHighlights)}
-            onMouseLeave={handleHighlightLeave}
-          >
-            {/* Small discrete indicator for multiple highlights */}
-            {currentHighlights.length > 1 && (
-              <span 
-                className="multiple-indicator"
-                style={{
-                  position: 'absolute',
-                  top: '-6px',
-                  right: '-2px',
-                  backgroundColor: 'rgba(0,0,0,0.8)',
-                  color: 'white',
-                  fontSize: '8px',
-                  borderRadius: '6px',
-                  padding: '1px 3px',
-                  lineHeight: '1',
-                  zIndex: 5,
-                  fontWeight: 'bold'
-                }}
-              >
-                {currentHighlights.length}
-              </span>
-            )}
-
-            {/* Delete button for current user's highlight */}
-            {isOwner && (
-              <span
-                className="delete-highlight"
-                data-id={primaryHighlight.id}
-                onClick={() => onDeleteHighlight(primaryHighlight.id)}
-                title="Delete your highlight"
-              >
-                ×
-              </span>
-            )}
-            {segmentText}
-          </mark>
-        );
-
-        i = segmentEnd;
-      }
+      // Find all highlights that cover this segment
+      const segmentHighlights = highlights.filter(h => 
+        h.startIndex <= start && h.endIndex >= end
+      );
+      
+      segments.push({
+        text,
+        startIndex: start,
+        endIndex: end,
+        highlights: segmentHighlights
+      });
     }
+    
+    return (
+      <span>
+        {segments.map((segment, index) => {
+          if (segment.highlights.length === 0) {
+            return <span key={index}>{segment.text}</span>;
+          }
+          
+          // Create layered background styles for multiple highlights
+          const backgroundLayers = segment.highlights.map((highlight, layerIndex) => {
+            const user = userProfiles[highlight.userId];
+            const userColor = getUserDisplayColor(user, showAuthorInfo);
+            const code = allCodes?.find(c => c.id === highlight.code);
+            return {
+              color: userColor,
+              opacity: segment.highlights.length > 1 ? 0.4 : 0.6
+            };
+          });
+          
+          // Combine background styles
+          let backgroundStyle;
+          if (backgroundLayers.length === 1) {
+            backgroundStyle = {
+              backgroundColor: backgroundLayers[0].color,
+              opacity: backgroundLayers[0].opacity
+            };
+          } else {
+            // For multiple highlights, identify unique users
+            const uniqueUsers = [...new Set(segment.highlights.map(h => h.userId))];
+            const userColors = uniqueUsers.map(userId => {
+              const user = userProfiles[userId];
+              const userColor = getUserDisplayColor(user, showAuthorInfo);
+              return userColor;
+            });
+            
+            // Convert hex to rgba for better blending
+            const hexToRgba = (hex, opacity) => {
+              const r = parseInt(hex.slice(1, 3), 16);
+              const g = parseInt(hex.slice(3, 5), 16);
+              const b = parseInt(hex.slice(5, 7), 16);
+              return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+            };
+            
+            if (userColors.length === 1) {
+              // Same user, multiple codes - use solid color with higher opacity
+              backgroundStyle = {
+                backgroundColor: hexToRgba(userColors[0], 0.7)
+              };
+            } else if (userColors.length === 2) {
+              // Two users - diagonal split at 45 degrees
+              backgroundStyle = {
+                background: `linear-gradient(45deg, ${hexToRgba(userColors[0], 0.6)} 50%, ${hexToRgba(userColors[1], 0.6)} 50%)`
+              };
+            } else if (userColors.length === 3) {
+              // Three users - split into three diagonal sections
+              backgroundStyle = {
+                background: `linear-gradient(45deg, 
+                  ${hexToRgba(userColors[0], 0.6)} 0%, 
+                  ${hexToRgba(userColors[0], 0.6)} 33%, 
+                  ${hexToRgba(userColors[1], 0.6)} 33%, 
+                  ${hexToRgba(userColors[1], 0.6)} 67%, 
+                  ${hexToRgba(userColors[2], 0.6)} 67%, 
+                  ${hexToRgba(userColors[2], 0.6)} 100%)`
+              };
+            } else {
+              // 4+ users - use a more complex pattern
+              const colorStops = userColors.map((color, i) => {
+                const start = (i / userColors.length) * 100;
+                const end = ((i + 1) / userColors.length) * 100;
+                return `${hexToRgba(color, 0.5)} ${start}%, ${hexToRgba(color, 0.5)} ${end}%`;
+              }).join(', ');
+              
+              backgroundStyle = {
+                background: `linear-gradient(45deg, ${colorStops})`
+              };
+            }
+          }
+          
+          const isOwner = segment.highlights.some(h => currentUser && h.userId === currentUser.uid);
+          
+          return (
+            <mark
+              key={index}
+              className={`highlight ${segment.highlights.length > 1 ? 'multiple-highlights' : ''} ${isOwner ? 'owned-highlight' : ''}`}
+              style={{
+                ...backgroundStyle,
+                position: 'relative',
+                borderRadius: '2px',
+                padding: '1px 2px',
+                margin: '0 -1px',
+                cursor: 'pointer',
+                border: 'none', // Remove borders that create boxes
+                outline: segment.highlights.length > 1 ? `1px dotted rgba(0,0,0,0.2)` : 'none'
+              }}
+              onClick={(e) => handleHighlightClick(e, segment.highlights)}
+              onMouseEnter={(e) => handleHighlightHover(e, segment.highlights)}
+              onMouseLeave={handleHighlightLeave}
+            >
+              {/* Visual indicators for multiple highlights */}
+              {segment.highlights.length > 1 && (
+                <span className="absolute -top-1 -right-1 text-xs bg-gray-800 text-white rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                  {segment.highlights.length}
+                </span>
+              )}
+              
 
-    return elements;
+              
+              {segment.text}
+            </mark>
+          );
+        })}
+      </span>
+    );
   };
 
   return (
@@ -241,6 +266,19 @@ const HighlightedText = ({
         currentUser={currentUser}
         position={tooltip.position}
         visible={tooltip.visible}
+      />
+
+      {/* Highlight management panel for complex interactions */}
+      <HighlightManagementPanel
+        highlights={managementPanel.highlights}
+        userProfiles={userProfiles}
+        allCodes={allCodes}
+        currentUser={currentUser}
+        showAuthorInfo={showAuthorInfo}
+        position={managementPanel.position}
+        visible={managementPanel.visible}
+        onClose={handleManagementPanelClose}
+        onDeleteHighlight={onDeleteHighlight}
       />
     </div>
   );
