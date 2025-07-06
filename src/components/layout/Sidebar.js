@@ -55,7 +55,7 @@ const Sidebar = ({
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto">
         {activeTab === 'analysis' ? (
-          // Analysis Tools Page
+          // Codes Page - Focused on code management and current user
           <div className="p-6">
             <UserInfo 
               currentUser={currentUser}
@@ -76,14 +76,8 @@ const Sidebar = ({
               onCheckCodeUsage={onCheckCodeUsage}
               onDeleteHighlightsByCode={onDeleteHighlightsByCode}
             />
-
-            <CollaboratorLegend 
-              userProfiles={userProfiles}
-              currentUser={currentUser}
-              showAuthorInfo={showAuthorInfo}
-            />
           </div>
-        ) : (
+        ) : activeTab === 'notifications' ? (
           // Notifications Page
           <div className="p-6">
             <div className="mb-4">
@@ -114,21 +108,35 @@ const Sidebar = ({
               onMarkAllAsRead={markAllAsRead}
             />
           </div>
+        ) : (
+          // Admin Page
+          <div className="p-6">
+            <div className="mb-6">
+              <h2 className="text-xl font-bold text-gray-900">Admin Controls</h2>
+              <p className="text-sm text-gray-600 mt-1">
+                Manage application settings and perform administrative tasks
+              </p>
+            </div>
+            
+            {/* Collaborators Section */}
+            <div className="mb-6">
+              <CollaboratorLegend 
+                userProfiles={userProfiles}
+                currentUser={currentUser}
+                showAuthorInfo={showAuthorInfo}
+              />
+            </div>
+            
+            <AdminControls 
+              onMessage={onMessage}
+              showHoverTooltips={showHoverTooltips}
+              showAuthorInfo={showAuthorInfo}
+              onToggleHoverTooltips={onToggleHoverTooltips}
+              onToggleAuthorInfo={onToggleAuthorInfo}
+            />
+          </div>
         )}
       </div>
-      
-      {/* Footer - Only show on Analysis Tools page */}
-      {activeTab === 'analysis' && (
-        <div className="flex-shrink-0 border-t border-gray-200 p-6">
-          <AdminControls 
-            onMessage={onMessage}
-            showHoverTooltips={showHoverTooltips}
-            showAuthorInfo={showAuthorInfo}
-            onToggleHoverTooltips={onToggleHoverTooltips}
-            onToggleAuthorInfo={onToggleAuthorInfo}
-          />
-        </div>
-      )}
     </aside>
   );
 };

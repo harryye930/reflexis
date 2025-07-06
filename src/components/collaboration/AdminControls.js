@@ -80,11 +80,9 @@ const AdminControls = ({
   };
 
   return (
-    <div className="mt-6 pt-4 border-t border-gray-200">
-      <h3 className="font-semibold text-gray-700 mb-3">Admin Controls</h3>
-      
+    <div className="space-y-6">
       {/* Hover Settings */}
-      <div className="mb-6">
+      <div>
         <HoverSettings
           showHoverTooltips={showHoverTooltips}
           showAuthorInfo={showAuthorInfo}
@@ -94,7 +92,7 @@ const AdminControls = ({
       </div>
       
       {/* Reset Control */}
-      <div className="pt-4 border-t border-gray-100">
+      <div className="pt-4 border-t border-gray-200">
         <h4 className="font-semibold text-gray-700 text-sm mb-3">System Reset</h4>
         <button
           onClick={handleManualCleanup}
