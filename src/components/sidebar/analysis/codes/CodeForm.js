@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CODE_COLOR_OPTIONS } from '../../../constants/codeColors.js';
+import { CODE_COLOR_OPTIONS } from '../../../../constants/codeColors.js';
 
 const CodeForm = ({ 
   editingCode, 

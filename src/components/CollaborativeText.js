@@ -17,7 +17,7 @@ import HighlightingModal from './collaboration/HighlightingModal.js';
 import MessageBox from './collaboration/MessageBox.js';
 import UserProfileSetup from './collaboration/UserProfileSetup.js';
 import DocumentBrowser from './collaboration/DocumentBrowser.js';
-import Sidebar from './layout/Sidebar.js';
+import Sidebar from './sidebar/Sidebar.js';
 import DocumentHeader from './layout/DocumentHeader.js';
 
 function CollaborativeTextContent() {

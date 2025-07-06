@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { appId } from '../../constants/index.js';
+import { appId } from '../../../constants/index.js';
 import HoverSettings from './HoverSettings.js';
 
 const AdminControls = ({ 

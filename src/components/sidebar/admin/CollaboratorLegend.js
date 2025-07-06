@@ -1,5 +1,5 @@
 import React from 'react';
-import { getUserDisplayColor, getUserDisplayName, shouldShowAuthorInfo } from '../../lib/utils/hoverUtils';
+import { getUserDisplayColor, getUserDisplayName, shouldShowAuthorInfo } from '../../../lib/utils/hoverUtils';
 
 const CollaboratorLegend = ({ userProfiles, currentUser, showAuthorInfo = true }) => {
   // Don't show the legend if showAuthorInfo is false
