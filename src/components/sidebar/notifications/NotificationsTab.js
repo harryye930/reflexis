@@ -1,5 +1,5 @@
 import React from 'react';
-import NotificationList from '../../collaboration/notifications/NotificationList.js';
+import NotificationList from './notifications/NotificationList.js';
 
 const NotificationsTab = ({ 
   notifications,

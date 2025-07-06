@@ -1,5 +1,5 @@
 import React from 'react';
-import { getNotificationTypeIcon } from '../../../lib/utils/notificationUtils.js';
+import { getNotificationTypeIcon } from '../../../../lib/utils/notificationUtils.js';
 
 const NotificationItem = ({ 
   notification, 
