@@ -18,7 +18,7 @@ import MessageBox from './collaboration/MessageBox.js';
 import UserProfileSetup from './collaboration/UserProfileSetup.js';
 import DocumentBrowser from './collaboration/DocumentBrowser.js';
 import Sidebar from './sidebar/Sidebar.js';
-import DocumentHeader from './layout/DocumentHeader.js';
+import DocumentHeader from './collaboration/DocumentHeader.js';
 
 function CollaborativeTextContent() {
   // Custom hooks for data management
