@@ -9,7 +9,8 @@ const CodeList = ({
   currentUser,
   userProfiles,
   variant = "selection",
-  onCodeNameClick // New prop for Living Codebook
+  onCodeNameClick, // New prop for Living Codebook
+  hideEditButtons = false // New prop to hide edit buttons
 }) => {
   if (!allCodes || allCodes.length === 0) {
     return (
@@ -33,6 +34,7 @@ const CodeList = ({
           userProfiles={userProfiles}
           variant={variant}
           onCodeNameClick={onCodeNameClick}
+          hideEditButtons={hideEditButtons}
         />
       ))}
     </div>

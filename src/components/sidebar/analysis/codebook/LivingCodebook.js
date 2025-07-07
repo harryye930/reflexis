@@ -15,19 +15,119 @@ const LivingCodebook = ({
   currentUser,
   userProfiles,
   onBack,
-  onEditCode
+  onEditCode,
+  onDeleteCode,
+  onMessage,
+  onCheckCodeUsage,
+  onDeleteHighlightsByCode,
+  onUpdateCodeInLivingCodebook
 }) => {
   const [activeTab, setActiveTab] = useState('reflexive');
   const [reflexiveResponses, setReflexiveResponses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    label: '',
+    description: '',
+    color: '',
+    textColor: ''
+  });
+
+  // Initialize edit form when code changes
+  useEffect(() => {
+    if (code) {
+      setEditForm({
+        label: code.label || '',
+        description: code.description || '',
+        color: code.color || 'bg-gray-200',
+        textColor: code.textColor || 'text-gray-800'
+      });
+    }
+  }, [code]);
+
+  const handleStartEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    // Reset form to original values
+    setEditForm({
+      label: code.label || '',
+      description: code.description || '',
+      color: code.color || 'bg-gray-200',
+      textColor: code.textColor || 'text-gray-800'
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editForm.label.trim() || !editForm.description.trim()) {
+      if (onMessage) onMessage('Both label and description are required', true);
+      return;
+    }
+    
+    const result = await onEditCode(code.docId || code.id, {
+      label: editForm.label.trim(),
+      description: editForm.description.trim(),
+      color: editForm.color,
+      textColor: editForm.textColor
+    });
+    
+    if (result?.success) {
+      if (onMessage) onMessage('Code updated successfully!');
+      setIsEditing(false);
+      
+      // Call parent to update selectedCode to latest from allCodes
+      if (onUpdateCodeInLivingCodebook) {
+        onUpdateCodeInLivingCodebook({ id: code.id, docId: code.docId });
+      }
+    } else {
+      if (onMessage) onMessage('Failed to update code', true);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!onDeleteCode || !onCheckCodeUsage || !onDeleteHighlightsByCode) return;
+    
+    // Check if the code is being used in any highlights
+    const usage = await onCheckCodeUsage(code.id);
+    
+    let confirmMessage = `Are you sure you want to delete the "${code.label}" code?`;
+    
+    if (usage.count > 0) {
+      confirmMessage += `\n\nWarning: This code is currently used in ${usage.count} highlight${usage.count > 1 ? 's' : ''}. Deleting this code will also remove all associated highlights.`;
+    }
+    
+    if (!confirm(confirmMessage)) return;
+
+    // If there are highlights using this code, delete them first
+    if (usage.count > 0) {
+      const highlightDeleteResult = await onDeleteHighlightsByCode(code.id);
+      if (!highlightDeleteResult.success) {
+        if (onMessage) onMessage('Failed to delete associated highlights', true);
+        return;
+      }
+    }
+
+    const result = await onDeleteCode(code.docId || code.id);
+    if (result?.success) {
+      const message = usage.count > 0 
+        ? `Code deleted successfully! ${usage.count} associated highlight${usage.count > 1 ? 's were' : ' was'} also removed.`
+        : 'Code deleted successfully!';
+      if (onMessage) onMessage(message);
+      
+      // Navigate back to all codes after successful deletion
+      onBack();
+    } else {
+      if (onMessage) onMessage('Failed to delete code', true);
+    }
+  };
 
   // Load reflexive responses for this code
   useEffect(() => {
     if (!code) return;
 
     setLoading(true);
-    
-    // Use the real reflexive service to get responses by code
     try {
       const unsubscribe = reflexiveService.onReflexiveResponsesByCodeSnapshot(
         code.id, 
@@ -39,17 +139,15 @@ const LivingCodebook = ({
 
       return () => unsubscribe();
     } catch (error) {
-      console.error('Error loading reflexive responses:', error);
-      // Fallback to empty responses if index doesn't exist
       setReflexiveResponses([]);
       setLoading(false);
     }
   }, [code]);
 
   const tabs = [
-    { id: 'reflexive', label: 'Reflexive Stream', count: reflexiveResponses.length },
-    { id: 'exemplars', label: 'Exemplars', count: 0 },
-    { id: 'history', label: 'History', count: 0 }
+    { id: 'reflexive', label: 'Reflexive Stream' },
+    { id: 'exemplars', label: 'Exemplars' },
+    { id: 'history', label: 'History'}
   ];
 
   const renderTabContent = () => {
@@ -78,8 +176,14 @@ const LivingCodebook = ({
       <LivingCodebookHeader 
         code={code}
         onBack={onBack}
-        onEditCode={onEditCode}
+        onStartEdit={handleStartEdit}
+        onDelete={handleDelete}
         currentUser={currentUser}
+        isEditing={isEditing}
+        editForm={editForm}
+        setEditForm={setEditForm}
+        onSaveEdit={handleSaveEdit}
+        onCancelEdit={handleCancelEdit}
       />
 
       {/* Intelligence Hub */}
@@ -101,11 +205,6 @@ const LivingCodebook = ({
                 }`}
               >
                 {tab.label}
-                {tab.count > 0 && (
-                  <span className="ml-2 bg-gray-100 text-gray-900 py-0.5 px-2 rounded-full text-xs">
-                    {tab.count}
-                  </span>
-                )}
               </button>
             ))}
           </nav>

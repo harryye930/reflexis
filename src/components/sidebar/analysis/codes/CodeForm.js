@@ -102,7 +102,7 @@ const CodeForm = ({
                 color: option.bg, 
                 textColor: option.text 
               }))}
-              className={`color-option px-2 py-1 text-xs rounded-md ${option.bg} ${option.text} ${
+              className={`code-palette-unified color-option px-2 py-1 text-xs rounded-md ${option.bg} ${option.text} ${
                 formData.color === option.bg ? 'selected ring-2 ring-blue-500' : 'border border-gray-200'
               }`}
             >

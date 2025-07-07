@@ -11,7 +11,8 @@ const CodeSection = ({
   userProfiles,
   emptyMessage = "No codes available",
   sectionType = "default", // "default", "custom", or "selection"
-  onCodeNameClick // New prop for Living Codebook
+  onCodeNameClick, // New prop for Living Codebook
+  hideEditButtons = false // New prop to hide edit buttons
 }) => {
   if (!codes || codes.length === 0) {
     return (
@@ -37,6 +38,7 @@ const CodeSection = ({
             userProfiles={userProfiles}
             variant="management"
             onCodeNameClick={onCodeNameClick}
+            hideEditButtons={hideEditButtons}
           />
         ))}
       </div>

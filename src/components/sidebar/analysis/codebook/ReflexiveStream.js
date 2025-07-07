@@ -1,3 +1,20 @@
+/*
+ * ReflexiveStream Component - FULLY IMPLEMENTED
+ * 
+ * This component displays reflexive responses for a specific code in the Living Codebook.
+ * It connects to real Firebase data through ReflexiveService.onReflexiveResponsesByCodeSnapshot()
+ * 
+ * Connected Features:
+ * - Real-time reflexive response data from Firebase
+ * - User filtering (by userId)
+ * - User profiles with positionality information
+ * - Response content with prompts and timestamps
+ * - Summary statistics
+ * 
+ * Placeholder Features:
+ * - "View Source" button - requires document navigation integration
+ */
+
 import React, { useState } from 'react';
 
 const ReflexiveStream = ({ 
@@ -9,7 +26,18 @@ const ReflexiveStream = ({
   const [filterUser, setFilterUser] = useState('all');
 
   const formatTimestamp = (timestamp) => {
-    const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
+    if (!timestamp) return 'Unknown time';
+    
+    let date;
+    if (timestamp.toDate) {
+      // Firestore Timestamp object
+      date = timestamp.toDate();
+    }
+    
+    if (isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
+    
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
@@ -21,16 +49,21 @@ const ReflexiveStream = ({
   };
 
   const getUserPositionality = (userId) => {
-    return userProfiles[userId]?.positionality || 'Not specified';
+    return userProfiles[userId]?.researchBackground || 'Not specified';
   };
 
   // Get unique users for filter
-  const uniqueUsers = [...new Set(responses.map(r => r.userId))];
+  const uniqueUsers = [...new Set(responses.map(r => r.userId))].filter(Boolean);
+  
   const filteredResponses = filterUser === 'all' 
     ? responses 
     : responses.filter(r => r.userId === filterUser);
 
-  const sortedResponses = [...filteredResponses].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const sortedResponses = [...filteredResponses].sort((a, b) => {
+    const aTime = new Date(a.createdAt);
+    const bTime = new Date(b.createdAt);
+    return bTime - aTime;
+  });
 
   if (loading) {
     return (
@@ -88,7 +121,7 @@ const ReflexiveStream = ({
               {/* Response Content */}
               <div className="mb-3">
                 <blockquote className="text-sm text-gray-800 leading-relaxed border-l-4 border-blue-200 pl-4 italic">
-                  &ldquo;{response.response}&rdquo;
+                  &ldquo;{response.response || '[No response text]'}&rdquo;
                 </blockquote>
               </div>
 
@@ -107,16 +140,22 @@ const ReflexiveStream = ({
 
               {/* Prompt Context */}
               <div className="mt-2 text-xs text-gray-400">
-                <span className="font-medium">Question:</span> {response.prompt}
+                <span className="font-medium">Question:</span> {response.prompt || '[No prompt]'}
               </div>
 
               {/* Source Link */}
               <div className="mt-3 flex items-center justify-between">
                 <div className="text-xs text-gray-600">
-                  <span className="font-medium">Source:</span> &ldquo;{response.sourceText?.substring(0, 80)}...&rdquo;
+                  <span className="font-medium">Source:</span> &ldquo;{response.sourceText?.substring(0, 80) || '[No source text]'}...&rdquo;
                 </div>
-                <button className="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                  View Source
+                <button 
+                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                  onClick={() => {
+                    // [PLACEHOLDER] View Source functionality - requires document navigation integration
+                    console.log('View source for highlight:', response.highlightId, 'in document:', response.documentId);
+                  }}
+                >
+                  View Source [PLACEHOLDER]
                 </button>
               </div>
             </div>

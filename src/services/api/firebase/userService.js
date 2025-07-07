@@ -18,7 +18,11 @@ export class UserService {
         
         // Ensure we have valid user data before adding to profiles
         if (data.userId && data.name && data.color) {
-          profiles[data.userId] = { name: data.name, color: data.color };
+          profiles[data.userId] = { 
+            name: data.name, 
+            color: data.color,
+            researchBackground: data.researchBackground || null
+          };
         }
       });
       callback(profiles);
@@ -42,7 +46,11 @@ export class UserService {
         
         // Ensure we have valid user data before adding to profiles
         if (data.userId && data.name && data.color) {
-          profiles[data.userId] = { name: data.name, color: data.color };
+          profiles[data.userId] = { 
+            name: data.name, 
+            color: data.color,
+            researchBackground: data.researchBackground || null
+          };
         }
       });
       

@@ -8,16 +8,26 @@ const CodeItem = ({
   userProfiles,
   showDescriptions,
   variant = "selection", // "selection" or "management"
-  onCodeNameClick // New prop for handling code name clicks
+  onCodeNameClick, // New prop for handling code name clicks
+  hideEditButtons = false // New prop to hide edit/delete buttons
 }) => {
-  const getAuthorName = (code) => {
-    if (code.isDefault) return null;
-    if (code.createdBy && userProfiles[code.createdBy]) {
-      const authorName = userProfiles[code.createdBy].name;
-      const isCurrentUser = currentUser && code.createdBy === currentUser.uid;
+  const getUserName = (userId) => {
+    if (userId === 'system') return 'System';
+    if (userId && userProfiles[userId]) {
+      const authorName = userProfiles[userId].name;
+      const isCurrentUser = currentUser && userId === currentUser.uid;
       return isCurrentUser ? `${authorName} (you)` : authorName;
     }
     return 'Unknown';
+  };
+
+  const getAuthorDisplay = (code) => {
+    const creator = getUserName(code.createdBy);
+    const updater = code.updatedBy ? getUserName(code.updatedBy) : null;
+    if (updater && code.updatedBy !== code.createdBy) {
+      return `by ${creator}, updated by ${updater}`;
+    }
+    return `by ${creator}`;
   };
 
   const handleContainerClick = (e) => {
@@ -50,40 +60,24 @@ const CodeItem = ({
               <span className={codeClass}>
                 {code.label}
               </span>
-              {code.isCustomized ? (
-                <span className="customized-default-badge">CUSTOMIZED</span>
-              ) : code.isDefault ? (
-                <span className="default-code-badge">DEFAULT</span>
-              ) : (
-                <span className="custom-code-badge">CUSTOM</span>
-              )}
             </div>
             <p className="text-xs text-gray-600 leading-relaxed">{code.description}</p>
+            {getAuthorDisplay(code) && (
+              <p className="text-xs text-gray-500 mt-1">{getAuthorDisplay(code)}</p>
+            )}
           </div>
-          {currentUser && (
+          {currentUser && !hideEditButtons && (
             <div className="flex gap-1 ml-3">
               <button
                 onClick={(e) => {
                   e.stopPropagation(); // Prevent triggering the container click
-                  onEdit(code);
+                  onDelete(code);
                 }}
-                className="text-sm px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                title={code.isCustomized ? "Edit your customized version" : code.isDefault ? "Customize this default code" : "Edit code"}
+                className="text-sm px-3 py-1 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                title="Delete code"
               >
-                ✏️ {code.isCustomized ? 'Edit' : code.isDefault ? 'Customize' : 'Edit'}
+                🗑️ Delete
               </button>
-              {code.isCustom && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent triggering the container click
-                    onDelete(code);
-                  }}
-                  className="text-sm px-3 py-1 text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                  title="Delete code"
-                >
-                  🗑️ Delete
-                </button>
-              )}
             </div>
           )}
         </>
@@ -99,43 +93,25 @@ const CodeItem = ({
                 <span className="font-medium text-sm">
                   {code.label}
                 </span>
-                {code.isDefault ? (
-                  <span className="default-code-badge">DEFAULT</span>
-                ) : (
-                  <span className="custom-code-badge">CUSTOM</span>
-                )}
               </div>
-              {!code.isDefault && getAuthorName(code) && (
-                <p className="text-xs opacity-60 mt-1">by {getAuthorName(code)}</p>
+              {getAuthorDisplay(code) && (
+                <p className="text-xs opacity-60 mt-1">{getAuthorDisplay(code)}</p>
               )}
             </div>
             
-            {currentUser && (
+            {currentUser && !hideEditButtons && (
               <div className="flex gap-1 ml-3">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onEdit(code);
+                    onDelete(code);
                   }}
-                  className="text-xs px-2 py-1 text-blue-600 hover:bg-blue-50 rounded-md transition-colors opacity-0 group-hover:opacity-100"
-                  title="Edit code"
+                  className="text-xs px-2 py-1 text-red-600 hover:bg-red-50 rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                  title="Delete code"
                   tabIndex={-1}
                 >
-                  ✏️
+                  🗑️
                 </button>
-                {(code.canDelete || code.isDefault) && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete(code);
-                    }}
-                    className="text-xs px-2 py-1 text-red-600 hover:bg-red-50 rounded-md transition-colors opacity-0 group-hover:opacity-100"
-                    title="Delete code"
-                    tabIndex={-1}
-                  >
-                    🗑️
-                  </button>
-                )}
               </div>
             )}
           </div>

@@ -21,7 +21,6 @@ const CodeManagement = ({
 }) => {
   const [showDescriptions, setShowDescriptions] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingCode, setEditingCode] = useState(null);
 
   const isSelectionMode = mode === "selection";
   const isManagementMode = mode === "management";
@@ -30,64 +29,23 @@ const CodeManagement = ({
 
   const resetForm = () => {
     setShowAddForm(false);
-    setEditingCode(null);
   };
 
   const handleFormSubmit = async (formData) => {
-    if (editingCode) {
-      return await onUpdateCode(editingCode.docId || editingCode.id, formData);
-    } else {
-      return await onAddCode(formData);
-    }
+    return await onAddCode(formData);
   };
 
-  const handleEdit = (code) => {
-    setEditingCode(code);
-    setShowAddForm(true);
-  };
+  // Remove handleEdit since editing is now only in Living Codebook
 
   const handleDelete = async (code) => {
-    // Check if the code is being used in any highlights
-    const usage = onCheckCodeUsage ? await onCheckCodeUsage(code.id) : { count: 0, highlights: [] };
-    
-    let confirmMessage = `Are you sure you want to delete the "${code.label}" code?`;
-    
-    if (usage.count > 0) {
-      confirmMessage += `\n\nWarning: This code is currently used in ${usage.count} highlight${usage.count > 1 ? 's' : ''}. Deleting this code will also remove all associated highlights.`;
-    }
-    
-    if (!confirm(confirmMessage)) return;
-
-    // If there are highlights using this code, delete them first
-    if (usage.count > 0 && onDeleteHighlightsByCode) {
-      const highlightDeleteResult = await onDeleteHighlightsByCode(code.id);
-      if (!highlightDeleteResult.success) {
-        onMessage('Failed to delete associated highlights', true);
-        return;
-      }
-    }
-
-    const result = await onDeleteCode(code.docId || code.id);
-    if (result.success) {
-      const message = usage.count > 0 
-        ? `Code deleted successfully! ${usage.count} associated highlight${usage.count > 1 ? 's were' : ' was'} also removed.`
-        : 'Code deleted successfully!';
-      onMessage(message);
-    } else {
-      onMessage('Failed to delete code', true);
-    }
+    // Delete functionality moved to Living Codebook only
+    // This function is kept for interface compatibility but should not be called
+    console.warn('Delete functionality is only available in Living Codebook');
   };
 
   const handleToggleAddForm = () => {
     setShowAddForm(!showAddForm);
-    if (showAddForm) {
-      setEditingCode(null);
-    }
   };
-
-  // Prepare codes based on mode
-  const customCodes = allCodes.filter(code => code.isCustom);
-  const defaultCodes = allCodes.filter(code => !code.isCustom);
 
   if (!currentUser && isManagementMode) {
     return (
@@ -125,10 +83,10 @@ const CodeManagement = ({
         </div>
       )}
 
-      {/* Add/Edit Form */}
+      {/* Add Form (only for adding new codes) */}
       {showAddForm && currentUser && (
         <CodeForm
-          editingCode={editingCode}
+          editingCode={null}
           onSubmit={handleFormSubmit}
           onCancel={resetForm}
           onMessage={onMessage}
@@ -140,41 +98,28 @@ const CodeManagement = ({
         <CodeList
           allCodes={allCodes}
           showDescriptions={showDescriptions}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+          onEdit={null} // No edit handler since editing is disabled
+          onDelete={null} // Remove delete functionality from list view
           currentUser={currentUser}
           userProfiles={userProfiles}
           onCodeNameClick={onCodeNameClick}
+          hideEditButtons={true} // Hide delete buttons in selection mode
         />
       ) : (
-        // Management Mode: Organized sections
-        <>
-          <CodeSection
-            title="Default Codes"
-            codes={defaultCodes}
-            showDescriptions={true}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            currentUser={currentUser}
-            userProfiles={userProfiles}
-            emptyMessage="No default codes available"
-            sectionType="default"
-            onCodeNameClick={onCodeNameClick}
-          />
-          
-          <CodeSection
-            title="Your Custom Codes"
-            codes={customCodes}
-            showDescriptions={true}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            currentUser={currentUser}
-            userProfiles={userProfiles}
-            emptyMessage="No custom codes created yet"
-            sectionType="custom"
-            onCodeNameClick={onCodeNameClick}
-          />
-        </>
+        // Management Mode: All codes in a single list
+        <CodeSection
+          title="All Codes"
+          codes={allCodes}
+          showDescriptions={true}
+          onEdit={null} // No edit handler since editing is disabled
+          onDelete={null} // Remove delete functionality from list view
+          currentUser={currentUser}
+          userProfiles={userProfiles}
+          emptyMessage="No codes available"
+          sectionType="all"
+          onCodeNameClick={onCodeNameClick}
+          hideEditButtons={true} // Hide delete buttons in management mode
+        />
       )}
       
       {isSelectionMode && (

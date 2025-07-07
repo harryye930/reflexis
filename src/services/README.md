@@ -61,7 +61,7 @@ Handles code management operations.
 - `addCode(codeData, userId)` - Add a new code
 - `updateCode(codeId, updateData, userId)` - Update an existing code
 - `deleteCode(docId)` - Delete a code
-- `createDefaultReplacement(codeId, codeData, userId)` - Create a default code replacement
+- `ensureDefaultCodes(defaultCodes, userId)` - Ensure default codes exist (one-time initialization)
 - `getCode(codeId)` - Get a single code by ID
 
 ### HighlightService

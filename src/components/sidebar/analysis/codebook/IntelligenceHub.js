@@ -3,12 +3,12 @@ import React, { useState } from 'react';
 const IntelligenceHub = ({ code }) => {
   const [dismissedInsights, setDismissedInsights] = useState(new Set());
 
-  // Mock AI insights - in real implementation these would come from analysis
+  // [PLACEHOLDER] AI insights - requires ML/AI analysis infrastructure
   const mockInsights = [
     {
       id: 'insight-1',
       type: 'conceptual-drift',
-      title: 'Conceptual Drift Detected',
+      title: '[PLACEHOLDER] Conceptual Drift Detected',
       message: 'This code has been applied differently over the past week. Recent uses focus more on economic barriers.',
       action: 'Review Recent Usage',
       severity: 'medium'
@@ -16,7 +16,7 @@ const IntelligenceHub = ({ code }) => {
     {
       id: 'insight-2',
       type: 'connection-opportunity',
-      title: 'Connection Opportunity',
+      title: '[PLACEHOLDER] Connection Opportunity',
       message: "This code is often linked to 'Socioeconomic Status'. Consider exploring these connections.",
       action: 'Explore Connections',
       severity: 'low'
@@ -24,7 +24,7 @@ const IntelligenceHub = ({ code }) => {
     {
       id: 'insight-3',
       type: 'usage-pattern',
-      title: 'Usage Pattern',
+      title: '[PLACEHOLDER] Usage Pattern',
       message: 'This code appears frequently with geographic references. Consider creating a related code.',
       action: 'View Patterns',
       severity: 'low'
@@ -69,7 +69,7 @@ const IntelligenceHub = ({ code }) => {
 
   return (
     <div className="px-6 py-4 border-b border-gray-200">
-      <h3 className="text-sm font-medium text-gray-700 mb-3">INTELLIGENCE HUB - AI INSIGHTS</h3>
+      <h3 className="text-sm font-medium text-gray-700 mb-3">INTELLIGENCE HUB - AI INSIGHTS [PLACEHOLDER]</h3>
       <div className="space-y-3">
         {activeInsights.map((insight) => (
           <div
@@ -82,7 +82,13 @@ const IntelligenceHub = ({ code }) => {
                 <div className="flex-1">
                   <h4 className="text-sm font-medium text-gray-900">{insight.title}</h4>
                   <p className="text-sm text-gray-700 mt-1">{insight.message}</p>
-                  <button className="text-xs text-blue-600 hover:text-blue-800 font-medium mt-2">
+                  <button 
+                    className="text-xs text-blue-600 hover:text-blue-800 font-medium mt-2"
+                    onClick={() => {
+                      // [PLACEHOLDER] AI insight actions - requires ML/AI analysis infrastructure
+                      console.log('Insight action clicked:', insight.action, 'for insight:', insight.id);
+                    }}
+                  >
                     {insight.action}
                   </button>
                 </div>

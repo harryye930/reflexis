@@ -17,7 +17,8 @@ const AnalysisTab = ({
   onDeleteHighlightsByCode,
   livingCodebookState,
   onCodeNameClick,
-  onBackToAllCodes
+  onBackToAllCodes,
+  onUpdateCodeInLivingCodebook
 }) => {
   // If Living Codebook is active, show it instead of the normal view
   if (livingCodebookState.isActive && livingCodebookState.selectedCode) {
@@ -27,12 +28,12 @@ const AnalysisTab = ({
         currentUser={currentUser}
         userProfiles={userProfiles}
         onBack={onBackToAllCodes}
-        onEditCode={(code) => {
-          // Switch back to code management and start editing
-          onBackToAllCodes();
-          // This will need to be passed down to trigger the edit form
-          onUpdateCode && onUpdateCode(code.docId || code.id, code);
-        }}
+        onEditCode={onUpdateCode}
+        onDeleteCode={onDeleteCode}
+        onMessage={onMessage}
+        onCheckCodeUsage={onCheckCodeUsage}
+        onDeleteHighlightsByCode={onDeleteHighlightsByCode}
+        onUpdateCodeInLivingCodebook={onUpdateCodeInLivingCodebook}
       />
     );
   }

@@ -1,4 +1,4 @@
-import { collection, onSnapshot, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, deleteDoc, doc, updateDoc, query, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../../../lib/firebase.js';
 
 export class CodeService {
@@ -12,9 +12,8 @@ export class CodeService {
     
     return onSnapshot(codesCollection, (snapshot) => {
       const codes = snapshot.docs.map(doc => ({ 
-        id: doc.id, 
+        id: doc.data().id || doc.id, // Use the id from data first, fallback to docId
         docId: doc.id,
-        isCustom: true,
         ...doc.data() 
       }));
       callback(codes);
@@ -48,7 +47,7 @@ export class CodeService {
         updatedAt: new Date()
       });
       
-      return { success: true };
+      return { success: true, updatedBy: userId };
     } catch (error) {
       console.error("Error updating code: ", error);
       return { success: false, error };
@@ -62,25 +61,6 @@ export class CodeService {
       return { success: true };
     } catch (error) {
       console.error("Error deleting code: ", error);
-      return { success: false, error };
-    }
-  }
-
-  // Create a default code replacement
-  async createDefaultReplacement(codeId, codeData, userId) {
-    try {
-      const codesCollection = collection(db, `artifacts/${this.appId}/public/data/codes`);
-      await addDoc(codesCollection, {
-        id: codeId, // Use the same ID to replace the default
-        ...codeData,
-        createdBy: userId,
-        isDefaultReplacement: true, // Mark as a replacement for default
-        createdAt: new Date()
-      });
-      
-      return { success: true };
-    } catch (error) {
-      console.error("Error creating default replacement: ", error);
       return { success: false, error };
     }
   }

@@ -24,13 +24,15 @@ export class ReflexiveService {
   // Add a new reflexive response
   async addReflexiveResponse(responseData, userId) {
     try {
+      console.log('ReflexiveService: Adding reflexive response:', responseData);
       const responsesCollection = collection(db, `artifacts/${this.appId}/public/data/reflexive_responses`);
-      await addDoc(responsesCollection, {
+      const docRef = await addDoc(responsesCollection, {
         ...responseData,
         userId,
         createdAt: new Date(),
         updatedAt: new Date()
       });
+      console.log('ReflexiveService: Successfully added response with ID:', docRef.id);
       return { success: true };
     } catch (error) {
       console.error("Error adding reflexive response: ", error);
@@ -106,6 +108,7 @@ export class ReflexiveService {
 
   // Get reflexive responses by code (for Living Codebook)
   onReflexiveResponsesByCodeSnapshot(codeId, callback) {
+    console.log('ReflexiveService: Querying responses for codeId:', codeId);
     const responsesCollection = collection(db, `artifacts/${this.appId}/public/data/reflexive_responses`);
     const responsesQuery = query(
       responsesCollection, 
@@ -115,7 +118,11 @@ export class ReflexiveService {
     
     return onSnapshot(responsesQuery, (snapshot) => {
       const responsesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      console.log('ReflexiveService: Found responses:', responsesData);
       callback(responsesData);
+    }, (error) => {
+      console.error('ReflexiveService: Error in snapshot listener:', error);
+      callback([]);
     });
   }
 }

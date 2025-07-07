@@ -1,7 +1,7 @@
 import React from 'react';
 
 const CodeHistory = ({ code }) => {
-  // Mock history data - in real implementation this would track actual changes
+  // [PLACEHOLDER] History data - requires audit trail infrastructure for code changes
   const mockHistory = [
     {
       id: 'h1',
@@ -84,7 +84,7 @@ const CodeHistory = ({ code }) => {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Code History</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">Code History [PLACEHOLDER]</h3>
         <p className="text-sm text-gray-600">
           Complete audit trail of how this code has evolved. Answers &ldquo;When and why did we change this?&rdquo;
         </p>
@@ -97,7 +97,7 @@ const CodeHistory = ({ code }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <p className="text-gray-500 text-sm">No history yet</p>
+          <p className="text-gray-500 text-sm">No history yet [PLACEHOLDER]</p>
           <p className="text-gray-400 text-xs mt-1">
             Changes to this code will appear here
           </p>

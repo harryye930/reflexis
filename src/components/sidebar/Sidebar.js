@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SlidingTabControl from './shared/SlidingTabControl.js';
 import AnalysisTab from './analysis/AnalysisTab.js';
 import NotificationsTab from './notifications/NotificationsTab.js';
@@ -43,18 +43,56 @@ const Sidebar = ({
   } = useNotificationContext();
 
   const handleCodeNameClick = (code) => {
+    // Always select the latest code object from allCodes by id
+    const latestCode = allCodes.find(c => c.id === code.id || c.docId === code.docId);
     setLivingCodebookState({
       isActive: true,
-      selectedCode: code
+      selectedCode: latestCode || code // fallback to passed code if not found
     });
   };
 
+  // Helper to update selectedCode after edit
+  const handleUpdateCodeInLivingCodebook = (updatedCode) => {
+    const latestCode = allCodes.find(c => c.id === updatedCode.id || c.docId === updatedCode.docId);
+    setLivingCodebookState(prev => ({
+      ...prev,
+      selectedCode: latestCode || updatedCode
+    }));
+  };
+
+  // Helper to clear selectedCode after delete
   const handleBackToAllCodes = () => {
     setLivingCodebookState({
       isActive: false,
       selectedCode: null
     });
   };
+
+  // --- Add this useEffect to sync selectedCode with allCodes after edits ---
+  useEffect(() => {
+    if (livingCodebookState.isActive && livingCodebookState.selectedCode) {
+      const latestCode = allCodes.find(c =>
+        c.id === livingCodebookState.selectedCode.id ||
+        c.docId === livingCodebookState.selectedCode.docId
+      );
+      // Only update if the code object is different (by label/description/color/textColor)
+      if (
+        latestCode &&
+        (
+          latestCode.label !== livingCodebookState.selectedCode.label ||
+          latestCode.description !== livingCodebookState.selectedCode.description ||
+          latestCode.color !== livingCodebookState.selectedCode.color ||
+          latestCode.textColor !== livingCodebookState.selectedCode.textColor
+        )
+      ) {
+        setLivingCodebookState(prev => ({
+          ...prev,
+          selectedCode: latestCode
+        }));
+      }
+    }
+  }, [allCodes, livingCodebookState.isActive, livingCodebookState.selectedCode]);
+  // --- End sync useEffect ---
 
   const renderActiveTab = () => {
     switch (activeTab) {
@@ -75,6 +113,7 @@ const Sidebar = ({
             livingCodebookState={livingCodebookState}
             onCodeNameClick={handleCodeNameClick}
             onBackToAllCodes={handleBackToAllCodes}
+            onUpdateCodeInLivingCodebook={handleUpdateCodeInLivingCodebook}
           />
         );
       

@@ -38,11 +38,11 @@ const ReflexivePromptPanel = ({
     const responseData = {
       highlightId,
       documentId,
-      code: selectedCode.id,
+      codeId: selectedCode.id,
       codeLabel: selectedCode.label,
-      selectedText,
+      sourceText: selectedText,
       promptType: currentPrompt.type,
-      promptQuestion: currentPrompt.prompt(selectedCode.label, selectedText),
+      prompt: currentPrompt.prompt(selectedCode.label, selectedText), 
       response: currentResponse.trim()
     };
 

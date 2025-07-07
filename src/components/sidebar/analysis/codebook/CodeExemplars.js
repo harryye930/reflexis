@@ -1,7 +1,7 @@
 import React from 'react';
 
 const CodeExemplars = ({ code }) => {
-  // Mock exemplar data - in real implementation this would be curated highlights
+  // [PLACEHOLDER] Exemplar data - requires pinning infrastructure from highlights
   const mockExemplars = [
     {
       id: 'ex1',
@@ -26,7 +26,7 @@ const CodeExemplars = ({ code }) => {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Exemplars</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">Exemplars [PLACEHOLDER]</h3>
         <p className="text-sm text-gray-600">
           Curated examples of the best applications of this code. These highlight particularly clear or insightful uses.
         </p>
@@ -39,9 +39,9 @@ const CodeExemplars = ({ code }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
             </svg>
           </div>
-          <p className="text-gray-500 text-sm">No exemplars yet</p>
+          <p className="text-gray-500 text-sm">No exemplars yet [PLACEHOLDER]</p>
           <p className="text-gray-400 text-xs mt-1">
-            Pin highlights to create exemplars for this code
+            Pin highlights to create exemplars for this code (requires pinning infrastructure)
           </p>
         </div>
       ) : (
@@ -79,7 +79,7 @@ const CodeExemplars = ({ code }) => {
               {/* Actions */}
               <div className="flex items-center justify-between">
                 <button className="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                  View in Context
+                  View in Context [PLACEHOLDER]
                 </button>
                 <div className="flex items-center space-x-2">
                   <button className="text-xs text-gray-600 hover:text-gray-800">
