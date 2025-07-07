@@ -14,7 +14,8 @@ const HighlightedText = ({
   allCodes,
   activeDocument,
   showHoverTooltips = true,
-  showAuthorInfo = true
+  showAuthorInfo = true,
+  disableHighlightManagement = false
 }) => {
   const textContainerRef = useRef(null);
   const [tooltip, setTooltip] = useState({
@@ -78,6 +79,9 @@ const HighlightedText = ({
   const handleHighlightClick = (e, clickedHighlights) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Prevent management panel if disabled by admin
+    if (disableHighlightManagement) return;
     
     // Check if there's an active text selection - if so, don't show management panel
     // to allow code application instead

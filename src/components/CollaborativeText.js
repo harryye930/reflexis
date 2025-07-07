@@ -41,7 +41,9 @@ function CollaborativeTextContent() {
     showHoverTooltips, 
     showAuthorInfo, 
     toggleHoverTooltips, 
-    toggleAuthorInfo 
+    toggleAuthorInfo,
+    disableHighlightManagement,
+    toggleDisableHighlightManagement
   } = useHoverPreferences(appId);
   
   // Highlight management hook
@@ -134,6 +136,7 @@ function CollaborativeTextContent() {
               activeDocument={activeDocument}
               showHoverTooltips={showHoverTooltips}
               showAuthorInfo={showAuthorInfo}
+              disableHighlightManagement={disableHighlightManagement}
             />
           )}
         </div>
@@ -158,6 +161,8 @@ function CollaborativeTextContent() {
           showAuthorInfo={showAuthorInfo}
           onToggleHoverTooltips={toggleHoverTooltips}
           onToggleAuthorInfo={toggleAuthorInfo}
+          disableHighlightManagement={disableHighlightManagement}
+          onToggleDisableHighlightManagement={toggleDisableHighlightManagement}
         />
       </div>
 

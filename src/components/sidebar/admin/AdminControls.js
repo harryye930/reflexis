@@ -7,7 +7,9 @@ const AdminControls = ({
   showHoverTooltips,
   showAuthorInfo,
   onToggleHoverTooltips,
-  onToggleAuthorInfo
+  onToggleAuthorInfo,
+  disableHighlightManagement,
+  onToggleDisableHighlightManagement
 }) => {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -88,6 +90,8 @@ const AdminControls = ({
           showAuthorInfo={showAuthorInfo}
           onToggleHoverTooltips={onToggleHoverTooltips}
           onToggleAuthorInfo={onToggleAuthorInfo}
+          disableHighlightManagement={disableHighlightManagement}
+          onToggleDisableHighlightManagement={onToggleDisableHighlightManagement}
         />
       </div>
       

@@ -9,7 +9,9 @@ const AdminTab = ({
   onMessage,
   showHoverTooltips,
   onToggleHoverTooltips,
-  onToggleAuthorInfo
+  onToggleAuthorInfo,
+  disableHighlightManagement,
+  onToggleDisableHighlightManagement
 }) => {
   return (
     <div className="p-6">
@@ -35,6 +37,8 @@ const AdminTab = ({
         showAuthorInfo={showAuthorInfo}
         onToggleHoverTooltips={onToggleHoverTooltips}
         onToggleAuthorInfo={onToggleAuthorInfo}
+        disableHighlightManagement={disableHighlightManagement}
+        onToggleDisableHighlightManagement={onToggleDisableHighlightManagement}
       />
     </div>
   );
