@@ -171,22 +171,6 @@ export const useHighlightManagement = (
     setSelectedText('');
   };
 
-  // Disabled click-outside handling to prevent interference with reflexive modal interactions
-  // Users can only close modals via cancel buttons for better UX
-  // useEffect(() => {
-  //   const handleClickOutside = (e) => {
-  //     if (!e.target.closest('#text-container') && 
-  //         !e.target.closest('#coding-modal')) {
-  //       setShowModal(false);
-  //       setCurrentSelection(null); // Clear selection when clicking outside
-  //     }
-  //   };
-
-  //   if (showModal) {
-  //     document.addEventListener('mousedown', handleClickOutside);
-  //     return () => document.removeEventListener('mousedown', handleClickOutside);
-  //   }
-  // }, [showModal]);
 
   // Listen for global selection changes to clear state when text is deselected
   // But ignore changes when reflexive modal or other modals are active

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { CODE_COLOR_OPTIONS } from '../../constants/codeColors.js';
 import CodeButton from './CodeButton.js';
 import ReflexiveModal from './reflexive/ReflexiveModal.js';
@@ -15,6 +15,22 @@ const HighlightingModal = ({
   const [showReflexiveModal, setShowReflexiveModal] = useState(false);
   const [selectedCodeForReflexive, setSelectedCodeForReflexive] = useState(null);
   const [highlightId, setHighlightId] = useState(null);
+  const modalRef = useRef(null);
+
+  // Click-outside handling for the highlighting modal
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (modalRef.current && !modalRef.current.contains(event.target) && 
+          !event.target.closest('.reflexive-modal')) {
+        onClose();
+      }
+    };
+
+    if (!showReflexiveModal) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [onClose, showReflexiveModal]);
 
   if (!allCodes || allCodes.length === 0) {
     return null;
@@ -71,6 +87,7 @@ const HighlightingModal = ({
       {!showReflexiveModal ? (
         <div
           id="coding-modal"
+          ref={modalRef}
           className="coding-modal bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl border border-gray-200/50 p-4 transition-all duration-300"
           style={{ 
             left: modalPosition.x, 

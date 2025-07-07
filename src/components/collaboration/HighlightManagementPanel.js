@@ -14,20 +14,19 @@ const HighlightManagementPanel = ({
 }) => {
   const panelRef = useRef(null);
 
-  // Disabled click-outside handling to prevent accidental closure
-  // Users must use close button for better UX
-  // useEffect(() => {
-  //   const handleClickOutside = (event) => {
-  //     if (panelRef.current && !panelRef.current.contains(event.target)) {
-  //       onClose();
-  //     }
-  //   };
+  // click-outside handling for management panel
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (panelRef.current && !panelRef.current.contains(event.target)) {
+        onClose();
+      }
+    };
 
-  //   if (visible) {
-  //     document.addEventListener('mousedown', handleClickOutside);
-  //     return () => document.removeEventListener('mousedown', handleClickOutside);
-  //   }
-  // }, [visible, onClose]);
+    if (visible) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [visible, onClose]);
 
   if (!visible || !highlights || highlights.length === 0) {
     return null;
