@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { CODE_COLOR_OPTIONS } from '../../constants/codeColors.js';
-import CodeButton from './highlight/HighlightModalCodeButton.js';
+import CodeButton from '../highlight/HighlightModalCodeButton.js';
 import ReflexiveModal from './reflexive/ReflexiveModal.js';
 
 const HighlightingModal = ({ 

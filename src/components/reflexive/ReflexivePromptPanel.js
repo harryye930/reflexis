@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { PROMPT_SEQUENCE } from '../../../constants/reflexivePrompts.js';
-import { ReflexiveService } from '../../../services/api/firebase/reflexiveService.js';
-import { appId } from '../../../constants/index.js';
+import { PROMPT_SEQUENCE } from '../../constants/reflexivePrompts.js';
+import { ReflexiveService } from '../../services/api/firebase/reflexiveService.js';
+import { appId } from '../../constants/index.js';
 
 const ReflexivePromptPanel = ({ 
   selectedCode, 

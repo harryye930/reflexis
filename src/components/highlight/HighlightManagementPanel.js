@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { getUserDisplayColor, getUserDisplayName, shouldShowAuthorInfo } from '../../../lib/utils/hoverUtils';
+import { getUserDisplayColor, getUserDisplayName, shouldShowAuthorInfo } from '../../lib/utils/hoverUtils';
 
 const HighlightManagementPanel = ({ 
   highlights, 

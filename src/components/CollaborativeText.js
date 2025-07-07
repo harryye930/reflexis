@@ -12,8 +12,8 @@ import { NotificationProvider, useNotificationContext } from '../contexts/Notifi
 import { useHoverPreferences } from '../hooks/useHoverPreferences.js';
 
 // Components
-import HighlightedText from './collaboration/highlight/HighlightedText.js';
-import HighlightingModal from './collaboration/highlight/HighlightModal.js';
+import HighlightedText from './highlight/HighlightedText.js';
+import HighlightingModal from './highlight/HighlightModal.js';
 import MessageBox from './collaboration/MessageBox.js';
 import UserProfileSetup from './collaboration/UserProfileSetup.js';
 import DocumentBrowser from './collaboration/DocumentBrowser.js';

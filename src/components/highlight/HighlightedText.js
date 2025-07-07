@@ -1,9 +1,9 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { getAbsoluteIndex, arraysEqual } from '../../../lib/utils/selectionUtils.js';
+import { getAbsoluteIndex, arraysEqual } from '../../lib/utils/selectionUtils.js';
 import HighlightTooltip from './HighlightTooltip.js';
 import HighlightManagementPanel from './HighlightManagementPanel.js';
 import HighlightSegment from './HighlightSegment.js';
-import { useTextSegmentation } from '../../../hooks/useTextSegmentation.js';
+import { useTextSegmentation } from '../../hooks/useTextSegmentation.js';
 
 const HighlightedText = ({ 
   highlights, 
