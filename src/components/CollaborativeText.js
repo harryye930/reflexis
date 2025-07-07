@@ -14,11 +14,11 @@ import { useHoverPreferences } from '../hooks/useHoverPreferences.js';
 // Components
 import HighlightedText from './highlight/HighlightedText.js';
 import HighlightingModal from './highlight/HighlightModal.js';
-import MessageBox from './collaboration/MessageBox.js';
-import UserProfileSetup from './collaboration/UserProfileSetup.js';
-import DocumentBrowser from './collaboration/DocumentBrowser.js';
+import MessageBox from './MessageBox.js';
+import UserProfileSetup from './UserProfileSetup.js';
+import DocumentBrowser from './document/DocumentBrowser.js';
 import Sidebar from './sidebar/Sidebar.js';
-import DocumentHeader from './collaboration/DocumentHeader.js';
+import DocumentHeader from './document/DocumentHeader.js';
 
 function CollaborativeTextContent() {
   // Custom hooks for data management
