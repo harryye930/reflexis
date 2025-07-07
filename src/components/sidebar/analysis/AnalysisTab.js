@@ -9,7 +9,6 @@ const AnalysisTab = ({
   userProfilesLoaded, 
   onCodeSelect, 
   onMessage,
-  isSelectionActive,
   allCodes,
   onAddCode,
   onUpdateCode,
@@ -28,7 +27,7 @@ const AnalysisTab = ({
       <CodeManagement 
         allCodes={allCodes}
         onCodeSelect={onCodeSelect}
-        disabled={!isSelectionActive}
+        disabled={false}
         currentUser={currentUser}
         userProfiles={userProfiles}
         onAddCode={onAddCode}

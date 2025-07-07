@@ -144,7 +144,6 @@ function CollaborativeTextContent() {
           userProfilesLoaded={userProfilesLoaded}
           onCodeSelect={handleAddHighlight}
           onMessage={showMessage}
-          isSelectionActive={isSelectionActive}
           allCodes={allCodes}
           onAddCode={addCode}
           onUpdateCode={updateCode}

@@ -12,7 +12,6 @@ const Sidebar = ({
   userProfilesLoaded, 
   onCodeSelect, 
   onMessage,
-  isSelectionActive,
   // Code management props
   allCodes,
   onAddCode,
@@ -51,7 +50,6 @@ const Sidebar = ({
             userProfilesLoaded={userProfilesLoaded}
             onCodeSelect={onCodeSelect}
             onMessage={onMessage}
-            isSelectionActive={isSelectionActive}
             allCodes={allCodes}
             onAddCode={onAddCode}
             onUpdateCode={onUpdateCode}

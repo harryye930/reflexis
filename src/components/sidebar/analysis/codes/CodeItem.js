@@ -105,16 +105,6 @@ const CodeItem = ({
         <div
           className={codeClass}
           data-code={code.id}
-          onClick={handleCodeClick}
-          role="button"
-          aria-disabled={disabled}
-          tabIndex={disabled ? -1 : 0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleCodeClick(e);
-            }
-          }}
         >
           <div className="flex items-start justify-between mb-2">
             <div className="flex-1">
