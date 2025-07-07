@@ -463,25 +463,90 @@
     }
 }
 
-/* Reflexive Modal Styles */
+/* Reflexive Modal Styles - Enhanced for contemplative experience */
 .reflexive-modal {
-  animation: reflexive-modal-enter 0.3s ease-out;
+  animation: reflexive-modal-enter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes reflexive-modal-enter {
-  from {
+  0% {
     opacity: 0;
-    transform: translateX(-50%) translateY(-10px) scale(0.95);
+    transform: translateX(-50%) translateY(-20px) scale(0.9);
+    filter: blur(8px);
   }
-  to {
+  50% {
+    opacity: 0.7;
+    transform: translateX(-50%) translateY(-5px) scale(0.95);
+    filter: blur(2px);
+  }
+  100% {
     opacity: 1;
     transform: translateX(-50%) translateY(0) scale(1);
+    filter: blur(0);
   }
 }
 
 .reflexive-prompt-panel {
-  min-width: 400px;
-  max-width: 500px;
+  min-width: 480px;
+  max-width: 560px;
+}
+
+/* Contemplative animations */
+@keyframes contemplative-entrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) rotateY(8deg);
+    filter: blur(4px);
+  }
+  40% {
+    opacity: 0.6;
+    transform: scale(0.96) rotateY(3deg);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotateY(0deg);
+    filter: blur(0);
+  }
+}
+
+@keyframes gentle-pulse {
+  0%, 100% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% { 
+    transform: scale(1.02);
+    opacity: 0.9;
+  }
+}
+
+@keyframes gentle-float {
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% { 
+    transform: translateY(-2px) rotate(1deg);
+  }
+  66% { 
+    transform: translateY(1px) rotate(-0.5deg);
+  }
+}
+
+.animate-contemplative-entrance {
+  animation: contemplative-entrance 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-gentle-pulse {
+  animation: gentle-pulse 3s ease-in-out infinite;
+}
+
+.animate-gentle-float {
+  animation: gentle-float 4s ease-in-out infinite;
+}
+
+.animate-reflexive-entrance {
+  animation: reflexive-modal-enter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Code Button Hover Effects */

@@ -70,7 +70,7 @@ const CodeButton = ({
               e.stopPropagation();
               onReflexiveApply();
             }}
-            className="flex-1 px-3 py-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-md transition-all duration-200 font-medium border border-blue-200 hover:border-blue-300 hover:shadow-sm"
+            className="flex-1 px-3 py-1 text-xs bg-indigo-50/80 hover:bg-indigo-100/90 text-indigo-700 rounded-md transition-all duration-300 font-light border border-indigo-200/60 hover:border-indigo-300/70 hover:shadow-sm backdrop-blur-sm"
           >
             Reflect
           </button>
