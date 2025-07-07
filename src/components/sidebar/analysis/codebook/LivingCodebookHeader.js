@@ -67,9 +67,9 @@ const LivingCodebookHeader = ({
               )}
             </div>
 
-            {/* Canonical Definition */}
+            {/* Description */}
             <div className="mt-6">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">CANONICAL DEFINITION</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Description</h3>
               <div className="bg-gray-50 rounded-lg p-4">
                 <p className="text-sm text-gray-800 leading-relaxed">
                   {code.description}
