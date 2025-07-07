@@ -171,7 +171,7 @@ const LivingCodebook = ({
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col living-codebook-enter">
       {/* Header */}
       <LivingCodebookHeader 
         code={code}
@@ -190,7 +190,7 @@ const LivingCodebook = ({
       <IntelligenceHub code={code} />
 
       {/* Content Tabs */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col code-transition-enter">
         {/* Tab Navigation */}
         <div className="border-b border-gray-200 px-6">
           <nav className="flex space-x-8">

@@ -653,6 +653,87 @@ button:active:not(:disabled) {
   to { transform: rotate(360deg); }
 }
 
-.animate-spin {
-  animation: spin 1s linear infinite;
+/* Code-to-Living-Codebook Transition Animations */
+.code-transition-enter {
+  animation: code-transition-in 0.4s ease-out;
+}
+
+@keyframes code-transition-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.code-transition-exit {
+  animation: code-transition-out 0.3s ease-in;
+}
+
+@keyframes code-transition-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+}
+
+/* Enhanced code badge transitions for unified styling */
+.code-badge-transition {
+  position: relative;
+  overflow: hidden;
+}
+
+.code-badge-transition::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.code-badge-transition:hover::after {
+  transform: translateX(100%);
+}
+
+/* Living Codebook entrance animation */
+.living-codebook-enter {
+  animation: living-codebook-entrance 0.4s ease-out;
+}
+
+@keyframes living-codebook-entrance {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Code connection animation - shows relationship between list and detail */
+.code-connection-pulse {
+  animation: code-connection-pulse 2s ease-in-out;
+}
+
+@keyframes code-connection-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+  }
 }

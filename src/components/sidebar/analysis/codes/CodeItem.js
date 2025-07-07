@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const CodeItem = ({ 
   code, 
@@ -11,6 +11,7 @@ const CodeItem = ({
   onCodeNameClick, // New prop for handling code name clicks
   hideEditButtons = false // New prop to hide edit/delete buttons
 }) => {
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const getUserName = (userId) => {
     if (userId === 'system') return 'System';
     if (userId && userProfiles[userId]) {
@@ -33,24 +34,29 @@ const CodeItem = ({
   const handleContainerClick = (e) => {
     // Only handle Living Codebook navigation
     if (onCodeNameClick) {
-      onCodeNameClick(code);
+      setIsTransitioning(true);
+      // Add a small delay to show the transition effect
+      setTimeout(() => {
+        onCodeNameClick(code);
+        setIsTransitioning(false);
+      }, 100);
     }
   };
 
   const isManagementMode = variant === "management";
   const containerClass = isManagementMode 
-    ? "code-preview flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-all cursor-pointer hover:bg-gray-50"
-    : "code-palette-card group relative cursor-pointer";
+    ? `code-preview flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-all cursor-pointer hover:bg-gray-50 ${isTransitioning ? 'code-transition-exit' : ''}`
+    : `code-palette-card group relative cursor-pointer ${isTransitioning ? 'code-transition-exit' : ''}`;
   
   const codeClass = isManagementMode
-    ? `px-3 py-1 text-sm rounded-full ${code.color} ${code.textColor} font-medium`
-    : `code-palette-unified w-full text-left p-4 rounded-xl border border-gray-100 ${code.color} ${code.textColor} font-medium transition-all duration-200`;
+    ? `px-3 py-1 text-sm rounded-full ${code.color} ${code.textColor} font-medium ${isTransitioning ? 'code-connection-pulse' : ''}`
+    : `code-palette-unified w-full text-left p-4 rounded-xl border border-gray-100 ${code.color} ${code.textColor} font-medium transition-all duration-200 code-badge-transition ${isTransitioning ? 'code-connection-pulse' : ''}`;
 
   return (
     <div 
       className={containerClass}
       onClick={handleContainerClick}
-      title="Click to view Living Codebook"
+      title={onCodeNameClick ? "Click to open Living Codebook" : "Code details"}
     >
       {isManagementMode ? (
         // Management mode layout
@@ -86,13 +92,26 @@ const CodeItem = ({
         <div
           className={codeClass}
           data-code={code.id}
+          style={{
+            position: 'relative',
+            overflow: 'hidden'
+          }}
         >
+          {/* Add shimmer effect overlay when transitioning */}
+          {isTransitioning && (
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse pointer-events-none" />
+          )}
+          
           <div className="flex items-start justify-between mb-2">
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <span className="font-medium text-sm">
                   {code.label}
                 </span>
+                {/* Connection indicator */}
+                {onCodeNameClick && (
+                  <span className="text-xs text-gray-400">→</span>
+                )}
               </div>
               {getAuthorDisplay(code) && (
                 <p className="text-xs opacity-60 mt-1">{getAuthorDisplay(code)}</p>

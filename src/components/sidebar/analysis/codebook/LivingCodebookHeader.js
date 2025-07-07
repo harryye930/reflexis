@@ -14,12 +14,12 @@ const LivingCodebookHeader = ({
   onCancelEdit
 }) => {
   return (
-    <div className="border-b border-gray-200 bg-white">
+    <div className="border-b border-gray-200 bg-white living-codebook-enter">
       {/* Back button */}
       <div className="px-6 py-4">
         <button
           onClick={onBack}
-          className="flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors"
+          className="flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors code-transition-enter"
         >
           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -34,7 +34,13 @@ const LivingCodebookHeader = ({
           <>
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">{code.label}</h2>
+                {/* Code badge with same styling as CodeItem */}
+                <div className="mb-4">
+                  <span className={`code-palette-unified inline-flex px-4 py-2 rounded-xl font-medium text-sm ${code.color} ${code.textColor} border border-gray-100 transition-all duration-200 code-badge-transition code-connection-pulse`}>
+                    {code.label}
+                  </span>
+                </div>
+                <h2 className="text-lg font-semibold text-gray-900 mb-2">Living Codebook</h2>
               </div>
               
               {currentUser && (
