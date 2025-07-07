@@ -1,6 +1,6 @@
 import React from 'react';
-import { getUserDisplayColor } from '../../lib/utils/hoverUtils.js';
-import { hexToRgba } from '../../lib/utils/colorUtils.js';
+import { getUserDisplayColor } from '../../../lib/utils/hoverUtils.js';
+import { hexToRgba } from '../../../lib/utils/colorUtils.js';
 
 // Opacity constants based on total number of codes
 const OPACITY = {
