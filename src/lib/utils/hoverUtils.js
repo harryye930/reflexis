@@ -6,6 +6,9 @@
 // This unified color is used when showAuthor = false (codes only mode)
 export const UNIFIED_USER_COLOR = '#6366f1'; // Indigo-500, distinct from existing colors
 
+// Grey color for all highlight backgrounds
+export const HIGHLIGHT_GREY = '#9ca3af'; // gray-400
+
 /**
  * Get the appropriate user color based on hover preferences
  * @param {Object} user - User profile object

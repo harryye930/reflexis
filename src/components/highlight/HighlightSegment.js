@@ -1,12 +1,15 @@
 import React from 'react';
-import { getUserDisplayColor } from '../../lib/utils/hoverUtils.js';
+import { getUserDisplayColor, getUserDisplayName, shouldShowAuthorInfo } from '../../lib/utils/hoverUtils.js';
 import { hexToRgba } from '../../lib/utils/colorUtils.js';
+
+// Grey color for all highlight backgrounds
+const HIGHLIGHT_GREY = '#9ca3af'; // gray-400
 
 // Opacity constants based on total number of codes
 const OPACITY = {
-  ONE_CODE: 0.4,
-  TWO_CODES: 0.6,
-  THREE_PLUS_CODES: 0.8
+  ONE_CODE: 0.3,
+  TWO_CODES: 0.4,
+  THREE_PLUS_CODES: 0.5
 };
 
 const HighlightSegment = ({
@@ -19,13 +22,8 @@ const HighlightSegment = ({
   onHighlightLeave
 }) => {
   // Helper function to determine background style for a segment
-  const getBackgroundStyle = (segment, userProfiles, showAuthorInfo) => {
+  const getBackgroundStyle = (segment) => {
     const totalCodes = segment.highlights.length;
-    const uniqueUsers = [...new Set(segment.highlights.map(h => h.userId))];
-    const userColors = uniqueUsers.map(userId => {
-      const user = userProfiles[userId];
-      return getUserDisplayColor(user, showAuthorInfo);
-    });
 
     // Determine opacity based on total number of codes
     let opacity;
@@ -37,51 +35,10 @@ const HighlightSegment = ({
       opacity = OPACITY.THREE_PLUS_CODES;
     }
 
-    // Single highlight
-    if (totalCodes === 1) {
-      const user = userProfiles[segment.highlights[0].userId];
-      const userColor = getUserDisplayColor(user, showAuthorInfo);
-      return {
-        backgroundColor: hexToRgba(userColor, opacity)
-      };
-    }
-
-    // Multiple highlights - create gradient patterns based on unique users
-    if (userColors.length === 1) {
-      // Same user, multiple codes
-      return {
-        backgroundColor: hexToRgba(userColors[0], opacity)
-      };
-    } else if (userColors.length === 2) {
-      // Two different users
-      return {
-        background: `linear-gradient(45deg, 
-          ${hexToRgba(userColors[0], opacity)} 50%, 
-          ${hexToRgba(userColors[1], opacity)} 50%)`
-      };
-    } else if (userColors.length === 3) {
-      // Three different users
-      return {
-        background: `linear-gradient(45deg, 
-          ${hexToRgba(userColors[0], opacity)} 0%, 
-          ${hexToRgba(userColors[0], opacity)} 33%, 
-          ${hexToRgba(userColors[1], opacity)} 33%, 
-          ${hexToRgba(userColors[1], opacity)} 67%, 
-          ${hexToRgba(userColors[2], opacity)} 67%, 
-          ${hexToRgba(userColors[2], opacity)} 100%)`
-      };
-    } else {
-      // Four or more different users
-      const colorStops = userColors.map((color, i) => {
-        const start = (i / userColors.length) * 100;
-        const end = ((i + 1) / userColors.length) * 100;
-        return `${hexToRgba(color, opacity)} ${start}%, ${hexToRgba(color, opacity)} ${end}%`;
-      }).join(', ');
-
-      return {
-        background: `linear-gradient(45deg, ${colorStops})`
-      };
-    }
+    // Always use grey background regardless of users
+    return {
+      backgroundColor: hexToRgba(HIGHLIGHT_GREY, opacity)
+    };
   };
 
   // Early return for segments without highlights
@@ -89,8 +46,88 @@ const HighlightSegment = ({
     return <span>{segment.text}</span>;
   }
 
+  // Helper function to render coder indicators
+  const renderCoderIndicators = (highlights, userProfiles, currentUser, showAuthorInfo) => {
+    if (!showAuthorInfo) {
+      return null;
+    }
+
+    // Get unique user codes (not unique users)
+    // Each highlight represents a unique user-code combination
+    const userCodeIndicators = highlights.map(highlight => {
+      const user = userProfiles[highlight.userId];
+      const userColor = getUserDisplayColor(user, true); // Always get individual colors for indicators
+      const userName = getUserDisplayName(user, true, currentUser, highlight.userId);
+      
+      return {
+        userId: highlight.userId,
+        highlightId: highlight.id, // Use highlight ID to ensure uniqueness
+        color: userColor,
+        name: userName
+      };
+    });
+
+    // For single user code, show just colored dot and name
+    if (userCodeIndicators.length === 1) {
+      const indicator = userCodeIndicators[0];
+      return (
+        <div 
+          className="absolute -top-2 -right-2 flex items-center gap-1 text-xs bg-white rounded-full px-2 py-1 shadow-sm border border-gray-200 transition-opacity duration-200 group-hover:opacity-30"
+          style={{ 
+            userSelect: 'none',
+            pointerEvents: 'none',
+            zIndex: 10,
+            WebkitUserSelect: 'none',
+            MozUserSelect: 'none',
+            msUserSelect: 'none'
+          }}
+          unselectable="on"
+        >
+          <div
+            className="w-2 h-2 rounded-full flex-shrink-0"
+            style={{ backgroundColor: indicator.color }}
+          />
+          <span className="text-gray-700 font-medium whitespace-nowrap max-w-20 truncate">
+            {indicator.name}
+          </span>
+        </div>
+      );
+    }
+
+    // For multiple user codes, show stacked dots with count
+    return (
+      <div className="absolute -top-2 -right-2 transition-opacity duration-200 group-hover:opacity-30" style={{ zIndex: 10 }}>
+        <div 
+          className="flex items-center gap-1 text-xs bg-white rounded-full px-2 py-1 shadow-sm border border-gray-200"
+          style={{ 
+            userSelect: 'none',
+            pointerEvents: 'none',
+            WebkitUserSelect: 'none',
+            MozUserSelect: 'none',
+            msUserSelect: 'none'
+          }}
+          unselectable="on"
+        >
+          {/* Show dots for first 3 user codes */}
+          <div className="flex items-center -space-x-1">
+            {userCodeIndicators.slice(0, 3).map((indicator) => (
+              <div
+                key={indicator.highlightId}
+                className="w-2 h-2 rounded-full border border-white"
+                style={{ backgroundColor: indicator.color }}
+              />
+            ))}
+            {userCodeIndicators.length > 3 && (
+              <span className="text-gray-600 font-bold ml-1">+{userCodeIndicators.length - 3}</span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Get background style using helper function
-  const backgroundStyle = getBackgroundStyle(segment, userProfiles, showAuthorInfo);
+  const backgroundStyle = getBackgroundStyle(segment);
   
   // Determine if current user owns any of these highlights
   const isOwner = segment.highlights.some(h => currentUser && h.userId === currentUser.uid);
@@ -108,7 +145,7 @@ const HighlightSegment = ({
 
   return (
     <mark
-      className={highlightClasses}
+      className={`${highlightClasses} group`}
       style={{
         ...backgroundStyle,
         position: 'relative',
@@ -123,23 +160,8 @@ const HighlightSegment = ({
       onMouseEnter={(e) => onHighlightHover(e, segment.highlights)}
       onMouseLeave={onHighlightLeave}
     >
-      {/* Visual indicators for multiple highlights */}
-      {segment.highlights.length > 1 && (
-        <span 
-          className="absolute -top-1 -right-1 text-xs bg-gray-800 text-white rounded-full w-4 h-4 flex items-center justify-center font-bold highlight-count-indicator"
-          style={{ 
-            userSelect: 'none',
-            pointerEvents: 'none',
-            zIndex: 10,
-            WebkitUserSelect: 'none',
-            MozUserSelect: 'none',
-            msUserSelect: 'none'
-          }}
-          unselectable="on"
-        >
-          {segment.highlights.length}
-        </span>
-      )}
+      {/* Coder indicators - only show when showAuthorInfo is true */}
+      {renderCoderIndicators(segment.highlights, userProfiles, currentUser, showAuthorInfo)}
       {segment.text}
     </mark>
   );
