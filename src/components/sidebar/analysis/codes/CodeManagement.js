@@ -7,8 +7,6 @@ import CodePaletteFooter from './CodePaletteFooter.js';
 
 const CodeManagement = ({ 
   allCodes, 
-  onCodeSelect, 
-  disabled, 
   currentUser,
   userProfiles,
   onAddCode,
@@ -18,7 +16,8 @@ const CodeManagement = ({
   onCheckCodeUsage,
   onDeleteHighlightsByCode,
   mode = "selection", // "selection" or "management"
-  title
+  title,
+  onCodeNameClick // New prop for Living Codebook
 }) => {
   const [showDescriptions, setShowDescriptions] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -110,7 +109,6 @@ const CodeManagement = ({
           onToggleAddForm={handleToggleAddForm}
           currentUser={currentUser}
           title={componentTitle}
-          disabled={disabled}
         />
       ) : (
         // Management Mode Header
@@ -141,13 +139,12 @@ const CodeManagement = ({
         // Selection Mode: Simple list
         <CodeList
           allCodes={allCodes}
-          disabled={disabled}
           showDescriptions={showDescriptions}
-          onCodeSelect={onCodeSelect}
           onEdit={handleEdit}
           onDelete={handleDelete}
           currentUser={currentUser}
           userProfiles={userProfiles}
+          onCodeNameClick={onCodeNameClick}
         />
       ) : (
         // Management Mode: Organized sections
@@ -156,28 +153,26 @@ const CodeManagement = ({
             title="Default Codes"
             codes={defaultCodes}
             showDescriptions={true}
-            disabled={false}
-            onCodeSelect={null}
             onEdit={handleEdit}
             onDelete={handleDelete}
             currentUser={currentUser}
             userProfiles={userProfiles}
             emptyMessage="No default codes available"
             sectionType="default"
+            onCodeNameClick={onCodeNameClick}
           />
           
           <CodeSection
             title="Your Custom Codes"
             codes={customCodes}
             showDescriptions={true}
-            disabled={false}
-            onCodeSelect={null}
             onEdit={handleEdit}
             onDelete={handleDelete}
             currentUser={currentUser}
             userProfiles={userProfiles}
             emptyMessage="No custom codes created yet"
             sectionType="custom"
+            onCodeNameClick={onCodeNameClick}
           />
         </>
       )}

@@ -10,6 +10,7 @@ import { useHighlightManagement } from '../hooks/useHighlightManagement.js';
 import { useMessageHandler } from '../hooks/useMessageHandler.js';
 import { NotificationProvider, useNotificationContext } from '../contexts/NotificationContext.js';
 import { useHoverPreferences } from '../hooks/useHoverPreferences.js';
+import { ReflexiveService } from '../services/api/firebase/reflexiveService.js';
 
 // Components
 import HighlightedText from './highlight/HighlightedText.js';
@@ -27,6 +28,9 @@ function CollaborativeTextContent() {
   const { highlights, addHighlight, deleteHighlight } = useHighlights(appId, currentUser, activeDocumentId);
   const { userProfiles, userProfilesLoaded } = useUserProfiles(appId, currentUser);
   const { allCodes, addCode, updateCode, deleteCode } = useCodes(appId, currentUser);
+  
+  // Services
+  const reflexiveService = new ReflexiveService(appId);
   
   // Custom hooks for UI management
   const { message, showMessage } = useMessageHandler();

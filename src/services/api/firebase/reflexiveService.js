@@ -103,4 +103,19 @@ export class ReflexiveService {
       return { success: false, error };
     }
   }
+
+  // Get reflexive responses by code (for Living Codebook)
+  onReflexiveResponsesByCodeSnapshot(codeId, callback) {
+    const responsesCollection = collection(db, `artifacts/${this.appId}/public/data/reflexive_responses`);
+    const responsesQuery = query(
+      responsesCollection, 
+      where('codeId', '==', codeId),
+      orderBy('createdAt', 'desc')
+    );
+    
+    return onSnapshot(responsesQuery, (snapshot) => {
+      const responsesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(responsesData);
+    });
+  }
 }

@@ -2,14 +2,13 @@ import React from 'react';
 
 const CodeItem = ({ 
   code, 
-  disabled, 
-  onCodeSelect, 
   onEdit, 
   onDelete,
   currentUser,
   userProfiles,
   showDescriptions,
-  variant = "selection" // "selection" or "management"
+  variant = "selection", // "selection" or "management"
+  onCodeNameClick // New prop for handling code name clicks
 }) => {
   const getAuthorName = (code) => {
     if (code.isDefault) return null;
@@ -21,46 +20,28 @@ const CodeItem = ({
     return 'Unknown';
   };
 
-  // Enhanced disabled state logic
-  // - disabled + hoverable: Shows visual feedback on hover but prevents clicks
-  // - enabled: Full interactivity with hover effects
-  // This provides better UX by giving visual feedback even when functionality is disabled
-  const getCodeStateClass = () => {
-    if (variant === "management") {
-      return ""; // Management mode doesn't use disabled states
-    }
-
-    if (disabled) {
-      // When disabled, show visual feedback on hover but prevent clicks
-      return "code-palette-disabled-hoverable";
-    } else {
-      // When enabled, full interactivity
-      return "code-palette-enabled";
-    }
-  };
-
-  const handleCodeClick = (e) => {
-    if (disabled) {
-      e.preventDefault();
-      e.stopPropagation();
-      return;
-    }
-    if (onCodeSelect) {
-      onCodeSelect(code.id);
+  const handleContainerClick = (e) => {
+    // Only handle Living Codebook navigation
+    if (onCodeNameClick) {
+      onCodeNameClick(code);
     }
   };
 
   const isManagementMode = variant === "management";
   const containerClass = isManagementMode 
-    ? "code-preview flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-all"
-    : "code-palette-card group relative"; // Added relative positioning for absolute indicator
+    ? "code-preview flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-all cursor-pointer hover:bg-gray-50"
+    : "code-palette-card group relative cursor-pointer";
   
   const codeClass = isManagementMode
     ? `px-3 py-1 text-sm rounded-full ${code.color} ${code.textColor} font-medium`
-    : `code-palette-unified w-full text-left p-4 rounded-xl border border-gray-100 ${code.color} ${code.textColor} ${getCodeStateClass()} font-medium transition-all duration-200`;
+    : `code-palette-unified w-full text-left p-4 rounded-xl border border-gray-100 ${code.color} ${code.textColor} font-medium transition-all duration-200`;
 
   return (
-    <div className={containerClass}>
+    <div 
+      className={containerClass}
+      onClick={handleContainerClick}
+      title="Click to view Living Codebook"
+    >
       {isManagementMode ? (
         // Management mode layout
         <>
@@ -82,7 +63,10 @@ const CodeItem = ({
           {currentUser && (
             <div className="flex gap-1 ml-3">
               <button
-                onClick={() => onEdit(code)}
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent triggering the container click
+                  onEdit(code);
+                }}
                 className="text-sm px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
                 title={code.isCustomized ? "Edit your customized version" : code.isDefault ? "Customize this default code" : "Edit code"}
               >
@@ -90,7 +74,10 @@ const CodeItem = ({
               </button>
               {code.isCustom && (
                 <button
-                  onClick={() => onDelete(code)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering the container click
+                    onDelete(code);
+                  }}
                   className="text-sm px-3 py-1 text-red-600 hover:bg-red-50 rounded-md transition-colors"
                   title="Delete code"
                 >
@@ -101,7 +88,7 @@ const CodeItem = ({
           )}
         </>
       ) : (
-        // Selection mode layout with enhanced disabled state handling
+        // Selection mode layout
         <div
           className={codeClass}
           data-code={code.id}
@@ -109,7 +96,9 @@ const CodeItem = ({
           <div className="flex items-start justify-between mb-2">
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <span className="font-medium text-sm">{code.label}</span>
+                <span className="font-medium text-sm">
+                  {code.label}
+                </span>
                 {code.isDefault ? (
                   <span className="default-code-badge">DEFAULT</span>
                 ) : (

@@ -3,14 +3,13 @@ import CodeItem from './CodeItem.js';
 
 const CodeList = ({ 
   allCodes, 
-  disabled, 
   showDescriptions, 
-  onCodeSelect, 
   onEdit, 
   onDelete,
   currentUser,
   userProfiles,
-  variant = "selection"
+  variant = "selection",
+  onCodeNameClick // New prop for Living Codebook
 }) => {
   if (!allCodes || allCodes.length === 0) {
     return (
@@ -27,14 +26,13 @@ const CodeList = ({
         <CodeItem
           key={code.id}
           code={code}
-          disabled={disabled}
           showDescriptions={showDescriptions}
-          onCodeSelect={onCodeSelect}
           onEdit={onEdit}
           onDelete={onDelete}
           currentUser={currentUser}
           userProfiles={userProfiles}
           variant={variant}
+          onCodeNameClick={onCodeNameClick}
         />
       ))}
     </div>

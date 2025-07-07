@@ -10,7 +10,6 @@ const Sidebar = ({
   currentUserProfile, 
   userProfiles, 
   userProfilesLoaded, 
-  onCodeSelect, 
   onMessage,
   // Code management props
   allCodes,
@@ -26,6 +25,10 @@ const Sidebar = ({
   onToggleAuthorInfo
 }) => {
   const [activeTab, setActiveTab] = useState('analysis');
+  const [livingCodebookState, setLivingCodebookState] = useState({
+    isActive: false,
+    selectedCode: null
+  });
   
   // Local notifications context (no Firebase)
   const {
@@ -39,6 +42,20 @@ const Sidebar = ({
     addDemoNotification
   } = useNotificationContext();
 
+  const handleCodeNameClick = (code) => {
+    setLivingCodebookState({
+      isActive: true,
+      selectedCode: code
+    });
+  };
+
+  const handleBackToAllCodes = () => {
+    setLivingCodebookState({
+      isActive: false,
+      selectedCode: null
+    });
+  };
+
   const renderActiveTab = () => {
     switch (activeTab) {
       case 'analysis':
@@ -48,7 +65,6 @@ const Sidebar = ({
             currentUserProfile={currentUserProfile}
             userProfiles={userProfiles}
             userProfilesLoaded={userProfilesLoaded}
-            onCodeSelect={onCodeSelect}
             onMessage={onMessage}
             allCodes={allCodes}
             onAddCode={onAddCode}
@@ -56,6 +72,9 @@ const Sidebar = ({
             onDeleteCode={onDeleteCode}
             onCheckCodeUsage={onCheckCodeUsage}
             onDeleteHighlightsByCode={onDeleteHighlightsByCode}
+            livingCodebookState={livingCodebookState}
+            onCodeNameClick={handleCodeNameClick}
+            onBackToAllCodes={handleBackToAllCodes}
           />
         );
       

@@ -5,14 +5,13 @@ const CodeSection = ({
   title,
   codes,
   showDescriptions,
-  disabled,
-  onCodeSelect,
   onEdit,
   onDelete,
   currentUser,
   userProfiles,
   emptyMessage = "No codes available",
-  sectionType = "default" // "default", "custom", or "selection"
+  sectionType = "default", // "default", "custom", or "selection"
+  onCodeNameClick // New prop for Living Codebook
 }) => {
   if (!codes || codes.length === 0) {
     return (
@@ -31,14 +30,13 @@ const CodeSection = ({
           <CodeItem
             key={code.id}
             code={code}
-            disabled={disabled}
             showDescriptions={showDescriptions}
-            onCodeSelect={onCodeSelect}
             onEdit={onEdit}
             onDelete={onDelete}
             currentUser={currentUser}
             userProfiles={userProfiles}
             variant="management"
+            onCodeNameClick={onCodeNameClick}
           />
         ))}
       </div>

@@ -6,8 +6,7 @@ const CodePaletteHeader = ({
   showAddForm, 
   onToggleAddForm,
   currentUser,
-  title = "Available Codes",
-  disabled = false
+  title = "Available Codes"
 }) => {
   return (
     <>
@@ -32,21 +31,7 @@ const CodePaletteHeader = ({
         </div>
       </div>
       
-      {disabled && (
-        <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
-          <div className="flex items-center gap-2">
-            <span className="text-blue-500">💡</span>
-            <div>
-              <p className="text-xs text-blue-700 font-medium">
-                Select text to activate codes
-              </p>
-              <p className="text-xs text-blue-600 opacity-75 mt-1">
-                Hover over codes to preview them
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Removed disabled state message since codes are now only for Living Codebook viewing */}
     </>
   );
 };
