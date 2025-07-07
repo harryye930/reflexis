@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import Draggable from 'react-draggable';
 import ReflexivePromptPanel from './ReflexivePromptPanel.js';
 
 const ReflexiveModal = ({ 
@@ -14,6 +15,7 @@ const ReflexiveModal = ({
   const [currentStep, setCurrentStep] = useState('prompts'); // 'prompts' or 'completed'
   const [isSliding, setIsSliding] = useState(false);
   const modalRef = useRef(null);
+  const nodeRef = useRef(null);
 
   const handleComplete = (responses) => {
     setIsSliding(true);
@@ -46,16 +48,26 @@ const ReflexiveModal = ({
   // }, [onClose]);
 
   return (
-    <div
-      ref={modalRef}
-      className="fixed z-[200] reflexive-modal animate-reflexive-entrance"
-      style={{ 
-        left: modalPosition.x, 
-        top: modalPosition.y,
-        transform: 'translateX(-50%)'
-      }}
+    <Draggable
+      nodeRef={nodeRef}
+      handle=".drag-handle"
+      bounds="parent"
     >
-      <div className={`bg-gradient-to-br from-slate-50/90 via-white/85 to-blue-50/90 backdrop-blur-md rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-white/60 overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.19,1,0.22,1)] ${isSliding ? 'transform scale-98 opacity-60 rotate-0.5' : 'transform scale-100 opacity-100 rotate-0'}`}>
+      <div
+        ref={nodeRef}
+        className="absolute z-[200]"
+        style={{ 
+          left: modalPosition.x,
+          top: modalPosition.y
+        }}
+      >
+        {/* Drag handle - visible area at the top with drag indicator */}
+        <div className="drag-handle absolute top-2 left-1/2 transform -translate-x-1/2 w-8 h-1.5 bg-slate-300/60 rounded-full cursor-move z-10 hover:bg-slate-400/80 transition-colors duration-200" title="Drag to move modal" />
+        
+        <div 
+          ref={modalRef}
+          className={`bg-gradient-to-br from-slate-50/90 via-white/85 to-blue-50/90 backdrop-blur-md rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-white/60 overflow-hidden ${isSliding ? 'transform scale-98 opacity-60 rotate-0.5' : 'transform scale-100 opacity-100 rotate-0'}`}
+        >
         {currentStep === 'prompts' && (
           <ReflexivePromptPanel
             selectedCode={selectedCode}
@@ -112,6 +124,7 @@ const ReflexiveModal = ({
         <div className="absolute top-1 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-3 border-r-3 border-b-6 border-transparent border-b-white/80" />
       </div>
     </div>
+    </Draggable>
   );
 };
 
