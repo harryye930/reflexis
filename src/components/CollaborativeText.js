@@ -45,6 +45,7 @@ function CollaborativeTextContent() {
     currentSelection,
     modalPosition,
     showModal,
+    selectedText,
     handleTextSelection,
     handleAddHighlight: baseHandleAddHighlight,
     handleDeleteHighlight: baseHandleDeleteHighlight,
@@ -164,6 +165,9 @@ function CollaborativeTextContent() {
           allCodes={allCodes}
           onCodeSelect={handleAddHighlight}
           onClose={closeModal}
+          selectedText={selectedText}
+          currentUser={currentUser}
+          documentId={activeDocumentId}
         />
       )}
 

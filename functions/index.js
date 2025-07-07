@@ -3,33 +3,6 @@ const admin = require('firebase-admin');
 
 admin.initializeApp();
 
-// Clean up highlights when a user is deleted
-exports.cleanupUserHighlights = functions.auth.user().onDelete(async (user) => {
-  const db = admin.firestore();
-  
-  try {
-    // Delete all highlights created by this user across all app collections
-    const highlightsQuery = db.collectionGroup('highlights')
-      .where('userId', '==', user.uid);
-    
-    const snapshot = await highlightsQuery.get();
-    
-    if (snapshot.empty) {
-      console.log(`No highlights found for user ${user.uid}`);
-      return;
-    }
-    
-    const batch = db.batch();
-    snapshot.docs.forEach(doc => batch.delete(doc.ref));
-    
-    await batch.commit();
-    console.log(`Deleted ${snapshot.docs.length} highlights for user ${user.uid}`);
-    
-  } catch (error) {
-    console.error(`Error deleting highlights for user ${user.uid}:`, error);
-  }
-});
-
 // Manual cleanup function that can be called via HTTP
 exports.manualCleanup = functions.https.onRequest(async (req, res) => {
   // Set CORS headers
@@ -57,6 +30,8 @@ exports.manualCleanup = functions.https.onRequest(async (req, res) => {
     if (completeCleanup) {
       console.log('Starting complete cleanup - removing ALL users and data');
       
+      let totalDeleted = 0;
+
       // Delete ALL highlights first
       const highlightsQuery = db.collectionGroup('highlights');
       const highlightsSnapshot = await highlightsQuery.get();
@@ -67,7 +42,22 @@ exports.manualCleanup = functions.https.onRequest(async (req, res) => {
           highlightsBatch.delete(doc.ref);
         });
         await highlightsBatch.commit();
+        totalDeleted += highlightsSnapshot.docs.length;
         console.log(`Deleted ${highlightsSnapshot.docs.length} highlights`);
+      }
+
+      // Delete ALL reflexive responses
+      const reflexiveQuery = db.collectionGroup('reflexive_responses');
+      const reflexiveSnapshot = await reflexiveQuery.get();
+      
+      if (!reflexiveSnapshot.empty) {
+        const reflexiveBatch = db.batch();
+        reflexiveSnapshot.docs.forEach(doc => {
+          reflexiveBatch.delete(doc.ref);
+        });
+        await reflexiveBatch.commit();
+        totalDeleted += reflexiveSnapshot.docs.length;
+        console.log(`Deleted ${reflexiveSnapshot.docs.length} reflexive responses`);
       }
       
       // Get ALL users (not just inactive ones)
@@ -76,7 +66,7 @@ exports.manualCleanup = functions.https.onRequest(async (req, res) => {
       
       if (usersSnapshot.empty) {
         console.log('No users found to clean up');
-        return res.json({ success: true, result: { deletedCount: 0, message: 'No users found, highlights cleared' } });
+        return res.json({ success: true, result: { deletedCount: 0, totalDataDeleted: totalDeleted, message: 'No users found, but data cleared' } });
       }
       
       const userIds = [];

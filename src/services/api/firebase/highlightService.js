@@ -21,12 +21,12 @@ export class HighlightService {
   async addHighlight(highlightData, userId) {
     try {
       const highlightsCollection = collection(db, `artifacts/${this.appId}/public/data/highlights`);
-      await addDoc(highlightsCollection, {
+      const docRef = await addDoc(highlightsCollection, {
         ...highlightData,
         userId,
         createdAt: new Date()
       });
-      return { success: true };
+      return { success: true, highlightId: docRef.id };
     } catch (error) {
       console.error("Error adding highlight: ", error);
       return { success: false, error };

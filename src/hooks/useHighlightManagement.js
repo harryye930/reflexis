@@ -12,21 +12,33 @@ export const useHighlightManagement = (
   const [currentSelection, setCurrentSelection] = useState(null);
   const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
   const [showModal, setShowModal] = useState(false);
+  const [selectedText, setSelectedText] = useState('');
 
   const handleTextSelection = (selection, position, shouldShow) => {
     setCurrentSelection(selection);
     if (position) setModalPosition(position);
     setShowModal(shouldShow);
+    
+    // Extract and store selected text
+    if (selection && !selection.isCollapsed) {
+      const range = selection.getRangeAt(0);
+      const rawText = range.toString();
+      const cleanText = rawText.replace(/\s+/g, ' ').trim();
+      setSelectedText(cleanText);
+    } else {
+      setSelectedText('');
+    }
   };
 
   const handleAddHighlight = async (code) => {
     if (!currentSelection || !currentUser || !activeDocument) {
-      return { success: false };
+      const error = `Missing: selection=${!!currentSelection}, user=${!!currentUser}, document=${!!activeDocument}`;
+      return { success: false, error };
     }
 
     const textContainer = document.getElementById('text-container');
     if (!textContainer) {
-      return { success: false };
+      return { success: false, error: 'Text container not found' };
     }
 
     const range = currentSelection.getRangeAt(0);
@@ -35,7 +47,7 @@ export const useHighlightManagement = (
     const rawSelectedText = range.toString();
     
     if (!rawSelectedText || rawSelectedText.trim() === '') {
-      return { success: false };
+      return { success: false, error: 'No text selected' };
     }
     
     // Get the selected text directly from the range
@@ -44,7 +56,7 @@ export const useHighlightManagement = (
       .trim();
     
     if (!selectedTextClean) {
-      return { success: false };
+      return { success: false, error: 'Selected text is empty after cleaning' };
     }
     
     // Use the active document's content as our source of truth
@@ -105,8 +117,11 @@ export const useHighlightManagement = (
       documentId: activeDocumentId
     });
 
+    // Only close modal and clear selection for direct highlight creation
+    // Don't close if this is part of a reflexive process (we'll handle that separately)
     if (result.success) {
-      setShowModal(false);
+      // Don't automatically close the modal - let the calling component decide
+      // This allows reflexive process to continue with the modal open
       window.getSelection().removeAllRanges();
       setCurrentSelection(null);
     }
@@ -153,30 +168,40 @@ export const useHighlightManagement = (
   const closeModal = () => {
     setShowModal(false);
     setCurrentSelection(null);
+    setSelectedText('');
   };
 
-  // Handle clicking outside to close modal
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (!e.target.closest('#text-container') && 
-          !e.target.closest('#coding-modal')) {
-        setShowModal(false);
-        setCurrentSelection(null); // Clear selection when clicking outside
-      }
-    };
+  // Disabled click-outside handling to prevent interference with reflexive modal interactions
+  // Users can only close modals via cancel buttons for better UX
+  // useEffect(() => {
+  //   const handleClickOutside = (e) => {
+  //     if (!e.target.closest('#text-container') && 
+  //         !e.target.closest('#coding-modal')) {
+  //       setShowModal(false);
+  //       setCurrentSelection(null); // Clear selection when clicking outside
+  //     }
+  //   };
 
-    if (showModal) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [showModal]);
+  //   if (showModal) {
+  //     document.addEventListener('mousedown', handleClickOutside);
+  //     return () => document.removeEventListener('mousedown', handleClickOutside);
+  //   }
+  // }, [showModal]);
 
   // Listen for global selection changes to clear state when text is deselected
+  // But ignore changes when reflexive modal or other modals are active
   useEffect(() => {
     const handleSelectionChange = () => {
+      // Don't close modal if reflexive modal is open or other modal elements are present
+      if (document.querySelector('.reflexive-modal') || 
+          document.querySelector('.highlight-management-panel') ||
+          document.querySelector('#coding-modal')) {
+        return;
+      }
+      
       const selection = window.getSelection();
       if (selection.isCollapsed && currentSelection) {
-        // Selection was cleared, update our state
+        // Selection was cleared in main document, update our state
         setCurrentSelection(null);
         setShowModal(false);
       }
@@ -190,6 +215,7 @@ export const useHighlightManagement = (
     currentSelection,
     modalPosition,
     showModal,
+    selectedText,
     handleTextSelection,
     handleAddHighlight,
     handleDeleteHighlight,
