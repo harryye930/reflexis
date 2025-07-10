@@ -1,4 +1,4 @@
-import { collection, onSnapshot, addDoc, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, query, where, orderBy, getDocs, updateDoc } from 'firebase/firestore';
 import { db } from '../../../lib/firebase.js';
 
 export class CodeHistoryService {
@@ -201,6 +201,87 @@ export class CodeHistoryService {
       };
     } catch (error) {
       console.error("Error getting code usage stats: ", error);
+      return { success: false, error };
+    }
+  }
+
+  // Record code merge
+  async recordCodeMerge(mergeData, userId) {
+    const { selectedCodes, strategy, resultConfig, targetCodeId, highlightTransferCount = 0 } = mergeData;
+    
+    // Record merge event for the target/result code
+    const mergeDescription = strategy === 'create_new' 
+      ? `New code "${resultConfig.label}" created by merging ${selectedCodes.length} codes: ${selectedCodes.map(c => c.label).join(', ')}`
+      : `Code "${resultConfig.label}" updated by merging ${selectedCodes.length - 1} codes: ${selectedCodes.filter(c => c.id !== targetCodeId).map(c => c.label).join(', ')}`;
+
+    await this.addHistoryEntry({
+      codeId: targetCodeId,
+      type: 'merged',
+      userId,
+      user: userId,
+      description: mergeDescription,
+      changes: {
+        strategy,
+        sourceCodeIds: selectedCodes.map(c => c.id),
+        sourceCodes: selectedCodes.map(c => ({
+          id: c.id,
+          label: c.label,
+          description: c.description,
+          color: c.color,
+          textColor: c.textColor
+        })),
+        resultConfig,
+        highlightTransferCount: highlightTransferCount
+      }
+    });
+
+    // Record deletion events for source codes (except target if merging into existing)
+    for (const sourceCode of selectedCodes) {
+      if (strategy !== 'create_new' && sourceCode.id === targetCodeId) {
+        continue; // Skip target code in merge into existing strategies
+      }
+      
+      await this.addHistoryEntry({
+        codeId: sourceCode.id,
+        type: 'deleted',
+        userId,
+        user: userId,
+        description: `Code "${sourceCode.label}" deleted as part of merge operation`,
+        changes: {
+          deletedData: sourceCode,
+          mergeOperation: true,
+          targetCodeId: targetCodeId
+        }
+      });
+    }
+
+    return { success: true };
+  }
+
+  // Update merge history with highlight transfer count
+  async updateMergeHistoryWithHighlightCount(targetCodeId, highlightTransferCount) {
+    try {
+      const historyCollection = collection(db, `artifacts/${this.appId}/public/data/code_history`);
+      const historyQuery = query(
+        historyCollection,
+        where('codeId', '==', targetCodeId),
+        where('type', '==', 'merged'),
+        orderBy('timestamp', 'desc')
+      );
+      
+      const snapshot = await getDocs(historyQuery);
+      if (!snapshot.empty) {
+        const latestMergeDoc = snapshot.docs[0];
+        const updateData = {
+          'changes.highlightTransferCount': highlightTransferCount
+        };
+        
+        await updateDoc(latestMergeDoc.ref, updateData);
+      }
+      
+      return { success: true };
+    } catch (error) {
+      console.error("Error updating merge history with highlight count: ", error);
       return { success: false, error };
     }
   }

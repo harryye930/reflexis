@@ -13,6 +13,7 @@ const AnalysisTab = ({
   onAddCode,
   onUpdateCode,
   onDeleteCode,
+  onMergeCodes, // New prop for code merging
   onCheckCodeUsage,
   onDeleteHighlightsByCode,
   livingCodebookState,
@@ -55,6 +56,7 @@ const AnalysisTab = ({
         onAddCode={onAddCode}
         onUpdateCode={onUpdateCode}
         onDeleteCode={onDeleteCode}
+        onMergeCodes={onMergeCodes}
         onMessage={onMessage}
         onCheckCodeUsage={onCheckCodeUsage}
         onDeleteHighlightsByCode={onDeleteHighlightsByCode}

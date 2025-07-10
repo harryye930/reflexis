@@ -58,6 +58,8 @@ const CodeHistory = ({ code, userProfiles }) => {
         return '🏷️';
       case 'usage-milestone':
         return '🏆';
+      case 'merged':
+        return '🔀';
       default:
         return '📝';
     }
@@ -75,6 +77,8 @@ const CodeHistory = ({ code, userProfiles }) => {
         return 'bg-purple-100 text-purple-800';
       case 'usage-milestone':
         return 'bg-yellow-100 text-yellow-800';
+      case 'merged':
+        return 'bg-orange-100 text-orange-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -137,6 +141,42 @@ const CodeHistory = ({ code, userProfiles }) => {
               <p className="text-xs text-gray-700 mt-1">
                 {event.changes.milestone} across {event.changes.documentCount} documents
               </p>
+            </div>
+          </div>
+        );
+      
+      case 'merged':
+        return (
+          <div className="mt-3 p-3 bg-gray-50 rounded-md">
+            <div className="space-y-2">
+              <div>
+                <span className="text-xs font-medium text-orange-600">Strategy:</span>
+                <p className="text-xs text-gray-700 mt-1 capitalize">
+                  {event.changes.strategy?.replace('_', ' ')}
+                </p>
+              </div>
+              {event.changes.sourceCodes && (
+                <div>
+                  <span className="text-xs font-medium text-orange-600">Source Codes:</span>
+                  <div className="mt-1 space-y-1">
+                    {event.changes.sourceCodes.map((source, index) => (
+                      <div key={index} className="flex items-center gap-2 text-xs text-gray-700">
+                        <span className={`px-2 py-1 rounded ${source.color} ${source.textColor}`}>
+                          {source.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {event.changes.highlightTransferCount > 0 && (
+                <div>
+                  <span className="text-xs font-medium text-orange-600">Highlights Transferred:</span>
+                  <p className="text-xs text-gray-700 mt-1">
+                    {event.changes.highlightTransferCount} highlight{event.changes.highlightTransferCount !== 1 ? 's' : ''}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         );

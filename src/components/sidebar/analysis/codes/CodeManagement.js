@@ -4,6 +4,7 @@ import CodeForm from './CodeForm.js';
 import CodeList from './CodeList.js';
 import CodeSection from './CodeSection.js';
 import CodePaletteFooter from './CodePaletteFooter.js';
+import CodeMergeModal from './CodeMergeModal.js';
 
 const CodeManagement = ({ 
   allCodes, 
@@ -12,6 +13,7 @@ const CodeManagement = ({
   onAddCode,
   onUpdateCode,
   onDeleteCode,
+  onMergeCodes, // New prop for merging codes
   onMessage,
   onCheckCodeUsage,
   onDeleteHighlightsByCode,
@@ -21,6 +23,7 @@ const CodeManagement = ({
 }) => {
   const [showDescriptions, setShowDescriptions] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showMergeModal, setShowMergeModal] = useState(false);
 
   const isSelectionMode = mode === "selection";
   const isManagementMode = mode === "management";
@@ -47,6 +50,18 @@ const CodeManagement = ({
     setShowAddForm(!showAddForm);
   };
 
+  const handleToggleMergeModal = () => {
+    setShowMergeModal(!showMergeModal);
+  };
+
+  const handleMergeCodes = async (mergeData) => {
+    if (!onMergeCodes) {
+      onMessage('Merge functionality not available', true);
+      return { success: false };
+    }
+    return await onMergeCodes(mergeData);
+  };
+
   if (!currentUser && isManagementMode) {
     return (
       <div className="mb-6">
@@ -65,6 +80,7 @@ const CodeManagement = ({
           onToggleDescriptions={() => setShowDescriptions(!showDescriptions)}
           showAddForm={showAddForm}
           onToggleAddForm={handleToggleAddForm}
+          onToggleMergeModal={handleToggleMergeModal}
           currentUser={currentUser}
           title={componentTitle}
         />
@@ -125,6 +141,18 @@ const CodeManagement = ({
       {isSelectionMode && (
         <CodePaletteFooter
           currentUser={currentUser}
+        />
+      )}
+
+      {/* Code Merge Modal */}
+      {showMergeModal && (
+        <CodeMergeModal
+          allCodes={allCodes}
+          currentUser={currentUser}
+          userProfiles={userProfiles}
+          onMergeCodes={handleMergeCodes}
+          onClose={() => setShowMergeModal(false)}
+          onMessage={onMessage}
         />
       )}
     </div>

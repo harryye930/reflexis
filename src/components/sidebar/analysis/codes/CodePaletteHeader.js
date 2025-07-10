@@ -5,6 +5,7 @@ const CodePaletteHeader = ({
   onToggleDescriptions, 
   showAddForm, 
   onToggleAddForm,
+  onToggleMergeModal, // New prop for merge functionality
   currentUser,
   title = "Available Codes"
 }) => {
@@ -21,12 +22,21 @@ const CodePaletteHeader = ({
             {showDescriptions ? '👁️‍🗨️ Hide Info' : '👁️ Show Info'}
           </button>
           {currentUser && (
-            <button
-              onClick={onToggleAddForm}
-              className="text-xs px-3 py-1 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
-            >
-              {showAddForm ? 'Cancel' : '+ Add'}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={onToggleMergeModal}
+                className="text-xs px-3 py-1 bg-purple-500 text-white rounded-full hover:bg-purple-600 transition-colors"
+                title="Merge codes"
+              >
+                🔀 Merge
+              </button>
+              <button
+                onClick={onToggleAddForm}
+                className="text-xs px-3 py-1 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
+              >
+                {showAddForm ? 'Cancel' : '+ Add'}
+              </button>
+            </div>
           )}
         </div>
       </div>

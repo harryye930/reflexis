@@ -16,6 +16,7 @@ const Sidebar = ({
   onAddCode,
   onUpdateCode,
   onDeleteCode,
+  onMergeCodes, // New prop for code merging
   onCheckCodeUsage,
   onDeleteHighlightsByCode,
   // Hover preferences props
@@ -110,6 +111,7 @@ const Sidebar = ({
             onAddCode={onAddCode}
             onUpdateCode={onUpdateCode}
             onDeleteCode={onDeleteCode}
+            onMergeCodes={onMergeCodes} // Pass down the onMergeCodes prop
             onCheckCodeUsage={onCheckCodeUsage}
             onDeleteHighlightsByCode={onDeleteHighlightsByCode}
             livingCodebookState={livingCodebookState}

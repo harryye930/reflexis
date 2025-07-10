@@ -27,7 +27,7 @@ function CollaborativeTextContent() {
   const { documents, activeDocument, activeDocumentId, documentsLoaded, addDocument, updateDocument, deleteDocument, switchActiveDocument } = useDocuments(appId, currentUser);
   const { highlights, addHighlight, deleteHighlight } = useHighlights(appId, currentUser, activeDocumentId);
   const { userProfiles, userProfilesLoaded } = useUserProfiles(appId, currentUser);
-  const { allCodes, addCode, updateCode, deleteCode } = useCodes(appId, currentUser);
+  const { allCodes, addCode, updateCode, deleteCode, mergeCodes } = useCodes(appId, currentUser);
   
   // Services
   const reflexiveService = new ReflexiveService(appId);
@@ -155,6 +155,7 @@ function CollaborativeTextContent() {
           onAddCode={addCode}
           onUpdateCode={updateCode}
           onDeleteCode={deleteCode}
+          onMergeCodes={mergeCodes}
           onCheckCodeUsage={checkCodeUsage}
           onDeleteHighlightsByCode={deleteHighlightsByCode}
           showHoverTooltips={showHoverTooltips}

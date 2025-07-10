@@ -58,12 +58,19 @@ export const useCodes = (appId, currentUser) => {
     return await codeService.initializeDefaultCodes(availableCodes, currentUser.uid);
   };
 
+  const mergeCodes = async (mergeData) => {
+    if (!currentUser) return { success: false, error: 'User not authenticated' };
+
+    return await codeService.mergeCodes(mergeData, currentUser.uid);
+  };
+
   return { 
     allCodes, 
     codesLoaded,
     addCode, 
     updateCode, 
     deleteCode,
-    initializeDefaultCodes
+    initializeDefaultCodes,
+    mergeCodes
   };
 };
