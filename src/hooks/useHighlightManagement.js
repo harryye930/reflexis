@@ -114,7 +114,8 @@ export const useHighlightManagement = (
       startIndex: sourceStartIndex,
       endIndex: sourceEndIndex,
       text: sourceText.substring(sourceStartIndex, sourceEndIndex),
-      documentId: activeDocumentId
+      documentId: activeDocumentId,
+      documentTitle: activeDocument.title
     });
 
     // Only close modal and clear selection for direct highlight creation

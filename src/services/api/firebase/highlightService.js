@@ -1,9 +1,11 @@
 import { collection, onSnapshot, addDoc, deleteDoc, doc, query, where, setDoc } from 'firebase/firestore';
 import { db } from '../../../lib/firebase.js';
+import { CodeService } from './codeService.js';
 
 export class HighlightService {
   constructor(appId) {
     this.appId = appId;
+    this.codeService = new CodeService(appId);
   }
 
   // Listen to highlights for a specific document
@@ -26,6 +28,30 @@ export class HighlightService {
         userId,
         createdAt: new Date()
       });
+      
+      // Record code application in history if a code was applied
+      if (highlightData.code) {
+        try {
+          // Get document title for history tracking
+          const documentTitle = highlightData.documentTitle || `Document ${highlightData.documentId}`;
+          
+          // Get code data for history tracking  
+          const codeResult = await this.codeService.getCode(highlightData.code);
+          const codeLabel = codeResult.success ? codeResult.data.label : 'Unknown Code';
+          
+          await this.codeService.recordCodeApplication(
+            highlightData.code,
+            codeLabel,
+            highlightData.documentId,
+            documentTitle,
+            userId
+          );
+        } catch (historyError) {
+          console.warn("Failed to record code application history:", historyError);
+          // Don't fail the highlight creation if history tracking fails
+        }
+      }
+      
       return { success: true, highlightId: docRef.id };
     } catch (error) {
       console.error("Error adding highlight: ", error);
@@ -78,4 +104,4 @@ export class HighlightService {
       return { success: false, error };
     }
   }
-} 
+}

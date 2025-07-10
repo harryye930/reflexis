@@ -1,6 +1,7 @@
 import { AuthService } from './authService.js';
 import { DocumentService } from './documentService.js';
 import { CodeService } from './codeService.js';
+import { CodeHistoryService } from './codeHistoryService.js';
 import { HighlightService } from './highlightService.js';
 import { NotificationService } from './notificationService.js';
 import { UserService } from './userService.js';
@@ -11,6 +12,7 @@ export class FirebaseServiceFactory {
     this._authService = null;
     this._documentService = null;
     this._codeService = null;
+    this._codeHistoryService = null;
     this._highlightService = null;
     this._notificationService = null;
     this._userService = null;
@@ -35,6 +37,13 @@ export class FirebaseServiceFactory {
       this._codeService = new CodeService(this.appId);
     }
     return this._codeService;
+  }
+
+  get codeHistory() {
+    if (!this._codeHistoryService) {
+      this._codeHistoryService = new CodeHistoryService(this.appId);
+    }
+    return this._codeHistoryService;
   }
 
   get highlights() {
@@ -63,6 +72,7 @@ export class FirebaseServiceFactory {
 export { AuthService } from './authService.js';
 export { DocumentService } from './documentService.js';
 export { CodeService } from './codeService.js';
+export { CodeHistoryService } from './codeHistoryService.js';
 export { HighlightService } from './highlightService.js';
 export { NotificationService } from './notificationService.js';
-export { UserService } from './userService.js'; 
+export { UserService } from './userService.js';

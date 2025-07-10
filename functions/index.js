@@ -46,6 +46,7 @@ const DEFAULT_CODES = [
 async function initializeDefaultCodes(db) {
   try {
     const codesBatch = db.batch();
+    const historyBatch = db.batch();
     let addedCount = 0;
     
     for (const code of DEFAULT_CODES) {
@@ -59,11 +60,29 @@ async function initializeDefaultCodes(db) {
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         createdBy: 'system'
       });
+      
+      // Add history entry for code creation
+      const historyRef = db.collection('artifacts/scholarmate-collab/public/data/code_history').doc();
+      historyBatch.set(historyRef, {
+        codeId: code.id,
+        type: 'created',
+        userId: 'system',
+        user: 'system',
+        description: `Code "${code.label}" created as part of default set`,
+        changes: {
+          label: code.label,
+          description: code.description,
+          color: code.color
+        },
+        timestamp: admin.firestore.FieldValue.serverTimestamp()
+      });
+      
       addedCount++;
     }
     
     await codesBatch.commit();
-    console.log(`Successfully initialized ${addedCount} default codes`);
+    await historyBatch.commit();
+    console.log(`Successfully initialized ${addedCount} default codes with history tracking`);
     return addedCount;
   } catch (error) {
     console.error('Error initializing default codes:', error);
@@ -189,6 +208,21 @@ exports.manualCleanup = functions.https.onRequest(async (req, res) => {
         totalDeleted += codesSnapshot.docs.length;
         cleanupResults.codesDeleted = codesSnapshot.docs.length;
         console.log(`Deleted ${codesSnapshot.docs.length} codes`);
+      }
+
+      // Delete ALL code history
+      const codeHistoryQuery = db.collection('artifacts/scholarmate-collab/public/data/code_history');
+      const codeHistorySnapshot = await codeHistoryQuery.get();
+      
+      if (!codeHistorySnapshot.empty) {
+        const codeHistoryBatch = db.batch();
+        codeHistorySnapshot.docs.forEach(doc => {
+          codeHistoryBatch.delete(doc.ref);
+        });
+        await codeHistoryBatch.commit();
+        totalDeleted += codeHistorySnapshot.docs.length;
+        cleanupResults.codeHistoryDeleted = codeHistorySnapshot.docs.length;
+        console.log(`Deleted ${codeHistorySnapshot.docs.length} code history entries`);
       }
       
       // Get ALL users (not just inactive ones)

@@ -59,6 +59,18 @@ service cloud.firestore {
         allow update, delete: if request.auth.uid == resource.data.userId;
     }
 
+    // This rule handles code history.
+    match /artifacts/{appId}/public/data/code_history/{historyId} {
+        // Any authenticated user can read code history.
+        allow read: if request.auth != null;
+
+        // Any authenticated user can create code history entries.
+        allow create: if request.auth != null;
+
+        // Code history entries are immutable once created (no updates or deletes).
+        allow update, delete: if false;
+    }
+
     // This rule handles user profiles.
     match /artifacts/{appId}/public/data/users/{userId} {
        // Any authenticated user can see who else is in the session.

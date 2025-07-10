@@ -164,7 +164,7 @@ const LivingCodebook = ({
       case 'exemplars':
         return <CodeExemplars code={code} />;
       case 'history':
-        return <CodeHistory code={code} />;
+        return <CodeHistory code={code} userProfiles={userProfiles} />;
       default:
         return null;
     }
