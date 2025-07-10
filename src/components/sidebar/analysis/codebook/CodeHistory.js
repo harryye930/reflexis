@@ -189,14 +189,14 @@ const CodeHistory = ({ code, userProfiles }) => {
         <div className="space-y-4">
           {history.map((event, index) => (
             <div key={event.id} className="relative">
-              {/* Timeline line */}
+              {/* Timeline line - extends from center of current icon to center of next icon */}
               {index < history.length - 1 && (
-                <div className="absolute left-6 top-12 w-0.5 h-12 bg-gray-200"></div>
+                <div className="absolute left-6 top-6 w-0.5 bg-gray-200 z-0" style={{ height: 'calc(100% + 1rem)' }}></div>
               )}
 
-              <div className="flex items-start space-x-4">
+              <div className="flex items-start space-x-4 relative z-10">
                 {/* Event icon */}
-                <div className="flex-shrink-0 w-12 h-12 bg-white border-2 border-gray-200 rounded-full flex items-center justify-center">
+                <div className="flex-shrink-0 w-12 h-12 bg-white border-2 border-gray-200 rounded-full flex items-center justify-center relative z-20">
                   <span className="text-lg">{getEventIcon(event.type)}</span>
                 </div>
 
