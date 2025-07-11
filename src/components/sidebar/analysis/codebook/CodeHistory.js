@@ -156,8 +156,13 @@ const CodeHistory = ({ code, userProfiles }) => {
         let codeColor = 'bg-blue-200';
         let textColor = 'text-blue-800';
         
+        // First check if it matches the result/target code from a merge operation
+        if (event?.changes?.resultConfig && event.changes.resultConfig.label === codeName) {
+          codeColor = event.changes.resultConfig.color || 'bg-blue-200';
+          textColor = event.changes.resultConfig.textColor || 'text-blue-800';
+        }
         // If it matches the current code being viewed, use its colors
-        if (codeName === code.label) {
+        else if (codeName === code.label) {
           codeColor = code.color || 'bg-blue-200';
           textColor = code.textColor || 'text-blue-800';
         }
@@ -199,7 +204,13 @@ const CodeHistory = ({ code, userProfiles }) => {
       let codeColor = 'bg-blue-200';
       let textColor = 'text-blue-800';
       
-      if (event?.changes?.sourceCodes && Array.isArray(event.changes.sourceCodes)) {
+      // First check if it matches the result/target code from a merge operation
+      if (event?.changes?.resultConfig && event.changes.resultConfig.label === codeName) {
+        codeColor = event.changes.resultConfig.color || 'bg-blue-200';
+        textColor = event.changes.resultConfig.textColor || 'text-blue-800';
+      }
+      // Then check source codes
+      else if (event?.changes?.sourceCodes && Array.isArray(event.changes.sourceCodes)) {
         const matchingCode = event.changes.sourceCodes.find(sourceCode => 
           sourceCode && sourceCode.label === codeName
         );
