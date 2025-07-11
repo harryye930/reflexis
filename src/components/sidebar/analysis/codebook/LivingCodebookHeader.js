@@ -41,7 +41,7 @@ const LivingCodebookHeader = ({
                   <CodeChip 
                     code={isDeleted ? {
                       label: `${code.label} (deleted)`,
-                      color: 'bg-gray-200',  // Explicit gray for deleted (not a fallback)
+                      color: 'bg-gray-200',  // Explicit gray for deleted
                       textColor: 'text-gray-600'
                     } : code}  // Pass code directly when not deleted
                     size="lg"

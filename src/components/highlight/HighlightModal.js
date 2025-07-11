@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { CODE_COLOR_OPTIONS, FALLBACK_CODE_COLORS } from '../../constants/codeColors.js';
+import { CODE_COLOR_OPTIONS } from '../../constants/codeColors.js';
 import CodeButton from './HighlightModalCodeButton.js';
 import ReflexiveModal from '../reflexive/ReflexiveModal.js';
 
@@ -99,23 +99,17 @@ const HighlightingModal = ({
             <p className="text-sm text-gray-700 font-medium">Apply code to selection:</p>
           </div>
           <div id="modal-codes-list" className="grid grid-cols-2 gap-3 auto-rows-max">
-            {allCodes.map(code => {
-              // Use centralized fallback colors instead of manual fallbacks
-              const bgColor = code.color || FALLBACK_CODE_COLORS.bg;
-              const textColor = code.textColor || FALLBACK_CODE_COLORS.text;
-              
-              return (
-                <div key={code.id} className="flex justify-center">
-                  <CodeButton
-                    code={code}
-                    bgColor={bgColor}
-                    textColor={textColor}
-                    onDirectApply={() => handleDirectApply(code.id)}
-                    onReflexiveApply={() => handleReflexiveApply(code)}
-                  />
-                </div>
-              );
-            })}
+            {allCodes.map(code => (
+              <div key={code.id} className="flex justify-center">
+                <CodeButton
+                  code={code}
+                  bgColor={code.color}
+                  textColor={code.textColor}
+                  onDirectApply={() => handleDirectApply(code.id)}
+                  onReflexiveApply={() => handleReflexiveApply(code)}
+                />
+              </div>
+            ))}
           </div>
           
           {/* Enhanced close button */}

@@ -1,5 +1,4 @@
 import React from 'react';
-import { FALLBACK_CODE_COLORS } from '../../constants/codeColors.js';
 
 /**
  * CodeChip - A unified component for displaying code labels with consistent styling
@@ -28,12 +27,12 @@ const CodeChip = ({
   opacity = 1,
   ...props
 }) => {
-  // Centralized fallback colors - ONLY fallback in CodeChip, never elsewhere
-  const bgColor = code?.color || FALLBACK_CODE_COLORS.bg;
-  const textColor = code?.textColor || FALLBACK_CODE_COLORS.text;
+  // Internal fallback colors - only used within CodeChip
+  const bgColor = code?.color || 'bg-amber-300';
+  const textColor = code?.textColor || 'text-amber-900';
   const label = code?.label || children || 'Unknown Code';
   
-  // Enhanced tooltip for fallback cases
+  // Enhanced tooltip for missing code data
   const isUsingFallback = !code?.color || !code?.textColor;
   const fallbackDescription = isUsingFallback 
     ? 'Missing or invalid code data - please check code configuration' 

@@ -42,7 +42,7 @@ const DeletedCodeItem = ({
           <CodeChip 
             code={{
               label: deletedCode.label,
-              color: 'bg-gray-200',  // Keep explicit gray for deleted codes (not a fallback)
+              color: 'bg-gray-200',  // Explicit gray for deleted codes
               textColor: 'text-gray-600'
             }}
             size="md"

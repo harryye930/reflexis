@@ -154,8 +154,8 @@ const CodeHistory = ({ code, userProfiles }) => {
       const codeNameMatch = text.match(/Code "([^"]+)"/);
       if (codeNameMatch) {
         const codeName = codeNameMatch[1];
-        let codeColor = null;  // No fallback - let CodeChip handle it
-        let textColor = null;  // No fallback - let CodeChip handle it
+        let codeColor = null;
+        let textColor = null;
         
         // First check if it matches the result/target code from a merge operation
         if (event?.changes?.resultConfig && event.changes.resultConfig.label === codeName) {
@@ -178,8 +178,8 @@ const CodeHistory = ({ code, userProfiles }) => {
             <CodeChip 
               code={{ 
                 label: codeName, 
-                color: codeColor,  // May be null - CodeChip will fallback
-                textColor: textColor  // May be null - CodeChip will fallback
+                color: codeColor,
+                textColor: textColor
               }}
               size="xs"
               className="mx-1"
@@ -207,7 +207,7 @@ const CodeHistory = ({ code, userProfiles }) => {
       // Add styled code name
       const codeName = match[1];
       
-      // Try to find the actual code colors - no fallbacks, let CodeChip handle it
+      // Try to find the actual code colors
       let codeColor = null;
       let textColor = null;
       
@@ -238,8 +238,8 @@ const CodeHistory = ({ code, userProfiles }) => {
           key={`code-${match.index}`}
           code={{ 
             label: codeName, 
-            color: codeColor,  // May be null - CodeChip will fallback
-            textColor: textColor  // May be null - CodeChip will fallback
+            color: codeColor,
+            textColor: textColor
           }}
           size="xs"
           className="mx-1"
@@ -294,9 +294,7 @@ const CodeHistory = ({ code, userProfiles }) => {
           ) : (
             <CodeChip 
               code={{ 
-                label: targetCodeId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-                color: 'bg-blue-200',
-                textColor: 'text-blue-800'
+                label: targetCodeId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
               }}
               size="xs"
               className="mx-1"
@@ -422,7 +420,7 @@ const CodeHistory = ({ code, userProfiles }) => {
                       return (
                         <div key={source.id || index} className="flex items-center gap-2">
                           <CodeChip 
-                            code={source}  // Pass source code directly, let CodeChip handle fallbacks
+                            code={source}  // Pass source code directly
                             size="md"
                             variant="unified"
                           />
@@ -498,7 +496,7 @@ const CodeHistory = ({ code, userProfiles }) => {
               <span className="text-red-600">🗑️</span>
               <h4 className="text-sm font-medium text-red-800">This code has been deleted</h4>
               <CodeChip 
-                code={code}  // Pass code directly, let CodeChip handle fallbacks
+                code={code}  // Pass code directly
                 size="md"
                 variant="unified"
                 opacity={0.6}
