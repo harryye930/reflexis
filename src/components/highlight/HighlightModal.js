@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { CODE_COLOR_OPTIONS, FALLBACK_CODE_COLORS } from '../../constants/codeColors.js';
 import CodeButton from './HighlightModalCodeButton.js';
 import ReflexiveModal from '../reflexive/ReflexiveModal.js';

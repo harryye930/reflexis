@@ -45,15 +45,15 @@ export class CodeService {
   }
 
   // Update an existing code
-  async updateCode(codeId, updateData, userId, skipHistory = false) {
+  async updateCode(docId, updateData, userId, skipHistory = false) {
     try {
-      // Get old data for history tracking
-      const oldResult = await this.getCode(codeId);
+      // Get old data for history tracking using the logical code ID
+      const oldResult = await this.getCode(updateData.id);
       if (!oldResult.success) {
         return { success: false, error: 'Code not found for update' };
       }
       
-      const codeDocRef = doc(db, `artifacts/${this.appId}/public/data/codes`, codeId);
+      const codeDocRef = doc(db, `artifacts/${this.appId}/public/data/codes`, docId);
       await updateDoc(codeDocRef, {
         ...updateData,
         updatedBy: userId,
@@ -108,14 +108,17 @@ export class CodeService {
   // Get a single code by ID
   async getCode(codeId) {
     try {
-      const codeDocRef = doc(db, `artifacts/${this.appId}/public/data/codes`, codeId);
-      const codeSnap = await getDoc(codeDocRef);
+      // Use the same logic as onCodesSnapshot: search by logical ID field first
+      const codesCollection = collection(db, `artifacts/${this.appId}/public/data/codes`);
+      const codeQuery = query(codesCollection, where('id', '==', codeId));
+      const querySnapshot = await getDocs(codeQuery);
       
-      if (codeSnap.exists()) {
-        return { success: true, data: { id: codeSnap.id, ...codeSnap.data() } };
-      } else {
-        return { success: false, error: 'Code not found' };
+      if (!querySnapshot.empty) {
+        const doc = querySnapshot.docs[0];
+        return { success: true, data: { id: doc.data().id || doc.id, docId: doc.id, ...doc.data() } };
       }
+      
+      return { success: false, error: 'Code not found' };
     } catch (error) {
       console.error("Error getting code: ", error);
       return { success: false, error };

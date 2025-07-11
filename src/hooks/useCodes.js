@@ -42,12 +42,17 @@ export const useCodes = (appId, currentUser) => {
     return await codeService.addCode({ id, label, description, color, textColor }, currentUser.uid);
   };
 
-  const updateCode = async (codeId, { label, description, color, textColor }) => {
+  const updateCode = async (docId, { label, description, color, textColor }) => {
     if (!currentUser) return { success: false, error: 'User not authenticated' };
 
-    // Do not pass createdBy here, only updatable fields
-    return await codeService.updateCode(codeId, { 
-      id: codeId, // Ensure the id stays the same
+    // Find the logical ID for this document ID
+    const codeToUpdate = allCodes.find(c => c.docId === docId || c.id === docId);
+    if (!codeToUpdate) {
+      return { success: false, error: 'Code not found' };
+    }
+
+    return await codeService.updateCode(docId, { 
+      id: codeToUpdate.id, // Use the logical ID 
       label, 
       description, 
       color, 
