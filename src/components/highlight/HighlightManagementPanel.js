@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import CodeChip from '../common/CodeChip.js';
 import { getUserDisplayColor, getUserDisplayName, shouldShowAuthorInfo } from '../../lib/utils/hoverUtils';
 
 const HighlightManagementPanel = ({ 
@@ -81,7 +82,7 @@ const HighlightManagementPanel = ({
             return (
               <div 
                 key={highlight.id} 
-                className={`code-palette-unified ${code?.color || 'bg-gray-200'} rounded-xl border transition-all duration-200 ${
+                className={`code-palette-unified ${code?.color} rounded-xl border transition-all duration-200 ${
                   isOwner 
                     ? 'border-blue-200' 
                     : 'border-gray-200'
@@ -91,10 +92,12 @@ const HighlightManagementPanel = ({
                 <div className="p-3 border-b border-gray-100">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      {/* Code label with matching text color */}
-                      <span className={`font-semibold text-sm ${code?.textColor || 'text-gray-800'}`}>
-                        {code?.label || 'Unknown Code'}
-                      </span>
+                      {/* Code chip */}
+                      <CodeChip 
+                        code={code}
+                        size="sm"
+                        variant="simple"
+                      />
                     </div>
                     
                     {/* Delete button - only for owner */}
@@ -118,7 +121,7 @@ const HighlightManagementPanel = ({
                         className="w-2 h-2 rounded-full" 
                         style={{ backgroundColor: userColor }}
                       />
-                      <span className={`text-xs font-medium ${code?.textColor || 'text-gray-800'} opacity-80`}>
+                      <span className="text-xs font-medium text-gray-800 opacity-80">
                         {userName}
                       </span>
                     </div>
@@ -126,7 +129,7 @@ const HighlightManagementPanel = ({
                   
                   {/* Code description directly under code */}
                   {code?.description && (
-                    <div className={`mt-2 text-xs leading-relaxed ${code?.textColor || 'text-gray-800'} opacity-75`}>
+                    <div className="mt-2 text-xs leading-relaxed text-gray-800 opacity-75">
                       {code.description}
                     </div>
                   )}

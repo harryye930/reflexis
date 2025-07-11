@@ -40,8 +40,8 @@ const LivingCodebook = ({
       setEditForm({
         label: code.label || '',
         description: code.description || '',
-        color: code.color || 'bg-gray-200',
-        textColor: code.textColor || 'text-gray-800'
+        color: code.color,
+        textColor: code.textColor
       });
     }
   }, [code]);
@@ -56,8 +56,8 @@ const LivingCodebook = ({
     setEditForm({
       label: code.label || '',
       description: code.description || '',
-      color: code.color || 'bg-gray-200',
-      textColor: code.textColor || 'text-gray-800'
+      color: code.color,
+      textColor: code.textColor
     });
   };
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { appId } from '../../../../constants/index.js';
 import { CodeService } from '../../../../services/api/firebase/codeService.js';
+import CodeChip from '../../../common/CodeChip.js';
 
 // Error Boundary Component
 class CodeHistoryErrorBoundary extends React.Component {
@@ -153,18 +154,18 @@ const CodeHistory = ({ code, userProfiles }) => {
       const codeNameMatch = text.match(/Code "([^"]+)"/);
       if (codeNameMatch) {
         const codeName = codeNameMatch[1];
-        let codeColor = 'bg-blue-200';
-        let textColor = 'text-blue-800';
+        let codeColor = null;  // No fallback - let CodeChip handle it
+        let textColor = null;  // No fallback - let CodeChip handle it
         
         // First check if it matches the result/target code from a merge operation
         if (event?.changes?.resultConfig && event.changes.resultConfig.label === codeName) {
-          codeColor = event.changes.resultConfig.color || 'bg-blue-200';
-          textColor = event.changes.resultConfig.textColor || 'text-blue-800';
+          codeColor = event.changes.resultConfig.color;
+          textColor = event.changes.resultConfig.textColor;
         }
         // If it matches the current code being viewed, use its colors
         else if (codeName === code.label) {
-          codeColor = code.color || 'bg-blue-200';
-          textColor = code.textColor || 'text-blue-800';
+          codeColor = code.color;
+          textColor = code.textColor;
         }
         
         // Split the text and create JSX elements
@@ -174,9 +175,15 @@ const CodeHistory = ({ code, userProfiles }) => {
         return (
           <>
             {beforeCode}
-            <span className={`code-palette-unified inline-flex px-2 py-1 rounded-full font-medium text-xs ${codeColor} ${textColor} border border-gray-100 transition-all duration-200 mx-1`}>
-              {codeName}
-            </span>
+            <CodeChip 
+              code={{ 
+                label: codeName, 
+                color: codeColor,  // May be null - CodeChip will fallback
+                textColor: textColor  // May be null - CodeChip will fallback
+              }}
+              size="xs"
+              className="mx-1"
+            />
             {afterCode}
           </>
         );
@@ -200,14 +207,14 @@ const CodeHistory = ({ code, userProfiles }) => {
       // Add styled code name
       const codeName = match[1];
       
-      // Try to find the actual code colors from merge source codes or use defaults
-      let codeColor = 'bg-blue-200';
-      let textColor = 'text-blue-800';
+      // Try to find the actual code colors - no fallbacks, let CodeChip handle it
+      let codeColor = null;
+      let textColor = null;
       
       // First check if it matches the result/target code from a merge operation
       if (event?.changes?.resultConfig && event.changes.resultConfig.label === codeName) {
-        codeColor = event.changes.resultConfig.color || 'bg-blue-200';
-        textColor = event.changes.resultConfig.textColor || 'text-blue-800';
+        codeColor = event.changes.resultConfig.color;
+        textColor = event.changes.resultConfig.textColor;
       }
       // Then check source codes
       else if (event?.changes?.sourceCodes && Array.isArray(event.changes.sourceCodes)) {
@@ -215,24 +222,28 @@ const CodeHistory = ({ code, userProfiles }) => {
           sourceCode && sourceCode.label === codeName
         );
         if (matchingCode) {
-          codeColor = matchingCode.color || 'bg-blue-200';
-          textColor = matchingCode.textColor || 'text-blue-800';
+          codeColor = matchingCode.color;
+          textColor = matchingCode.textColor;
         }
       }
       
       // If it matches the current code being viewed, use its colors
       if (codeName === code.label) {
-        codeColor = code.color || 'bg-blue-200';
-        textColor = code.textColor || 'text-blue-800';
+        codeColor = code.color;
+        textColor = code.textColor;
       }
       
       parts.push(
-        <span 
+        <CodeChip 
           key={`code-${match.index}`}
-          className={`code-palette-unified inline-flex px-2 py-1 rounded-full font-medium text-xs ${codeColor} ${textColor} border border-gray-100 transition-all duration-200 mx-1`}
-        >
-          {codeName}
-        </span>
+          code={{ 
+            label: codeName, 
+            color: codeColor,  // May be null - CodeChip will fallback
+            textColor: textColor  // May be null - CodeChip will fallback
+          }}
+          size="xs"
+          className="mx-1"
+        />
       );
       
       lastIndex = match.index + match[0].length;
@@ -275,13 +286,21 @@ const CodeHistory = ({ code, userProfiles }) => {
         <div className="mt-1">
           <span className="text-xs text-gray-700">Merge all into </span>
           {targetCode ? (
-            <span className={`code-palette-unified inline-flex px-2 py-1 rounded-full font-medium text-xs ${targetCode.color || 'bg-blue-200'} ${targetCode.textColor || 'text-blue-800'} border border-gray-100 transition-all duration-200 mx-1`}>
-              {targetCode.label}
-            </span>
+            <CodeChip 
+              code={targetCode}
+              size="xs"
+              className="mx-1"
+            />
           ) : (
-            <span className={`code-palette-unified inline-flex px-2 py-1 rounded-full font-medium text-xs bg-blue-200 text-blue-800 border border-gray-100 transition-all duration-200 mx-1`}>
-              {targetCodeId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-            </span>
+            <CodeChip 
+              code={{ 
+                label: targetCodeId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                color: 'bg-blue-200',
+                textColor: 'text-blue-800'
+              }}
+              size="xs"
+              className="mx-1"
+            />
           )}
         </div>
       );
@@ -308,17 +327,27 @@ const CodeHistory = ({ code, userProfiles }) => {
                 <div>
                   <span className="text-xs font-medium text-red-600">From:</span>
                   <div className="mt-1">
-                    <span className={`code-palette-unified inline-flex px-3 py-1 rounded-full font-medium text-sm ${event.changes.color?.from || code.color || 'bg-gray-200'} ${event.changes.textColor?.from || code.textColor || 'text-gray-800'} border border-gray-100 transition-all duration-200`}>
-                      {event.changes.label.from}
-                    </span>
+                    <CodeChip 
+                      code={{
+                        label: event.changes.label.from,
+                        color: event.changes.color?.from || code.color,
+                        textColor: event.changes.textColor?.from || code.textColor
+                      }}
+                      size="md"
+                    />
                   </div>
                 </div>
                 <div>
                   <span className="text-xs font-medium text-green-600">To:</span>
                   <div className="mt-1">
-                    <span className={`code-palette-unified inline-flex px-3 py-1 rounded-full font-medium text-sm ${event.changes.color?.to || code.color || 'bg-gray-200'} ${event.changes.textColor?.to || code.textColor || 'text-gray-800'} border border-gray-100 transition-all duration-200`}>
-                      {event.changes.label.to}
-                    </span>
+                    <CodeChip 
+                      code={{
+                        label: event.changes.label.to,
+                        color: event.changes.color?.to || code.color,
+                        textColor: event.changes.textColor?.to || code.textColor
+                      }}
+                      size="md"
+                    />
                   </div>
                 </div>
               </div>
@@ -340,11 +369,11 @@ const CodeHistory = ({ code, userProfiles }) => {
                 <span className="text-xs font-medium text-purple-600">Color Theme Changed</span>
                 <div className="mt-1 flex items-center gap-2">
                   <span className="text-xs text-gray-600">From:</span>
-                  <span className={`inline-flex px-2 py-1 rounded text-xs ${event.changes.color.from || 'bg-gray-200'} ${event.changes.textColor?.from || 'text-gray-800'}`}>
+                  <span className={`inline-flex px-2 py-1 rounded text-xs ${event.changes.color.from} ${event.changes.textColor?.from}`}>
                     Sample
                   </span>
                   <span className="text-xs text-gray-600">To:</span>
-                  <span className={`inline-flex px-2 py-1 rounded text-xs ${event.changes.color.to || 'bg-gray-200'} ${event.changes.textColor?.to || 'text-gray-800'}`}>
+                  <span className={`inline-flex px-2 py-1 rounded text-xs ${event.changes.color.to} ${event.changes.textColor?.to}`}>
                     Sample
                   </span>
                 </div>
@@ -366,9 +395,7 @@ const CodeHistory = ({ code, userProfiles }) => {
               <div>
                 <span className="text-xs font-medium text-yellow-600">Code:</span>
                 <div className="mt-1">
-                  <span className={`code-palette-unified inline-flex px-3 py-1 rounded-full font-medium text-sm ${code.color || 'bg-gray-200'} ${code.textColor || 'text-gray-800'} border border-gray-100 transition-all duration-200`}>
-                    {code.label}
-                  </span>
+                  <CodeChip code={code} size="md" />
                 </div>
               </div>
             </div>
@@ -394,9 +421,11 @@ const CodeHistory = ({ code, userProfiles }) => {
                       if (!source) return null;
                       return (
                         <div key={source.id || index} className="flex items-center gap-2">
-                          <span className={`code-palette-unified inline-flex px-3 py-1 rounded-full font-medium text-sm ${source.color || 'bg-gray-200'} ${source.textColor || 'text-gray-800'} border border-gray-100 transition-all duration-200`}>
-                            {source.label || 'Unknown Code'}
-                          </span>
+                          <CodeChip 
+                            code={source}  // Pass source code directly, let CodeChip handle fallbacks
+                            size="md"
+                            variant="unified"
+                          />
                         </div>
                       );
                     })}
@@ -468,9 +497,12 @@ const CodeHistory = ({ code, userProfiles }) => {
             <div className="flex items-center gap-3 mb-3">
               <span className="text-red-600">🗑️</span>
               <h4 className="text-sm font-medium text-red-800">This code has been deleted</h4>
-              <span className={`code-palette-unified inline-flex px-3 py-1 rounded-full font-medium text-sm ${code.color || 'bg-gray-200'} ${code.textColor || 'text-gray-800'} border border-gray-100 opacity-60`}>
-                {code.label}
-              </span>
+              <CodeChip 
+                code={code}  // Pass code directly, let CodeChip handle fallbacks
+                size="md"
+                variant="unified"
+                opacity={0.6}
+              />
             </div>
             <div className="text-sm text-red-700 space-y-1">
               <p><strong>Deleted:</strong> {formatTimestamp(code.deletedAt)} by {getUserName(code.deletedBy)}</p>

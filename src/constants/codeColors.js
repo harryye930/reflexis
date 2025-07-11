@@ -10,3 +10,11 @@ export const CODE_COLOR_OPTIONS = [
   { bg: 'bg-teal-200', text: 'text-teal-800', name: 'Teal' },
   { bg: 'bg-gray-200', text: 'text-gray-800', name: 'Gray' }
 ];
+
+// Fallback colors for unknown/missing codes - distinct from any existing code colors
+// Using amber with strong contrast to signal that this is a fallback/warning state
+export const FALLBACK_CODE_COLORS = {
+  bg: 'bg-amber-300',        // Bright amber background - not in regular palette
+  text: 'text-amber-900',    // Very dark amber text for high contrast
+  name: 'Warning'            // Indicates this is a fallback state
+};

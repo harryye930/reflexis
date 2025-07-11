@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CODE_COLOR_OPTIONS } from '../../../../constants/codeColors.js';
+import CodeChip from '../../../common/CodeChip.js';
 
 const CodeMergeModal = ({ 
   allCodes,
@@ -252,9 +253,11 @@ const CodeMergeModal = ({
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <h4 className="font-medium text-gray-900">Merge all into</h4>
-                  <span className={`code-palette-unified px-3 py-1 text-sm rounded-full ${code.color} ${code.textColor} font-medium`}>
-                    {code.label}
-                  </span>
+                  <CodeChip 
+                    code={code}
+                    size="md"
+                    variant="unified"
+                  />
                 </div>
                 <p className="text-sm text-gray-600">
                   Keep &ldquo;{code.label}&rdquo; and merge all highlights from other codes into it. Other codes will be deleted.

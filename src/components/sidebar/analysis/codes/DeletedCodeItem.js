@@ -1,4 +1,5 @@
 import React from 'react';
+import CodeChip from '../../../common/CodeChip.js';
 
 const DeletedCodeItem = ({ 
   deletedCode, 
@@ -38,9 +39,14 @@ const DeletedCodeItem = ({
       <div className="flex-1">
         <div className="flex items-center gap-2 mb-2">
           {/* Grey badge for deleted code */}
-          <span className="px-3 py-1 text-sm rounded-full bg-gray-200 text-gray-600 font-medium">
-            {deletedCode.label || 'Unknown Label'}
-          </span>
+          <CodeChip 
+            code={{
+              label: deletedCode.label,
+              color: 'bg-gray-200',  // Keep explicit gray for deleted codes (not a fallback)
+              textColor: 'text-gray-600'
+            }}
+            size="md"
+          />
           {/* Deleted indicator */}
           <span className="text-xs text-gray-500 italic">
             (deleted)

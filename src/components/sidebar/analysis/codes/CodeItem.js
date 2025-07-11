@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import CodeChip from '../../../common/CodeChip.js';
 
 const CodeItem = ({ 
   code, 
@@ -47,10 +48,6 @@ const CodeItem = ({
   const containerClass = isManagementMode 
     ? `code-preview flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-all cursor-pointer hover:bg-gray-50 ${isTransitioning ? 'code-transition-exit' : ''}`
     : `code-palette-card group relative cursor-pointer ${isTransitioning ? 'code-transition-exit' : ''}`;
-  
-  const codeClass = isManagementMode
-    ? `px-3 py-1 text-sm rounded-full ${code.color} ${code.textColor} font-medium ${isTransitioning ? 'code-connection-pulse' : ''}`
-    : `code-palette-unified w-full text-left p-4 rounded-xl border border-gray-100 ${code.color} ${code.textColor} font-medium transition-all duration-200 code-badge-transition ${isTransitioning ? 'code-connection-pulse' : ''}`;
 
   return (
     <div 
@@ -63,9 +60,12 @@ const CodeItem = ({
         <>
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <span className={codeClass}>
-                {code.label}
-              </span>
+              <CodeChip 
+                code={code}
+                size="md"
+                variant="simple"
+                isTransitioning={isTransitioning}
+              />
             </div>
             <p className="text-xs text-gray-600 leading-relaxed">{code.description}</p>
             {getAuthorDisplay(code) && (
@@ -90,7 +90,7 @@ const CodeItem = ({
       ) : (
         // Selection mode layout
         <div
-          className={codeClass}
+          className={`code-palette-unified w-full text-left p-4 rounded-xl border border-gray-100 ${code.color} ${code.textColor} font-medium transition-all duration-200 code-badge-transition ${isTransitioning ? 'code-connection-pulse' : ''}`}
           data-code={code.id}
           style={{
             position: 'relative',

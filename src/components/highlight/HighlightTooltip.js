@@ -1,5 +1,6 @@
 import React from 'react';
-import { getUserDisplayColor, getUserDisplayName, shouldShowAuthorInfo } from '../../lib/utils/hoverUtils';
+import CodeChip from '../common/CodeChip.js';
+import { getUserDisplayColor, getUserDisplayName, shouldShowAuthorInfo } from '../../lib/utils/hoverUtils.js';
 
 const HighlightTooltip = ({ 
   highlights, 
@@ -34,10 +35,6 @@ const HighlightTooltip = ({
             const user = userProfiles[highlight.userId];
             const code = allCodes?.find(c => c.id === highlight.code);
             
-            // Get code colors, fallback to gray if not found
-            const codeColor = code?.color || 'bg-gray-200';
-            const codeTextColor = code?.textColor || 'text-gray-800';
-            
             // Use hover utilities for user display
             const userColor = getUserDisplayColor(user, showAuthorInfo);
             const userName = getUserDisplayName(user, showAuthorInfo, currentUser, highlight.userId);
@@ -47,9 +44,11 @@ const HighlightTooltip = ({
               <div key={highlight.id} className="space-y-2">
                 <div className="flex items-center gap-2">
                   {/* Code badge with matching colors */}
-                  <span className={`${codeColor} ${codeTextColor} px-2 py-1 rounded-full text-xs font-medium`}>
-                    {code?.label || 'Unknown Code'}
-                  </span>
+                  <CodeChip 
+                    code={code}  // Pass the code object directly, let CodeChip handle fallbacks
+                    size="xs"
+                    showTooltip={true}
+                  />
                   
                   {/* Author info (if enabled) */}
                   {shouldShowAuthor && userName && (

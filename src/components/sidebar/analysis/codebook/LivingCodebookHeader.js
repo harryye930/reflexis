@@ -1,5 +1,6 @@
 import React from 'react';
 import { CODE_COLOR_OPTIONS } from '../../../../constants/codeColors.js';
+import CodeChip from '../../../common/CodeChip.js';
 
 const LivingCodebookHeader = ({ 
   code, 
@@ -37,10 +38,16 @@ const LivingCodebookHeader = ({
               <div className="flex-1">
                 {/* Code badge with same styling as CodeItem */}
                 <div className="mb-4">
-                  <span className={`code-palette-unified inline-flex px-4 py-2 rounded-xl font-medium text-sm ${isDeleted ? 'bg-gray-200 text-gray-600' : `${code.color} ${code.textColor}`} border border-gray-100 transition-all duration-200 code-badge-transition ${isDeleted ? '' : 'code-connection-pulse'}`}>
-                    {code.label}
-                    {isDeleted && <span className="ml-2 text-xs">(deleted)</span>}
-                  </span>
+                  <CodeChip 
+                    code={isDeleted ? {
+                      label: `${code.label} (deleted)`,
+                      color: 'bg-gray-200',  // Explicit gray for deleted (not a fallback)
+                      textColor: 'text-gray-600'
+                    } : code}  // Pass code directly when not deleted
+                    size="lg"
+                    variant="unified"
+                    className={`code-badge-transition ${isDeleted ? '' : 'code-connection-pulse'}`}
+                  />
                 </div>
                 <h2 className="text-lg font-semibold text-gray-900 mb-2">
                   {isDeleted ? 'Deleted Code History' : 'Living Codebook'}

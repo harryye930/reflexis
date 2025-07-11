@@ -259,10 +259,10 @@ export class CodeHistoryService {
         sourceCodeIds: selectedCodes.map(c => c.id),
         sourceCodes: selectedCodes.map(c => ({
           id: c.id || 'unknown',
-          label: c.label || 'Unknown Label',
-          description: c.description || '',
-          color: c.color || 'bg-gray-200',
-          textColor: c.textColor || 'text-gray-800'
+          label: c.label,
+          description: c.description,
+          color: c.color,
+          textColor: c.textColor
         })),
         resultConfig,
         highlightTransferCount: highlightTransferCount,
