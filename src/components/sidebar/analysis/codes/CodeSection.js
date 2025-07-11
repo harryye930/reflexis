@@ -1,9 +1,10 @@
 import React from 'react';
-import CodeItem from './CodeItem.js';
+import CodeList from './CodeList.js';
 
 const CodeSection = ({ 
   title,
   codes,
+  deletedCodes = [], // New prop for deleted codes
   showDescriptions,
   onEdit,
   onDelete,
@@ -26,22 +27,18 @@ const CodeSection = ({
   return (
     <div className="mb-6">
       <h4 className="text-sm font-medium text-gray-600 mb-3">{title}</h4>
-      <div className="space-y-2">
-        {codes.map(code => (
-          <CodeItem
-            key={code.id}
-            code={code}
-            showDescriptions={showDescriptions}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            currentUser={currentUser}
-            userProfiles={userProfiles}
-            variant="management"
-            onCodeNameClick={onCodeNameClick}
-            hideEditButtons={hideEditButtons}
-          />
-        ))}
-      </div>
+      <CodeList
+        allCodes={codes}
+        deletedCodes={deletedCodes}
+        showDescriptions={showDescriptions}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        currentUser={currentUser}
+        userProfiles={userProfiles}
+        variant="management"
+        onCodeNameClick={onCodeNameClick}
+        hideEditButtons={hideEditButtons}
+      />
     </div>
   );
 };

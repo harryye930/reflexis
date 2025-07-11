@@ -3,6 +3,7 @@ import { CodeService } from '../services/api/firebase/codeService.js';
 
 export const useCodes = (appId, currentUser) => {
   const [allCodes, setAllCodes] = useState([]);
+  const [deletedCodes, setDeletedCodes] = useState([]);
   const [codesLoaded, setCodesLoaded] = useState(false);
   const [codeService] = useState(() => new CodeService(appId));
 
@@ -10,18 +11,26 @@ export const useCodes = (appId, currentUser) => {
     if (!currentUser) {
       // When no user, show empty array - codes will be loaded once user logs in
       setAllCodes([]);
+      setDeletedCodes([]);
       setCodesLoaded(true);
       return;
     }
 
     // Listen for all codes in the system - codes are initialized server-side during reset
-    const unsubscribe = codeService.onCodesSnapshot((firebaseCodes) => {
-      // All codes from Firebase are treated equally - no client-side initialization
-      setAllCodes(firebaseCodes);
+    const unsubscribeAllCodes = codeService.onCodesSnapshot((firebaseCodes) => {
+      // Filter active codes (not deleted)
+      const activeCodes = firebaseCodes.filter(code => !code.isDeleted);
+      // Filter deleted codes
+      const deletedCodesData = firebaseCodes.filter(code => code.isDeleted);
+      
+      setAllCodes(activeCodes);
+      setDeletedCodes(deletedCodesData);
       setCodesLoaded(true);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribeAllCodes();
+    };
   }, [appId, currentUser, codeService]);
 
   const addCode = async ({ label, description, color, textColor }) => {
@@ -49,7 +58,7 @@ export const useCodes = (appId, currentUser) => {
   const deleteCode = async (docId) => {
     if (!currentUser) return { success: false, error: 'User not authenticated' };
 
-    return await codeService.deleteCode(docId);
+    return await codeService.deleteCode(docId, currentUser.uid, 'User deleted');
   };
 
   const initializeDefaultCodes = async () => {
@@ -66,10 +75,12 @@ export const useCodes = (appId, currentUser) => {
 
   return { 
     allCodes, 
-    codesLoaded,
+    deletedCodes,
+    codesLoaded, 
+    codeService,
     addCode, 
     updateCode, 
-    deleteCode,
+    deleteCode, 
     initializeDefaultCodes,
     mergeCodes
   };

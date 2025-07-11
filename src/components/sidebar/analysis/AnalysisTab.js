@@ -10,6 +10,7 @@ const AnalysisTab = ({
   userProfilesLoaded, 
   onMessage,
   allCodes,
+  deletedCodes = [], // New prop for deleted codes
   onAddCode,
   onUpdateCode,
   onDeleteCode,
@@ -51,6 +52,7 @@ const AnalysisTab = ({
 
       <CodeManagement 
         allCodes={allCodes}
+        deletedCodes={deletedCodes}
         currentUser={currentUser}
         userProfiles={userProfiles}
         onAddCode={onAddCode}

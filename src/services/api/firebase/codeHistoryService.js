@@ -8,17 +8,34 @@ export class CodeHistoryService {
 
   // Listen to code history for a specific code
   onCodeHistorySnapshot(codeId, callback) {
-    const historyCollection = collection(db, `artifacts/${this.appId}/public/data/code_history`);
-    const historyQuery = query(
-      historyCollection,
-      where('codeId', '==', codeId),
-      orderBy('timestamp', 'desc')
-    );
-    
-    return onSnapshot(historyQuery, (snapshot) => {
-      const historyData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      callback(historyData);
-    });
+    try {
+      const historyCollection = collection(db, `artifacts/${this.appId}/public/data/code_history`);
+      const historyQuery = query(
+        historyCollection,
+        where('codeId', '==', codeId),
+        orderBy('timestamp', 'desc')
+      );
+      
+      return onSnapshot(historyQuery, 
+        (snapshot) => {
+          try {
+            const historyData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            callback(historyData);
+          } catch (error) {
+            console.error('Error processing history snapshot:', error);
+            callback([]);
+          }
+        },
+        (error) => {
+          console.error('Error in history snapshot listener:', error);
+          callback([]);
+        }
+      );
+    } catch (error) {
+      console.error('Error setting up history listener:', error);
+      // Return a dummy unsubscribe function
+      return () => {};
+    }
   }
 
   // Add a new history entry
@@ -81,6 +98,12 @@ export class CodeHistoryService {
       }
     }
 
+    // Only record history if there are actual changes
+    if (Object.keys(changes).length === 0) {
+      console.log('No changes detected in code update, skipping history record');
+      return { success: true, message: 'No changes detected' };
+    }
+
     return await this.addHistoryEntry({
       codeId,
       type: 'updated',
@@ -92,15 +115,16 @@ export class CodeHistoryService {
   }
 
   // Record code deletion
-  async recordCodeDeletion(codeId, codeData, userId) {
+  async recordCodeDeletion(codeId, codeData, userId, deletionReason = 'User deleted') {
     return await this.addHistoryEntry({
       codeId,
       type: 'deleted',
       userId,
       user: userId,
-      description: `Code "${codeData.label}" deleted`,
+      description: `Code "${codeData.label}" deleted: ${deletionReason}`,
       changes: {
-        deletedData: codeData
+        deletedData: codeData,
+        deletionReason
       }
     });
   }
@@ -112,7 +136,7 @@ export class CodeHistoryService {
       type: 'applied',
       userId,
       user: userId,
-      description: `Code "${codeLabel}" applied to text in "${documentTitle}"`,
+      description: `Code "${codeLabel}" applied to text in document "${documentTitle}"`,
       changes: {
         documentId,
         documentTitle
@@ -207,14 +231,24 @@ export class CodeHistoryService {
 
   // Record code merge
   async recordCodeMerge(mergeData, userId) {
-    const { selectedCodes, strategy, resultConfig, targetCodeId, highlightTransferCount = 0 } = mergeData;
-    
-    // Record merge event for the target/result code
-    const mergeDescription = strategy === 'create_new' 
-      ? `New code "${resultConfig.label}" created by merging ${selectedCodes.length} codes: ${selectedCodes.map(c => c.label).join(', ')}`
-      : `Code "${resultConfig.label}" updated by merging ${selectedCodes.length - 1} codes: ${selectedCodes.filter(c => c.id !== targetCodeId).map(c => c.label).join(', ')}`;
+    try {
+      const { selectedCodes, strategy, resultConfig, targetCodeId, highlightTransferCount = 0, reflexiveResponseTransferCount = 0 } = mergeData;
+      
+      // Validate input data
+      if (!selectedCodes || !Array.isArray(selectedCodes) || selectedCodes.length === 0) {
+        throw new Error('Invalid selectedCodes data');
+      }
+      
+      if (!targetCodeId || !resultConfig) {
+        throw new Error('Missing targetCodeId or resultConfig');
+      }
+      
+      // Record merge event for the target/result code
+      const mergeDescription = strategy === 'create_new' 
+        ? `New code "${resultConfig.label}" created by merging ${selectedCodes.length} codes: ${selectedCodes.map(c => c.label).join(', ')}`
+        : `Code "${resultConfig.label}" updated by merging ${selectedCodes.length - 1} codes: ${selectedCodes.filter(c => c.id !== targetCodeId).map(c => c.label).join(', ')}`;
 
-    await this.addHistoryEntry({
+      await this.addHistoryEntry({
       codeId: targetCodeId,
       type: 'merged',
       userId,
@@ -224,14 +258,15 @@ export class CodeHistoryService {
         strategy,
         sourceCodeIds: selectedCodes.map(c => c.id),
         sourceCodes: selectedCodes.map(c => ({
-          id: c.id,
-          label: c.label,
-          description: c.description,
-          color: c.color,
-          textColor: c.textColor
+          id: c.id || 'unknown',
+          label: c.label || 'Unknown Label',
+          description: c.description || '',
+          color: c.color || 'bg-gray-200',
+          textColor: c.textColor || 'text-gray-800'
         })),
         resultConfig,
-        highlightTransferCount: highlightTransferCount
+        highlightTransferCount: highlightTransferCount,
+        reflexiveResponseTransferCount: reflexiveResponseTransferCount
       }
     });
 
@@ -246,7 +281,7 @@ export class CodeHistoryService {
         type: 'deleted',
         userId,
         user: userId,
-        description: `Code "${sourceCode.label}" deleted as part of merge operation`,
+        description: `Code "${sourceCode.label}" deleted: Merged into "${resultConfig.label}"`,
         changes: {
           deletedData: sourceCode,
           mergeOperation: true,
@@ -256,6 +291,10 @@ export class CodeHistoryService {
     }
 
     return { success: true };
+    } catch (error) {
+      console.error('Error recording code merge:', error);
+      return { success: false, error: error.message };
+    }
   }
 
   // Update merge history with highlight transfer count
@@ -285,4 +324,5 @@ export class CodeHistoryService {
       return { success: false, error };
     }
   }
+
 }

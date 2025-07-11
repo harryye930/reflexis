@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { appId } from '../../../../constants/index.js';
 import { ReflexiveService } from '../../../../services/api/firebase/reflexiveService.js';
 import LivingCodebookHeader from './LivingCodebookHeader.js';
@@ -32,6 +32,7 @@ const LivingCodebook = ({
     color: '',
     textColor: ''
   });
+  const prevCodeIdRef = useRef();
 
   // Initialize edit form when code changes
   useEffect(() => {
@@ -144,11 +145,31 @@ const LivingCodebook = ({
     }
   }, [code]);
 
-  const tabs = [
-    { id: 'reflexive', label: 'Reflexive Stream' },
-    { id: 'exemplars', label: 'Exemplars' },
-    { id: 'history', label: 'History'}
-  ];
+  // Different tabs for regular codes vs deleted codes
+  const tabs = code?.isDeleted 
+    ? [{ id: 'history', label: 'History'}] // Only show history for deleted codes
+    : [
+        { id: 'reflexive', label: 'Reflexive Stream' },
+        { id: 'exemplars', label: 'Exemplars' },
+        { id: 'history', label: 'History'}
+      ];
+
+  // Set appropriate default tab when code changes
+  useEffect(() => {
+    const currentCodeId = code?.id;
+    const hasCodeChanged = prevCodeIdRef.current !== currentCodeId;
+    
+    if (hasCodeChanged) {
+      if (code?.isDeleted) {
+        // Deleted codes should show history by default
+        setActiveTab('history');
+      } else if (code && !code.isDeleted) {
+        // For non-deleted codes, default to reflexive
+        setActiveTab('reflexive');
+      }
+      prevCodeIdRef.current = currentCodeId;
+    }
+  }, [code]);
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -186,8 +207,8 @@ const LivingCodebook = ({
         onCancelEdit={handleCancelEdit}
       />
 
-      {/* Intelligence Hub */}
-      <IntelligenceHub code={code} />
+      {/* Intelligence Hub - only for active codes */}
+      {!code?.isDeleted && <IntelligenceHub code={code} />}
 
       {/* Content Tabs */}
       <div className="flex-1 flex flex-col code-transition-enter">

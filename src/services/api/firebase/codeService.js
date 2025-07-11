@@ -1,4 +1,4 @@
-import { collection, onSnapshot, addDoc, deleteDoc, doc, updateDoc, query, setDoc, getDoc, where, getDocs, writeBatch } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, deleteDoc, doc, updateDoc, query, setDoc, getDoc, where, getDocs, writeBatch, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../../lib/firebase.js';
 import { CodeHistoryService } from './codeHistoryService.js';
 
@@ -45,7 +45,7 @@ export class CodeService {
   }
 
   // Update an existing code
-  async updateCode(codeId, updateData, userId) {
+  async updateCode(codeId, updateData, userId, skipHistory = false) {
     try {
       // Get old data for history tracking
       const oldResult = await this.getCode(codeId);
@@ -60,8 +60,10 @@ export class CodeService {
         updatedAt: new Date()
       });
       
-      // Record code update in history
-      await this.historyService.recordCodeUpdate(updateData.id, oldResult.data, updateData, userId);
+      // Record code update in history (unless skipped for merge operations)
+      if (!skipHistory) {
+        await this.historyService.recordCodeUpdate(updateData.id, oldResult.data, updateData, userId);
+      }
       
       return { success: true, updatedBy: userId };
     } catch (error) {
@@ -70,8 +72,8 @@ export class CodeService {
     }
   }
 
-  // Delete a code
-  async deleteCode(docId) {
+  // Delete a code (soft delete with isDeleted flag)
+  async deleteCode(docId, userId = 'system', deletionReason = 'User deleted', skipHistory = false) {
     try {
       // Get code data for history tracking
       const codeDocRef = doc(db, `artifacts/${this.appId}/public/data/codes`, docId);
@@ -80,11 +82,18 @@ export class CodeService {
       if (codeSnap.exists()) {
         const codeData = codeSnap.data();
         
-        // Record code deletion in history
-        await this.historyService.recordCodeDeletion(codeData.id, codeData, 'system');
+        // Record code deletion in history (unless skipped for merge operations)
+        if (!skipHistory) {
+          await this.historyService.recordCodeDeletion(codeData.id, codeData, userId, deletionReason);
+        }
         
-        // Delete the code
-        await deleteDoc(codeDocRef);
+        // Soft delete: mark as deleted instead of hard delete
+        await updateDoc(codeDocRef, {
+          isDeleted: true,
+          deletedAt: serverTimestamp(),
+          deletedBy: userId,
+          deletionReason: deletionReason
+        });
         
         return { success: true };
       } else {
@@ -186,8 +195,8 @@ export class CodeService {
         // Use existing code as target - handle new strategy format
         let targetCode;
         if (strategy.startsWith('merge_into_')) {
-          const targetCodeId = strategy.replace('merge_into_', '');
-          targetCode = selectedCodes.find(c => c.id === targetCodeId);
+          const extractedTargetCodeId = strategy.replace('merge_into_', '');
+          targetCode = selectedCodes.find(c => c.id === extractedTargetCodeId);
         } else {
           // Fallback for old format
           targetCode = strategy === 'merge_into_first' ? selectedCodes[0] : selectedCodes[1];
@@ -200,22 +209,23 @@ export class CodeService {
         targetCodeId = targetCode.id;
         targetDocId = targetCode.docId;
         
-        // Update target code with new config
+        // Update target code with new config (skip history - we'll record merge history instead)
         const updateResult = await this.updateCode(targetDocId, {
           id: targetCodeId,
           label: resultConfig.label,
           description: resultConfig.description,
           color: resultConfig.color,
           textColor: resultConfig.textColor
-        }, userId);
+        }, userId, true); // Skip history recording
         
         if (!updateResult.success) {
           return { success: false, error: 'Failed to update target code' };
         }
       }
       
-      // Step 2: Transfer highlights from source codes to target code
+      // Step 2: Transfer highlights and reflexive responses from source codes to target code
       let totalHighlightsMoved = 0;
+      let totalReflexiveResponsesMoved = 0;
       
       try {
         // Get all highlights for source codes
@@ -250,6 +260,43 @@ export class CodeService {
         return { success: false, error: 'Failed to transfer highlights' };
       }
       
+      // Step 2b: Transfer reflexive responses from source codes to target code
+      try {
+        const reflexiveCollection = collection(db, `artifacts/${this.appId}/public/data/reflexive_responses`);
+        
+        for (const sourceCode of selectedCodes) {
+          if (sourceCode.id === targetCodeId) continue; // Skip target code
+          
+          const reflexiveQuery = query(
+            reflexiveCollection,
+            where('codeId', '==', sourceCode.id)
+          );
+          
+          const snapshot = await getDocs(reflexiveQuery);
+          
+          // Update each reflexive response to use the target code
+          const batch = writeBatch(db);
+          let codeReflexiveCount = 0;
+          
+          snapshot.docs.forEach(doc => {
+            batch.update(doc.ref, { 
+              codeId: targetCodeId,
+              codeLabel: resultConfig.label, // Update the code label reference too
+              updatedAt: new Date()
+            });
+            codeReflexiveCount++;
+          });
+          
+          if (codeReflexiveCount > 0) {
+            await batch.commit();
+            totalReflexiveResponsesMoved += codeReflexiveCount;
+          }
+        }
+      } catch (error) {
+        console.error("Error transferring reflexive responses: ", error);
+        return { success: false, error: 'Failed to transfer reflexive responses' };
+      }
+      
       // Step 3: Delete source codes (except target if merging into existing)
       try {
         for (const sourceCode of selectedCodes) {
@@ -257,7 +304,12 @@ export class CodeService {
             continue; // Skip target code in merge into existing strategies
           }
           
-          const deleteResult = await this.deleteCode(sourceCode.docId || sourceCode.id);
+          const deleteResult = await this.deleteCode(
+            sourceCode.docId || sourceCode.id, 
+            userId, 
+            `Merged into "${resultConfig.label}"`,
+            true // Skip history - we'll record merge history instead
+          );
           if (!deleteResult.success) {
             console.warn(`Failed to delete source code ${sourceCode.id}:`, deleteResult.error);
           }
@@ -274,7 +326,8 @@ export class CodeService {
           strategy,
           resultConfig,
           targetCodeId,
-          highlightTransferCount: totalHighlightsMoved
+          highlightTransferCount: totalHighlightsMoved,
+          reflexiveResponseTransferCount: totalReflexiveResponsesMoved
         }, userId);
         
         // No need to update merge history separately since we're passing the count directly
@@ -286,7 +339,8 @@ export class CodeService {
       return { 
         success: true, 
         targetCodeId,
-        highlightsMoved: totalHighlightsMoved
+        highlightsMoved: totalHighlightsMoved,
+        reflexiveResponsesMoved: totalReflexiveResponsesMoved
       };
       
     } catch (error) {

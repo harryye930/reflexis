@@ -112,7 +112,22 @@ const CodeMergeModal = ({
       });
 
       if (result.success) {
-        onMessage('Codes merged successfully!');
+        const highlightCount = result.highlightsMoved || 0;
+        const reflexiveCount = result.reflexiveResponsesMoved || 0;
+        let message = 'Codes merged successfully!';
+        
+        if (highlightCount > 0 || reflexiveCount > 0) {
+          const details = [];
+          if (highlightCount > 0) {
+            details.push(`${highlightCount} highlight${highlightCount !== 1 ? 's' : ''}`);
+          }
+          if (reflexiveCount > 0) {
+            details.push(`${reflexiveCount} reflexive response${reflexiveCount !== 1 ? 's' : ''}`);
+          }
+          message += ` Transferred: ${details.join(' and ')}.`;
+        }
+        
+        onMessage(message);
         onClose();
       } else {
         onMessage('Failed to merge codes', true);
@@ -237,7 +252,7 @@ const CodeMergeModal = ({
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <h4 className="font-medium text-gray-900">Merge all into</h4>
-                  <span className={`px-3 py-1 text-sm rounded-full ${code.color} ${code.textColor} font-medium`}>
+                  <span className={`code-palette-unified px-3 py-1 text-sm rounded-full ${code.color} ${code.textColor} font-medium`}>
                     {code.label}
                   </span>
                 </div>
@@ -352,16 +367,6 @@ const CodeMergeModal = ({
         </div>
       </div>
 
-      {/* Preview */}
-      <div className="bg-gray-50 rounded-lg p-4 mb-6">
-        <h4 className="text-sm font-medium text-gray-700 mb-2">Preview</h4>
-        <span className={`inline-flex px-4 py-2 rounded-xl font-medium text-sm ${resultConfig.color} ${resultConfig.textColor} border border-gray-100`}>
-          {resultConfig.label || 'Code Label'}
-        </span>
-        <p className="text-sm text-gray-600 mt-2">
-          {resultConfig.description || 'Code description...'}
-        </p>
-      </div>
 
       {/* Summary */}
       <div className="bg-blue-50 rounded-lg p-4">

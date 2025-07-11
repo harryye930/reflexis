@@ -13,6 +13,7 @@ const LivingCodebookHeader = ({
   onSaveEdit,
   onCancelEdit
 }) => {
+  const isDeleted = code?.isDeleted || false;
   return (
     <div className="border-b border-gray-200 bg-white living-codebook-enter">
       {/* Back button */}
@@ -36,14 +37,17 @@ const LivingCodebookHeader = ({
               <div className="flex-1">
                 {/* Code badge with same styling as CodeItem */}
                 <div className="mb-4">
-                  <span className={`code-palette-unified inline-flex px-4 py-2 rounded-xl font-medium text-sm ${code.color} ${code.textColor} border border-gray-100 transition-all duration-200 code-badge-transition code-connection-pulse`}>
+                  <span className={`code-palette-unified inline-flex px-4 py-2 rounded-xl font-medium text-sm ${isDeleted ? 'bg-gray-200 text-gray-600' : `${code.color} ${code.textColor}`} border border-gray-100 transition-all duration-200 code-badge-transition ${isDeleted ? '' : 'code-connection-pulse'}`}>
                     {code.label}
+                    {isDeleted && <span className="ml-2 text-xs">(deleted)</span>}
                   </span>
                 </div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-2">Living Codebook</h2>
+                <h2 className="text-lg font-semibold text-gray-900 mb-2">
+                  {isDeleted ? 'Deleted Code History' : 'Living Codebook'}
+                </h2>
               </div>
               
-              {currentUser && (
+              {currentUser && !isDeleted && (
                 <div className="flex gap-2">
                   <button
                     onClick={onStartEdit}
@@ -63,6 +67,12 @@ const LivingCodebookHeader = ({
                     </svg>
                     Delete
                   </button>
+                </div>
+              )}
+              
+              {isDeleted && (
+                <div className="text-sm text-gray-500 italic">
+                  Edits not available
                 </div>
               )}
             </div>

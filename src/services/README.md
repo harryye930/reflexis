@@ -60,7 +60,7 @@ Handles code management operations.
 - `onCodesSnapshot(callback)` - Listen to codes collection
 - `addCode(codeData, userId)` - Add a new code
 - `updateCode(codeId, updateData, userId)` - Update an existing code
-- `deleteCode(docId)` - Delete a code
+- `deleteCode(docId, userId, deletionReason, skipHistory)` - Delete a code (soft delete)
 - `ensureDefaultCodes(defaultCodes, userId)` - Ensure default codes exist (one-time initialization)
 - `getCode(codeId)` - Get a single code by ID
 

@@ -8,6 +8,7 @@ import CodeMergeModal from './CodeMergeModal.js';
 
 const CodeManagement = ({ 
   allCodes, 
+  deletedCodes = [], // New prop for deleted codes
   currentUser,
   userProfiles,
   onAddCode,
@@ -113,6 +114,7 @@ const CodeManagement = ({
         // Selection Mode: Simple list
         <CodeList
           allCodes={allCodes}
+          deletedCodes={deletedCodes}
           showDescriptions={showDescriptions}
           onEdit={null} // No edit handler since editing is disabled
           onDelete={null} // Remove delete functionality from list view
@@ -126,6 +128,7 @@ const CodeManagement = ({
         <CodeSection
           title="All Codes"
           codes={allCodes}
+          deletedCodes={deletedCodes}
           showDescriptions={true}
           onEdit={null} // No edit handler since editing is disabled
           onDelete={null} // Remove delete functionality from list view

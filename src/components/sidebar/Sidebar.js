@@ -13,6 +13,7 @@ const Sidebar = ({
   onMessage,
   // Code management props
   allCodes,
+  deletedCodes, // New prop for deleted codes
   onAddCode,
   onUpdateCode,
   onDeleteCode,
@@ -108,6 +109,7 @@ const Sidebar = ({
             userProfilesLoaded={userProfilesLoaded}
             onMessage={onMessage}
             allCodes={allCodes}
+            deletedCodes={deletedCodes}
             onAddCode={onAddCode}
             onUpdateCode={onUpdateCode}
             onDeleteCode={onDeleteCode}
