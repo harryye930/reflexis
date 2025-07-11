@@ -192,15 +192,9 @@ export class CodeService {
         targetCodeId = newCodeId;
         targetDocId = addResult.docId;
       } else {
-        // Use existing code as target - handle new strategy format
-        let targetCode;
-        if (strategy.startsWith('merge_into_')) {
-          const extractedTargetCodeId = strategy.replace('merge_into_', '');
-          targetCode = selectedCodes.find(c => c.id === extractedTargetCodeId);
-        } else {
-          // Fallback for old format
-          targetCode = strategy === 'merge_into_first' ? selectedCodes[0] : selectedCodes[1];
-        }
+        // Use existing code as target
+        const extractedTargetCodeId = strategy.replace('merge_into_', '');
+        const targetCode = selectedCodes.find(c => c.id === extractedTargetCodeId);
         
         if (!targetCode) {
           return { success: false, error: 'Target code not found' };
@@ -329,8 +323,6 @@ export class CodeService {
           highlightTransferCount: totalHighlightsMoved,
           reflexiveResponseTransferCount: totalReflexiveResponsesMoved
         }, userId);
-        
-        // No need to update merge history separately since we're passing the count directly
       } catch (error) {
         console.error("Error recording merge history: ", error);
         // Don't fail the operation if history recording fails

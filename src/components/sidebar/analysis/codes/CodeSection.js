@@ -11,7 +11,6 @@ const CodeSection = ({
   currentUser,
   userProfiles,
   emptyMessage = "No codes available",
-  sectionType = "default", // "default", "custom", or "selection"
   onCodeNameClick, // New prop for Living Codebook
   hideEditButtons = false // New prop to hide edit buttons
 }) => {

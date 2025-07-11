@@ -297,32 +297,6 @@ export class CodeHistoryService {
     }
   }
 
-  // Update merge history with highlight transfer count
-  async updateMergeHistoryWithHighlightCount(targetCodeId, highlightTransferCount) {
-    try {
-      const historyCollection = collection(db, `artifacts/${this.appId}/public/data/code_history`);
-      const historyQuery = query(
-        historyCollection,
-        where('codeId', '==', targetCodeId),
-        where('type', '==', 'merged'),
-        orderBy('timestamp', 'desc')
-      );
-      
-      const snapshot = await getDocs(historyQuery);
-      if (!snapshot.empty) {
-        const latestMergeDoc = snapshot.docs[0];
-        const updateData = {
-          'changes.highlightTransferCount': highlightTransferCount
-        };
-        
-        await updateDoc(latestMergeDoc.ref, updateData);
-      }
-      
-      return { success: true };
-    } catch (error) {
-      console.error("Error updating merge history with highlight count: ", error);
-      return { success: false, error };
-    }
-  }
+
 
 }

@@ -73,16 +73,12 @@ const CodeHistory = ({ code, userProfiles }) => {
     }
     
     try {
-      console.log('CodeHistory: Loading history for code:', currentCodeId);
-      
       const unsubscribe = codeService.onCodeHistorySnapshot(currentCodeId, (historyData) => {
-        console.log('CodeHistory: Received history data:', historyData);
         setHistory(historyData);
         setLoading(false);
       });
 
       return () => {
-        console.log('CodeHistory: Cleaning up listener for code:', currentCodeId);
         unsubscribe();
       };
     } catch (error) {

@@ -19,7 +19,7 @@ const CodePaletteHeader = ({
             className="text-xs px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full transition-colors"
             title={showDescriptions ? 'Hide descriptions' : 'Show descriptions'}
           >
-            {showDescriptions ? '👁️‍🗨️ Hide Info' : '👁️ Show Info'}
+            {showDescriptions ? 'Hide Info' : 'Show Info'}
           </button>
           {currentUser && (
             <div className="flex gap-2">
@@ -28,20 +28,18 @@ const CodePaletteHeader = ({
                 className="text-xs px-3 py-1 bg-purple-500 text-white rounded-full hover:bg-purple-600 transition-colors"
                 title="Merge codes"
               >
-                🔀 Merge
+                Merge
               </button>
               <button
                 onClick={onToggleAddForm}
                 className="text-xs px-3 py-1 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
               >
-                {showAddForm ? 'Cancel' : '+ Add'}
+                {showAddForm ? 'Cancel' : 'Add'}
               </button>
             </div>
           )}
         </div>
       </div>
-      
-      {/* Removed disabled state message since codes are now only for Living Codebook viewing */}
     </>
   );
 };
