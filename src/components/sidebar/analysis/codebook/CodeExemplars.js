@@ -1,6 +1,6 @@
 import React from 'react';
 
-const CodeExemplars = ({ code }) => {
+const CodeExemplars = ({ code, onNavigateToHighlight }) => {
   // [PLACEHOLDER] Exemplar data - requires pinning infrastructure from highlights
   const mockExemplars = [
     {
@@ -9,6 +9,8 @@ const CodeExemplars = ({ code }) => {
       author: 'Sarah Johnson',
       date: '2024-10-26',
       documentTitle: 'Rural Education Study',
+      documentId: 'doc1',
+      highlightId: 'highlight1',
       votes: 5,
       isPinned: true
     },
@@ -18,6 +20,8 @@ const CodeExemplars = ({ code }) => {
       author: 'Michael Chen',
       date: '2024-10-25',
       documentTitle: 'COVID-19 Education Impact',
+      documentId: 'doc2',
+      highlightId: 'highlight2',
       votes: 3,
       isPinned: false
     }
@@ -78,8 +82,15 @@ const CodeExemplars = ({ code }) => {
 
               {/* Actions */}
               <div className="flex items-center justify-between">
-                <button className="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                  View in Context [PLACEHOLDER]
+                <button 
+                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                  onClick={() => {
+                    if (onNavigateToHighlight && exemplar.highlightId && exemplar.documentId) {
+                      onNavigateToHighlight(exemplar.documentId, exemplar.highlightId);
+                    }
+                  }}
+                >
+                  View in Context
                 </button>
                 <div className="flex items-center space-x-2">
                   <button className="text-xs text-gray-600 hover:text-gray-800">

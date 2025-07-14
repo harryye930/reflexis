@@ -20,7 +20,8 @@ const AnalysisTab = ({
   livingCodebookState,
   onCodeNameClick,
   onBackToAllCodes,
-  onUpdateCodeInLivingCodebook
+  onUpdateCodeInLivingCodebook,
+  onNavigateToHighlight
 }) => {
   // If Living Codebook is active, show it instead of the normal view
   if (livingCodebookState.isActive && livingCodebookState.selectedCode) {
@@ -37,6 +38,7 @@ const AnalysisTab = ({
           onCheckCodeUsage={onCheckCodeUsage}
           onDeleteHighlightsByCode={onDeleteHighlightsByCode}
           onUpdateCodeInLivingCodebook={onUpdateCodeInLivingCodebook}
+          onNavigateToHighlight={onNavigateToHighlight}
         />
       </div>
     );

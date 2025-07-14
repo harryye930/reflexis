@@ -4,7 +4,6 @@ import { ReflexiveService } from '../../../../services/api/firebase/reflexiveSer
 import LivingCodebookHeader from './LivingCodebookHeader.js';
 import IntelligenceHub from './IntelligenceHub.js';
 import ReflexiveStream from './ReflexiveStream.js';
-import CodeExemplars from './CodeExemplars.js';
 import CodeHistory from './CodeHistory.js';
 
 // Create reflexive service instance outside component to avoid re-instantiation
@@ -20,7 +19,8 @@ const LivingCodebook = ({
   onMessage,
   onCheckCodeUsage,
   onDeleteHighlightsByCode,
-  onUpdateCodeInLivingCodebook
+  onUpdateCodeInLivingCodebook,
+  onNavigateToHighlight
 }) => {
   const [activeTab, setActiveTab] = useState('reflexive');
   const [reflexiveResponses, setReflexiveResponses] = useState([]);
@@ -150,7 +150,6 @@ const LivingCodebook = ({
     ? [{ id: 'history', label: 'History'}] // Only show history for deleted codes
     : [
         { id: 'reflexive', label: 'Reflexive Stream' },
-        { id: 'exemplars', label: 'Exemplars' },
         { id: 'history', label: 'History'}
       ];
 
@@ -180,10 +179,9 @@ const LivingCodebook = ({
             currentUser={currentUser}
             userProfiles={userProfiles}
             loading={loading}
+            onNavigateToHighlight={onNavigateToHighlight}
           />
         );
-      case 'exemplars':
-        return <CodeExemplars code={code} />;
       case 'history':
         return <CodeHistory code={code} userProfiles={userProfiles} />;
       default:

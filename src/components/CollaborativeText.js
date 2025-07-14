@@ -8,6 +8,7 @@ import { useUserActivity } from '../hooks/useUserActivity.js';
 import { useCodes } from '../hooks/useCodes.js';
 import { useHighlightManagement } from '../hooks/useHighlightManagement.js';
 import { useMessageHandler } from '../hooks/useMessageHandler.js';
+import { useNavigateToHighlight } from '../hooks/useNavigateToHighlight.js';
 import { NotificationProvider, useNotificationContext } from '../contexts/NotificationContext.js';
 import { useHoverPreferences } from '../hooks/useHoverPreferences.js';
 import { ReflexiveService } from '../services/api/firebase/reflexiveService.js';
@@ -69,6 +70,15 @@ function CollaborativeTextContent() {
   );
 
   useUserActivity(appId, currentUser);
+
+  // Navigation hook
+  const handleNavigateToHighlight = useNavigateToHighlight(
+    appId, 
+    activeDocumentId, 
+    highlights, 
+    switchActiveDocument, 
+    showMessage
+  );
 
   // Initialize notifications when user is available
   useEffect(() => {
@@ -165,6 +175,7 @@ function CollaborativeTextContent() {
           onToggleAuthorInfo={toggleAuthorInfo}
           disableHighlightManagement={disableHighlightManagement}
           onToggleDisableHighlightManagement={toggleDisableHighlightManagement}
+          onNavigateToHighlight={handleNavigateToHighlight}
         />
       </div>
 

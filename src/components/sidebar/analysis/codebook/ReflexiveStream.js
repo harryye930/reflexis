@@ -10,9 +10,7 @@
  * - User profiles with positionality information
  * - Response content with prompts and timestamps
  * - Summary statistics
- * 
- * Placeholder Features:
- * - "View Source" button - requires document navigation integration
+ * - "View Source" button - navigates to document and highlights the source text
  */
 
 import React, { useState } from 'react';
@@ -21,7 +19,8 @@ const ReflexiveStream = ({
   responses, 
   currentUser, 
   userProfiles, 
-  loading 
+  loading,
+  onNavigateToHighlight
 }) => {
   const [filterUser, setFilterUser] = useState('all');
 
@@ -149,13 +148,32 @@ const ReflexiveStream = ({
                   <span className="font-medium">Source:</span> &ldquo;{response.sourceText?.substring(0, 80) || '[No source text]'}...&rdquo;
                 </div>
                 <button 
-                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                  className={`text-xs font-medium ${
+                    onNavigateToHighlight && response.highlightId && response.documentId
+                      ? 'text-blue-600 hover:text-blue-800 cursor-pointer'
+                      : 'text-gray-400 cursor-not-allowed'
+                  }`}
+                  disabled={!onNavigateToHighlight || !response.highlightId || !response.documentId}
                   onClick={() => {
-                    // [PLACEHOLDER] View Source functionality - requires document navigation integration
-                    console.log('View source for highlight:', response.highlightId, 'in document:', response.documentId);
+                    if (!onNavigateToHighlight) {
+                      console.error('onNavigateToHighlight function not provided');
+                      return;
+                    }
+                    
+                    if (!response.highlightId) {
+                      console.error('No highlightId found in response');
+                      return;
+                    }
+                    
+                    if (!response.documentId) {
+                      console.error('No documentId found in response');
+                      return;
+                    }
+                    
+                    onNavigateToHighlight(response.documentId, response.highlightId);
                   }}
                 >
-                  View Source [PLACEHOLDER]
+                  View Source
                 </button>
               </div>
             </div>

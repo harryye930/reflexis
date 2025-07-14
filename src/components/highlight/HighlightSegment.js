@@ -8,8 +8,8 @@ const HIGHLIGHT_GREY = '#9ca3af'; // gray-400
 // Opacity constants based on total number of codes
 const OPACITY = {
   ONE_CODE: 0.3,
-  TWO_CODES: 0.4,
-  THREE_PLUS_CODES: 0.5
+  TWO_CODES: 0.5,
+  THREE_PLUS_CODES: 0.7
 };
 
 const HighlightSegment = ({
@@ -156,6 +156,7 @@ const HighlightSegment = ({
         border: 'none',
         outline: outlineStyle
       }}
+      data-highlight-ids={segment.highlights.map(h => h.id).join(',')}
       onClick={(e) => onHighlightClick(e, segment.highlights)}
       onMouseEnter={(e) => onHighlightHover(e, segment.highlights)}
       onMouseLeave={onHighlightLeave}

@@ -26,7 +26,9 @@ const Sidebar = ({
   onToggleHoverTooltips,
   onToggleAuthorInfo,
   disableHighlightManagement,
-  onToggleDisableHighlightManagement
+  onToggleDisableHighlightManagement,
+  // Navigation props
+  onNavigateToHighlight
 }) => {
   const [activeTab, setActiveTab] = useState('analysis');
   const [livingCodebookState, setLivingCodebookState] = useState({
@@ -120,6 +122,7 @@ const Sidebar = ({
             onCodeNameClick={handleCodeNameClick}
             onBackToAllCodes={handleBackToAllCodes}
             onUpdateCodeInLivingCodebook={handleUpdateCodeInLivingCodebook}
+            onNavigateToHighlight={onNavigateToHighlight}
           />
         );
       

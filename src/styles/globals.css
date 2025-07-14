@@ -660,6 +660,30 @@ button:active:not(:disabled) {
   to { transform: rotate(360deg); }
 }
 
+/* Highlight pulse animation for View Source navigation */
+@keyframes highlight-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.8);
+    transform: scale(1);
+  }
+  25% {
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.4);
+    transform: scale(1.02);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(59, 130, 246, 0.2);
+    transform: scale(1.04);
+  }
+  75% {
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.4);
+    transform: scale(1.02);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    transform: scale(1);
+  }
+}
+
 /* Code-to-Living-Codebook Transition Animations */
 .code-transition-enter {
   animation: code-transition-in 0.4s ease-out;
