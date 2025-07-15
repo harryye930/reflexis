@@ -78,6 +78,14 @@ export const useCodes = (appId, currentUser) => {
     return await codeService.mergeCodes(mergeData, currentUser.uid);
   };
 
+  const splitCode = async (splitData) => {
+    if (!currentUser) return { success: false, error: 'User not authenticated' };
+    if (!currentUser.uid) return { success: false, error: 'User ID not available' };
+
+    const { type, ...data } = splitData;
+    return await codeService.splitCode(type, data, currentUser.uid);
+  };
+
   return { 
     allCodes, 
     deletedCodes,
@@ -87,6 +95,7 @@ export const useCodes = (appId, currentUser) => {
     updateCode, 
     deleteCode, 
     initializeDefaultCodes,
-    mergeCodes
+    mergeCodes,
+    splitCode
   };
 };

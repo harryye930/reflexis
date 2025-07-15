@@ -6,6 +6,7 @@ const CodePaletteHeader = ({
   showAddForm, 
   onToggleAddForm,
   onToggleMergeModal, // New prop for merge functionality
+  onToggleSplitModal, // New prop for split functionality
   currentUser,
   title = "Available Codes"
 }) => {
@@ -23,6 +24,13 @@ const CodePaletteHeader = ({
           </button>
           {currentUser && (
             <div className="flex gap-2">
+              <button
+                onClick={onToggleSplitModal}
+                className="text-xs px-3 py-1 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors"
+                title="Split code"
+              >
+                Split
+              </button>
               <button
                 onClick={onToggleMergeModal}
                 className="text-xs px-3 py-1 bg-purple-500 text-white rounded-full hover:bg-purple-600 transition-colors"

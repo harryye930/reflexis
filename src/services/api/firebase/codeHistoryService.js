@@ -41,6 +41,15 @@ export class CodeHistoryService {
   // Add a new history entry
   async addHistoryEntry(historyData) {
     try {
+      // Validate required fields
+      if (!historyData.userId) {
+        throw new Error('Missing userId in history data');
+      }
+      
+      if (!historyData.codeId) {
+        throw new Error('Missing codeId in history data');
+      }
+      
       const historyCollection = collection(db, `artifacts/${this.appId}/public/data/code_history`);
       await addDoc(historyCollection, {
         ...historyData,
@@ -59,7 +68,7 @@ export class CodeHistoryService {
     return await this.addHistoryEntry({
       codeId,
       type: 'created',
-      userId,
+      userId: userId,
       user: userId, // Will be resolved to user name in the component
       description: `Code "${codeData.label}" created`,
       changes: {
@@ -107,7 +116,7 @@ export class CodeHistoryService {
     return await this.addHistoryEntry({
       codeId,
       type: 'updated',
-      userId,
+      userId: userId,
       user: userId,
       description,
       changes
@@ -119,7 +128,7 @@ export class CodeHistoryService {
     return await this.addHistoryEntry({
       codeId,
       type: 'deleted',
-      userId,
+      userId: userId,
       user: userId,
       description: `Code "${codeData.label}" deleted: ${deletionReason}`,
       changes: {
@@ -134,7 +143,7 @@ export class CodeHistoryService {
     return await this.addHistoryEntry({
       codeId,
       type: 'applied',
-      userId,
+      userId: userId,
       user: userId,
       description: `Code "${codeLabel}" applied to text in document "${documentTitle}"`,
       changes: {
@@ -251,7 +260,7 @@ export class CodeHistoryService {
       await this.addHistoryEntry({
       codeId: targetCodeId,
       type: 'merged',
-      userId,
+      userId: userId,
       user: userId,
       description: mergeDescription,
       changes: {
@@ -279,7 +288,7 @@ export class CodeHistoryService {
       await this.addHistoryEntry({
         codeId: sourceCode.id,
         type: 'deleted',
-        userId,
+        userId: userId,
         user: userId,
         description: `Code "${sourceCode.label}" deleted: Merged into "${resultConfig.label}"`,
         changes: {
@@ -294,6 +303,121 @@ export class CodeHistoryService {
     } catch (error) {
       console.error('Error recording code merge:', error);
       return { success: false, error: error.message };
+    }
+  }
+
+  // Record code split
+  async recordCodeSplit(splitData, userId) {
+    try {
+      const { sourceCode, reassignments, totalHighlightsReassigned, totalReflexiveResponsesDeleted, codeDeleted } = splitData;
+      
+      // Validate input data
+      if (!sourceCode) {
+        throw new Error('Missing sourceCode data');
+      }
+      
+      if (!userId) {
+        throw new Error('Missing userId for split operation');
+      }
+
+      // Get target codes information
+      const targetCodes = [];
+      const uniqueCodeIds = [...new Set(Object.values(reassignments).map(a => a.newCodeId))];
+      
+      for (const codeId of uniqueCodeIds) {
+        try {
+          const codeResult = await this.getCodeById(codeId);
+          if (codeResult.success) {
+            targetCodes.push({
+              id: codeId,
+              label: codeResult.data.label,
+              description: codeResult.data.description,
+              color: codeResult.data.color,
+              textColor: codeResult.data.textColor
+            });
+          }
+        } catch (error) {
+          console.warn(`Could not fetch target code ${codeId}:`, error);
+        }
+      }
+
+      // Record split event for the source code
+      const splitDescription = `Code "${sourceCode.label}" split into ${targetCodes.length} codes: ${targetCodes.map(c => c.label).join(', ')}`;
+
+      await this.addHistoryEntry({
+        codeId: sourceCode.id,
+        type: 'split',
+        userId: userId,
+        user: userId,
+        description: splitDescription,
+        changes: {
+          sourceCode: {
+            id: sourceCode.id,
+            label: sourceCode.label,
+            description: sourceCode.description,
+            color: sourceCode.color,
+            textColor: sourceCode.textColor
+          },
+          targetCodes,
+          reassignmentCount: Object.keys(reassignments).length,
+          highlightTransferCount: totalHighlightsReassigned,
+          reflexiveResponsesDeleted: totalReflexiveResponsesDeleted,
+          codeDeleted
+        }
+      });
+
+      // Record application events for target codes
+      for (const targetCode of targetCodes) {
+        const targetHighlightCount = Object.values(reassignments).filter(a => a.newCodeId === targetCode.id).length;
+        
+        if (targetHighlightCount > 0) {
+          await this.addHistoryEntry({
+            codeId: targetCode.id,
+            type: 'split',
+            userId: userId,
+            user: userId,
+            description: `Code "${targetCode.label}" received ${targetHighlightCount} highlight${targetHighlightCount !== 1 ? 's' : ''} from split of "${sourceCode.label}"`,
+            changes: {
+              sourceCode: {
+                id: sourceCode.id,
+                label: sourceCode.label,
+                description: sourceCode.description,
+                color: sourceCode.color,
+                textColor: sourceCode.textColor
+              },
+              highlightsReceived: targetHighlightCount,
+              splitOperation: true
+            }
+          });
+        }
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error recording code split:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Helper method to get code by ID (needed for split recording)
+  async getCodeById(codeId) {
+    try {
+      const codesCollection = collection(db, `artifacts/${this.appId}/public/data/codes`);
+      const q = query(codesCollection, where('id', '==', codeId));
+      const snapshot = await getDocs(q);
+      
+      if (snapshot.empty) {
+        return { success: false, error: 'Code not found' };
+      }
+      
+      const doc = snapshot.docs[0];
+      return { 
+        success: true, 
+        data: { id: doc.id, docId: doc.id, ...doc.data() } 
+      };
+    } catch (error) {
+      console.error("Error getting code by ID: ", error);
+      return { success: false, error };
     }
   }
 }

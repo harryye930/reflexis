@@ -15,6 +15,7 @@ const AnalysisTab = ({
   onUpdateCode,
   onDeleteCode,
   onMergeCodes, // New prop for code merging
+  onSplitCode, // New prop for code splitting
   onCheckCodeUsage,
   onDeleteHighlightsByCode,
   livingCodebookState,
@@ -61,6 +62,7 @@ const AnalysisTab = ({
         onUpdateCode={onUpdateCode}
         onDeleteCode={onDeleteCode}
         onMergeCodes={onMergeCodes}
+        onSplitCode={onSplitCode}
         onMessage={onMessage}
         onCheckCodeUsage={onCheckCodeUsage}
         onDeleteHighlightsByCode={onDeleteHighlightsByCode}

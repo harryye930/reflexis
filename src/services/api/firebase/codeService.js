@@ -343,4 +343,165 @@ export class CodeService {
       return { success: false, error: error.message };
     }
   }
+
+  // Split a code by reassigning its highlights to other codes
+  async splitCode(type, splitData, userId) {
+    // Validate userId first
+    if (!userId) {
+      return { success: false, error: 'Missing userId for split operation' };
+    }
+    
+    const { codeId, reassignments, sourceCode, forceDeleteSourceCode } = splitData;
+
+    try {
+      if (type === 'getHighlights') {
+        // Get all highlights for this code across all documents
+        const highlightsCollection = collection(db, `artifacts/${this.appId}/public/data/highlights`);
+        const highlightsQuery = query(highlightsCollection, where('code', '==', codeId));
+        
+        const snapshot = await getDocs(highlightsQuery);
+        const highlights = snapshot.docs.map(doc => ({ 
+          id: doc.id, 
+          docId: doc.id, // Add docId for batch operations later
+          ...doc.data() 
+        }));
+        
+        return { success: true, highlights };
+      }
+
+      if (type === 'getReflexiveCount') {
+        // Get count of reflexive responses for a specific highlight and code
+        const { highlightId, codeId } = splitData;
+        const reflexiveCollection = collection(db, `artifacts/${this.appId}/public/data/reflexive_responses`);
+        const reflexiveQuery = query(
+          reflexiveCollection,
+          where('highlightId', '==', highlightId),
+          where('codeId', '==', codeId)
+        );
+        
+        const snapshot = await getDocs(reflexiveQuery);
+        return { success: true, count: snapshot.size };
+      }
+
+      if (type === 'checkReflexiveResponses') {
+        // Check which highlights have reflexive responses that could be transferred
+        const highlightsWithReflexive = [];
+        const reflexiveCollection = collection(db, `artifacts/${this.appId}/public/data/reflexive_responses`);
+        
+        for (const [highlightId, assignment] of Object.entries(reassignments)) {
+          const reflexiveQuery = query(
+            reflexiveCollection,
+            where('highlightId', '==', highlightId),
+            where('codeId', '==', sourceCode.id)
+          );
+          
+          const snapshot = await getDocs(reflexiveQuery);
+          if (snapshot.size > 0) {
+            highlightsWithReflexive.push({
+              highlightId,
+              newCodeId: assignment.newCodeId,
+              reflexiveCount: snapshot.size
+            });
+          }
+        }
+        
+        return { success: true, highlightsWithReflexive };
+      }
+
+      if (type === 'executeSplit') {
+        let totalHighlightsReassigned = 0;
+        let totalReflexiveResponsesTransferred = 0;
+
+        // Step 1: Reassign highlights to new codes
+        if (reassignments && Object.keys(reassignments).length > 0) {
+          const highlightsCollection = collection(db, `artifacts/${this.appId}/public/data/highlights`);
+          
+          for (const [highlightId, assignment] of Object.entries(reassignments)) {
+            const { newCodeId, transferReflexive } = assignment;
+            
+            // Update highlight to use new code
+            const highlightDocRef = doc(highlightsCollection, highlightId);
+            await updateDoc(highlightDocRef, {
+              code: newCodeId,
+              updatedAt: new Date()
+            });
+            totalHighlightsReassigned++;
+
+            // Transfer reflexive responses if user chose to transfer for this specific highlight
+            if (transferReflexive) {
+              try {
+                const reflexiveCollection = collection(db, `artifacts/${this.appId}/public/data/reflexive_responses`);
+                const reflexiveQuery = query(
+                  reflexiveCollection,
+                  where('highlightId', '==', highlightId),
+                  where('codeId', '==', sourceCode.id)
+                );
+                
+                const reflexiveSnapshot = await getDocs(reflexiveQuery);
+                const updateBatch = writeBatch(db);
+                
+                reflexiveSnapshot.docs.forEach(doc => {
+                  updateBatch.update(doc.ref, {
+                    codeId: newCodeId,
+                    updatedAt: new Date()
+                  });
+                  totalReflexiveResponsesTransferred++;
+                });
+                
+                if (reflexiveSnapshot.docs.length > 0) {
+                  await updateBatch.commit();
+                }
+              } catch (reflexiveError) {
+                console.warn(`Failed to transfer reflexive responses for highlight ${highlightId}:`, reflexiveError);
+              }
+            }
+          }
+        }
+
+        // Step 2: Check if source code should be deleted
+        let codeDeleted = false;
+        const remainingHighlightsQuery = query(
+          collection(db, `artifacts/${this.appId}/public/data/highlights`),
+          where('code', '==', sourceCode.id)
+        );
+        const remainingSnapshot = await getDocs(remainingHighlightsQuery);
+        
+        // Delete the source code only if user explicitly chose to delete it AND no highlights remain
+        if (forceDeleteSourceCode === true && remainingSnapshot.empty) {
+          const deleteResult = await this.deleteCode(
+            sourceCode.docId || sourceCode.id, 
+            userId, 
+            'Split operation - user chose to delete source code'
+          );
+          codeDeleted = deleteResult.success;
+        }
+
+        // Record split history
+        try {
+          await this.historyService.recordCodeSplit({
+            sourceCode,
+            reassignments,
+            totalHighlightsReassigned,
+            totalReflexiveResponsesDeleted: 0, // In splits, reflexive responses are transferred, not deleted
+            codeDeleted
+          }, userId);
+        } catch (error) {
+          console.error("Error recording split history: ", error);
+          // Don't fail the operation if history recording fails
+        }
+
+        return {
+          success: true,
+          highlightsReassigned: totalHighlightsReassigned,
+          reflexiveResponsesTransferred: totalReflexiveResponsesTransferred,
+          codeDeleted
+        };
+      }
+
+      return { success: false, error: 'Invalid split operation type' };
+    } catch (error) {
+      console.error("Error splitting code: ", error);
+      return { success: false, error: error.message };
+    }
+  }
 }
