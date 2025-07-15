@@ -119,6 +119,8 @@ const CodeHistory = ({ code, userProfiles }) => {
         return '🏆';
       case 'merged':
         return '🔀';
+      case 'split':
+        return '✂️';
       default:
         return '📝';
     }
@@ -137,6 +139,8 @@ const CodeHistory = ({ code, userProfiles }) => {
       case 'usage-milestone':
         return 'bg-yellow-100 text-yellow-800';
       case 'merged':
+        return 'bg-orange-100 text-orange-800';
+      case 'split':
         return 'bg-orange-100 text-orange-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -216,10 +220,25 @@ const CodeHistory = ({ code, userProfiles }) => {
         codeColor = event.changes.resultConfig.color;
         textColor = event.changes.resultConfig.textColor;
       }
-      // Then check source codes
+      // Then check source codes from merge operations
       else if (event?.changes?.sourceCodes && Array.isArray(event.changes.sourceCodes)) {
         const matchingCode = event.changes.sourceCodes.find(sourceCode => 
           sourceCode && sourceCode.label === codeName
+        );
+        if (matchingCode) {
+          codeColor = matchingCode.color;
+          textColor = matchingCode.textColor;
+        }
+      }
+      // Check source code from split operations (for receiver codes)
+      else if (event?.changes?.sourceCode && event.changes.sourceCode.label === codeName) {
+        codeColor = event.changes.sourceCode.color;
+        textColor = event.changes.sourceCode.textColor;
+      }
+      // Check target codes from split operations (for giver codes) 
+      else if (event?.changes?.targetCodes && Array.isArray(event.changes.targetCodes)) {
+        const matchingCode = event.changes.targetCodes.find(targetCode => 
+          targetCode && targetCode.label === codeName
         );
         if (matchingCode) {
           codeColor = matchingCode.color;
@@ -446,6 +465,68 @@ const CodeHistory = ({ code, userProfiles }) => {
                   {(event.changes.reflexiveResponseTransferCount || 0) === 0 && ' (no reflexive responses to transfer)'}
                 </p>
               </div>
+            </div>
+          </div>
+        );
+      
+      case 'split':
+        return (
+          <div className="mt-3 p-3 bg-gray-50 rounded-md">
+            <div className="space-y-2">
+              {/* Show source code for receiver codes (split operation) */}
+              {event.changes.sourceCode && event.changes.splitOperation && (
+                <div>
+                  <span className="text-xs font-medium text-orange-600">Received From:</span>
+                  <div className="mt-1">
+                    <CodeChip 
+                      code={event.changes.sourceCode}  // Pass source code directly
+                      size="md"
+                      variant="unified"
+                    />
+                  </div>
+                </div>
+              )}
+              {/* Show target codes for giver codes (split operation) */}
+              {event.changes.targetCodes && Array.isArray(event.changes.targetCodes) && (
+                <div>
+                  <span className="text-xs font-medium text-orange-600">Split Into:</span>
+                  <div className="mt-1 space-y-1">
+                    {event.changes.targetCodes.map((target, index) => {
+                      // Safety checks for target code data
+                      if (!target) return null;
+                      return (
+                        <div key={target.id || index} className="flex items-center gap-2">
+                          <CodeChip 
+                            code={target}  // Pass target code directly
+                            size="md"
+                            variant="unified"
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              {/* Show highlight information */}
+              <div>
+                <span className="text-xs font-medium text-orange-600">
+                  {event.changes.splitOperation ? 'Highlights Received:' : 'Highlights Reassigned:'}
+                </span>
+                <p className="text-xs text-gray-700 mt-1">
+                  {event.changes.highlightsReceived || event.changes.highlightTransferCount || 0} highlight{((event.changes.highlightsReceived || event.changes.highlightTransferCount || 0) !== 1) ? 's' : ''} 
+                  {event.changes.splitOperation ? ' received' : ' reassigned'}
+                  {((event.changes.highlightsReceived || event.changes.highlightTransferCount || 0) === 0) && (event.changes.splitOperation ? ' (no highlights received)' : ' (no highlights to reassign)')}
+                </p>
+              </div>
+              {/* Show if original code was deleted */}
+              {event.changes.codeDeleted && (
+                <div>
+                  <span className="text-xs font-medium text-red-600">Original Code:</span>
+                  <p className="text-xs text-gray-700 mt-1">
+                    Original code was deleted after split
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         );

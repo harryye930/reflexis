@@ -4,6 +4,7 @@ import CodeForm from './CodeForm.js';
 import CodeList from './CodeList.js';
 import CodePaletteFooter from './CodePaletteFooter.js';
 import CodeMergeModal from './CodeMergeModal.js';
+import CodeSplitModal from './CodeSplitModal.js';
 
 const CodeManagement = ({ 
   allCodes, 
@@ -12,6 +13,7 @@ const CodeManagement = ({
   userProfiles,
   onAddCode,
   onMergeCodes, // New prop for merging codes
+  onSplitCode, // New prop for splitting codes
   onMessage,
   title = "Available Codes",
   onCodeNameClick // New prop for Living Codebook
@@ -19,6 +21,7 @@ const CodeManagement = ({
   const [showDescriptions, setShowDescriptions] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showMergeModal, setShowMergeModal] = useState(false);
+  const [showSplitModal, setShowSplitModal] = useState(false);
 
   const resetForm = () => {
     setShowAddForm(false);
@@ -36,12 +39,24 @@ const CodeManagement = ({
     setShowMergeModal(!showMergeModal);
   };
 
+  const handleToggleSplitModal = () => {
+    setShowSplitModal(!showSplitModal);
+  };
+
   const handleMergeCodes = async (mergeData) => {
     if (!onMergeCodes) {
       onMessage('Merge functionality not available', true);
       return { success: false };
     }
     return await onMergeCodes(mergeData);
+  };
+
+  const handleSplitCode = async (splitData) => {
+    if (!onSplitCode) {
+      onMessage('Split functionality not available', true);
+      return { success: false };
+    }
+    return await onSplitCode(splitData);
   };
 
   return (
@@ -52,6 +67,7 @@ const CodeManagement = ({
         showAddForm={showAddForm}
         onToggleAddForm={handleToggleAddForm}
         onToggleMergeModal={handleToggleMergeModal}
+        onToggleSplitModal={handleToggleSplitModal}
         currentUser={currentUser}
         title={title}
       />
@@ -91,6 +107,18 @@ const CodeManagement = ({
           userProfiles={userProfiles}
           onMergeCodes={handleMergeCodes}
           onClose={() => setShowMergeModal(false)}
+          onMessage={onMessage}
+        />
+      )}
+
+      {/* Code Split Modal */}
+      {showSplitModal && (
+        <CodeSplitModal
+          allCodes={allCodes}
+          currentUser={currentUser}
+          userProfiles={userProfiles}
+          onSplitCode={handleSplitCode}
+          onClose={() => setShowSplitModal(false)}
           onMessage={onMessage}
         />
       )}

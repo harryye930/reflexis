@@ -18,6 +18,7 @@ const Sidebar = ({
   onUpdateCode,
   onDeleteCode,
   onMergeCodes, // New prop for code merging
+  onSplitCode, // New prop for code splitting
   onCheckCodeUsage,
   onDeleteHighlightsByCode,
   // Hover preferences props
@@ -116,6 +117,7 @@ const Sidebar = ({
             onUpdateCode={onUpdateCode}
             onDeleteCode={onDeleteCode}
             onMergeCodes={onMergeCodes} // Pass down the onMergeCodes prop
+            onSplitCode={onSplitCode} // Pass down the onSplitCode prop
             onCheckCodeUsage={onCheckCodeUsage}
             onDeleteHighlightsByCode={onDeleteHighlightsByCode}
             livingCodebookState={livingCodebookState}
