@@ -3,8 +3,8 @@ import CodePaletteHeader from './CodePaletteHeader.js';
 import CodeForm from './CodeForm.js';
 import CodeList from './CodeList.js';
 import CodePaletteFooter from './CodePaletteFooter.js';
-import CodeMergeModal from './CodeMergeModal.js';
-import CodeSplitModal from './CodeSplitModal.js';
+import CodeMergeModal from './merge/CodeMergeModal.js';
+import CodeSplitModal from './split/CodeSplitModal.js';
 
 const CodeManagement = ({ 
   allCodes, 
@@ -108,6 +108,7 @@ const CodeManagement = ({
           onMergeCodes={handleMergeCodes}
           onClose={() => setShowMergeModal(false)}
           onMessage={onMessage}
+          isOpen={showMergeModal}
         />
       )}
 
@@ -120,6 +121,7 @@ const CodeManagement = ({
           onSplitCode={handleSplitCode}
           onClose={() => setShowSplitModal(false)}
           onMessage={onMessage}
+          isOpen={showSplitModal}
         />
       )}
     </div>

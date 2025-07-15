@@ -151,6 +151,47 @@ const CodeHistory = ({ code, userProfiles }) => {
   const parseAndStyleCodeNames = (text, event = null) => {
     if (!text) return text;
     
+    // For split events, handle the special pattern "split into X codes: code1, code2, ..."
+    if (event?.type === 'split') {
+      const splitPattern = /split into \d+ codes: (.+)$/;
+      const splitMatch = text.match(splitPattern);
+      
+      if (splitMatch) {
+        const codeNames = splitMatch[1].split(', ').map(name => name.trim());
+        const beforeSplit = text.substring(0, splitMatch.index + "split into ".length + splitMatch[0].match(/\d+/)[0].length + " codes: ".length);
+        
+        const codeChips = codeNames.map((codeName, index) => {
+          // Find the matching target code for colors
+          let targetCode = null;
+          if (event?.changes?.targetCodes && Array.isArray(event.changes.targetCodes)) {
+            targetCode = event.changes.targetCodes.find(target => target && target.label === codeName);
+          }
+          
+          return (
+            <React.Fragment key={`split-code-${index}`}>
+              <CodeChip 
+                code={targetCode || { 
+                  label: codeName, 
+                  color: 'bg-gray-200',
+                  textColor: 'text-gray-800'
+                }}
+                size="xs"
+                className="mx-1"
+              />
+              {index < codeNames.length - 1 && <span>, </span>}
+            </React.Fragment>
+          );
+        });
+        
+        return (
+          <>
+            {beforeSplit}
+            {codeChips}
+          </>
+        );
+      }
+    }
+    
     // For "applied" events, we only want to style the code name, not document titles
     // The format is: Code "CodeName" applied to text in "DocumentTitle"
     if (event?.type === 'applied') {
