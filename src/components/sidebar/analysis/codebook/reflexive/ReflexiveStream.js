@@ -19,7 +19,8 @@ import {
   getShortPromptText, 
   getPromptByType,
   PROMPT_SEQUENCE 
-} from '../../../../constants/reflexivePrompts.js';
+} from '../../../../../constants/reflexivePrompts.js';
+import ReflexiveSummary from './ReflexiveSummary.js';
 
 const ReflexiveStream = ({ 
   responses, 
@@ -97,43 +98,55 @@ const ReflexiveStream = ({
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
+      {/* Reflexive Summary - AI-powered meta-analysis */}
+      <ReflexiveSummary 
+        responses={responses}
+        currentUser={currentUser}
+        userProfiles={userProfiles}
+        filterUser={filterUser}
+        loading={loading}
+      />
+
       {/* Filter Controls */}
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Filter by User
-        </label>
-        <select
-          value={filterUser}
-          onChange={(e) => setFilterUser(e.target.value)}
-          className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-        >
-          <option value="all">All users</option>
-          {uniqueUsers.map(userId => (
-            <option key={userId} value={userId}>
-              {getUserName(userId)}
-            </option>
-          ))}
-        </select>
+        <div className="filter-control bg-gradient-to-r from-slate-50 to-gray-50 border border-gray-200/60 rounded-lg p-4">
+          <label className="block text-sm font-medium text-slate-700 mb-3 flex items-center gap-2">
+            <span>👥</span>
+            Filter by User
+          </label>
+          <select
+            value={filterUser}
+            onChange={(e) => setFilterUser(e.target.value)}
+            className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm bg-white transition-all duration-200 hover:border-gray-400"
+          >
+            <option value="all">All users ({uniqueUsers.length} contributors)</option>
+            {uniqueUsers.map(userId => (
+              <option key={userId} value={userId}>
+                {getUserName(userId)}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Reflexive Stream - Grouped by User and Highlight */}
       <div className="space-y-4">
         {sortedGroups.length === 0 ? (
-          <div className="text-center py-8">
-            <div className="text-gray-400 mb-2">
-              <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
+          <div className="text-center py-12 bg-gradient-to-br from-slate-50 to-gray-50 border border-gray-200/60 rounded-lg">
+            <div className="mb-4">
+              <span className="text-4xl opacity-40">💭</span>
             </div>
-            <p className="text-gray-500 text-sm">No reflexive responses yet</p>
-            <p className="text-gray-400 text-xs mt-1">
+            <h3 className="text-gray-600 text-base font-medium mb-2">No reflexive responses yet</h3>
+            <p className="text-gray-500 text-sm leading-relaxed max-w-sm mx-auto">
               Responses will appear here when users reflect on their coding decisions
             </p>
             {loading && (
-              <p className="text-blue-500 text-xs mt-2">
-                Note: If this is the first time accessing the Living Codebook, you may need to create a Firestore index. Check the console for instructions.
-              </p>
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg mx-4">
+                <p className="text-blue-700 text-xs">
+                  <strong>Note:</strong> If this is the first time accessing the Living Codebook, you may need to create a Firestore index. Check the console for instructions.
+                </p>
+              </div>
             )}
           </div>
         ) : (
@@ -271,26 +284,29 @@ const ReflexiveStream = ({
 
       {/* Summary Stats */}
       {sortedGroups.length > 0 && (
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <h4 className="text-sm font-medium text-gray-700 mb-2">Stream Summary</h4>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-gray-500">Reflection Sessions:</span>
-              <span className="ml-1 font-medium">{groupedResponses.length}</span>
+        <div className="mt-6 p-4 bg-gradient-to-r from-slate-50 to-gray-50 border border-gray-200/60 rounded-lg shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg">📊</span>
+            <h4 className="text-sm font-semibold text-slate-700">Stream Summary</h4>
+          </div>
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="bg-white/60 rounded-md p-2 border border-gray-100">
+              <div className="text-gray-500 text-xs">Reflection Sessions</div>
+              <div className="font-semibold text-slate-700">{groupedResponses.length}</div>
             </div>
-            <div>
-              <span className="text-gray-500">Contributors:</span>
-              <span className="ml-1 font-medium">{uniqueUsers.length}</span>
+            <div className="bg-white/60 rounded-md p-2 border border-gray-100">
+              <div className="text-gray-500 text-xs">Contributors</div>
+              <div className="font-semibold text-slate-700">{uniqueUsers.length}</div>
             </div>
-            <div>
-              <span className="text-gray-500">Total Responses:</span>
-              <span className="ml-1 font-medium">{responses.length}</span>
+            <div className="bg-white/60 rounded-md p-2 border border-gray-100">
+              <div className="text-gray-500 text-xs">Total Responses</div>
+              <div className="font-semibold text-slate-700">{responses.length}</div>
             </div>
-            <div>
-              <span className="text-gray-500">Complete Reflections:</span>
-              <span className="ml-1 font-medium">
+            <div className="bg-white/60 rounded-md p-2 border border-gray-100">
+              <div className="text-gray-500 text-xs">Complete Reflections</div>
+              <div className="font-semibold text-slate-700">
                 {groupedResponses.filter(g => Object.keys(g.responses).length === PROMPT_SEQUENCE.length).length}
-              </span>
+              </div>
             </div>
           </div>
         </div>

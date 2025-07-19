@@ -3,7 +3,7 @@ import { appId } from '../../../../constants/index.js';
 import { ReflexiveService } from '../../../../services/api/firebase/reflexiveService.js';
 import LivingCodebookHeader from './LivingCodebookHeader.js';
 import IntelligenceHub from './IntelligenceHub.js';
-import ReflexiveStream from './ReflexiveStream.js';
+import ReflexiveStream from './reflexive/ReflexiveStream.js';
 import CodeHistory from './CodeHistory.js';
 
 // Create reflexive service instance outside component to avoid re-instantiation
