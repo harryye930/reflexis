@@ -366,7 +366,12 @@ export class CodeService {
           ...doc.data() 
         }));
         
-        return { success: true, highlights };
+        // Enhance highlights with context information
+        const { HighlightService } = await import('./highlightService.js');
+        const highlightService = new HighlightService(this.appId);
+        const highlightsWithContext = await highlightService.addContextToHighlights(highlights);
+        
+        return { success: true, highlights: highlightsWithContext };
       }
 
       if (type === 'getReflexiveCount') {

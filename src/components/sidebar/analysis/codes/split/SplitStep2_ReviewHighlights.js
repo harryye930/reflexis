@@ -56,11 +56,25 @@ const SplitStep2_ReviewHighlights = ({
 
       {/* Current highlight context */}
       <div className="bg-gray-50 rounded-lg p-4 mb-6">
-        <h4 className="text-sm font-medium text-gray-700 mb-2">Highlighted Text</h4>
+        <h4 className="text-sm font-medium text-gray-700 mb-2">Highlighted Text with Context</h4>
         <div className="bg-white rounded p-3 border">
-          <p className="text-sm text-gray-800 leading-relaxed">
-            &ldquo;{currentHighlight.text}&rdquo;
-          </p>
+          {currentHighlight.hasContext ? (
+            <p className="text-sm leading-relaxed">
+              <span className="text-gray-500">
+                {currentHighlight.contextBefore}
+              </span>
+              <span className="text-gray-800 font-medium bg-yellow-100 px-1 rounded italic">
+                {currentHighlight.text}
+              </span>
+              <span className="text-gray-500">
+                {currentHighlight.contextAfter}
+              </span>
+            </p>
+          ) : (
+            <p className="text-sm text-gray-800 leading-relaxed">
+              &ldquo;{currentHighlight.text}&rdquo;
+            </p>
+          )}
         </div>
         <div className="mt-2 text-xs text-gray-500">
           <span>Author: {getUserName(currentHighlight.userId)}</span>

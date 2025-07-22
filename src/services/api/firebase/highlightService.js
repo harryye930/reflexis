@@ -1,4 +1,4 @@
-import { collection, onSnapshot, addDoc, deleteDoc, doc, query, where, setDoc } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, deleteDoc, doc, query, where, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../../../lib/firebase.js';
 import { CodeService } from './codeService.js';
 
@@ -103,5 +103,70 @@ export class HighlightService {
       console.error("Error updating highlight: ", error);
       return { success: false, error };
     }
+  }
+
+  // Helper method to add context information to highlights
+  async addContextToHighlights(highlights) {
+    // Group highlights by document for efficient document fetching
+    const documentMap = new Map();
+    const documentsToFetch = new Set();
+    
+    highlights.forEach(highlight => {
+      documentsToFetch.add(highlight.documentId);
+    });
+
+    // Fetch all unique documents
+    const documentsCollection = collection(db, `artifacts/${this.appId}/public/data/documents`);
+    const fetchPromises = Array.from(documentsToFetch).map(async (documentId) => {
+      try {
+        const docRef = doc(documentsCollection, documentId);
+        const docSnapshot = await getDoc(docRef);
+        if (docSnapshot.exists()) {
+          documentMap.set(documentId, docSnapshot.data());
+        }
+      } catch (error) {
+        console.warn(`Failed to fetch document ${documentId}:`, error);
+      }
+    });
+
+    await Promise.all(fetchPromises);
+
+    // Add context to each highlight
+    const contextLength = 100; // Number of characters before/after highlight
+    
+    return highlights.map(highlight => {
+      const document = documentMap.get(highlight.documentId);
+      if (!document || !document.content) {
+        return {
+          ...highlight,
+          contextBefore: '',
+          contextAfter: '',
+          hasContext: false
+        };
+      }
+
+      const fullText = document.content;
+      const startIndex = highlight.startIndex || 0;
+      const endIndex = highlight.endIndex || startIndex + highlight.text.length;
+
+      // Calculate context boundaries
+      const contextStartIndex = Math.max(0, startIndex - contextLength);
+      const contextEndIndex = Math.min(fullText.length, endIndex + contextLength);
+
+      // Extract context before and after
+      const contextBefore = fullText.substring(contextStartIndex, startIndex);
+      const contextAfter = fullText.substring(endIndex, contextEndIndex);
+
+      // Add ellipsis if context was truncated
+      const needsEllipsisBefore = contextStartIndex > 0;
+      const needsEllipsisAfter = contextEndIndex < fullText.length;
+
+      return {
+        ...highlight,
+        contextBefore: (needsEllipsisBefore ? '...' : '') + contextBefore,
+        contextAfter: contextAfter + (needsEllipsisAfter ? '...' : ''),
+        hasContext: true
+      };
+    });
   }
 }
