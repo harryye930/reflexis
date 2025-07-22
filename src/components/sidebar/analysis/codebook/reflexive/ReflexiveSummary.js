@@ -107,7 +107,6 @@ const ReflexiveSummary = ({
         {/* Title Row */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3 min-w-0 flex-1">
-            <span className="text-2xl flex-shrink-0">🧠</span>
             <div className="min-w-0 flex-1">
               <h3 className="text-lg font-medium text-slate-800">
                 Reflexive Analysis
@@ -175,7 +174,6 @@ const ReflexiveSummary = ({
                   </>
                 ) : (
                   <>
-                    <span>🧠</span>
                     <span className="hidden sm:inline">Generate Analysis</span>
                     <span className="sm:hidden">Generate</span>
                   </>
@@ -251,9 +249,6 @@ const ReflexiveSummary = ({
 
           {!summary && !summaryLoading && !error && (
             <div className="text-center py-8 text-slate-500">
-              <div className="mb-3">
-                <span className="text-3xl opacity-60">🧠</span>
-              </div>
               <p className="text-sm leading-relaxed">
                 Click <strong>&ldquo;Generate Analysis&rdquo;</strong> above to create AI-powered insights from the reflexive responses.
               </p>
