@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getAbsoluteIndex, findTextWithContext } from '../lib/utils/selectionUtils.js';
+import { useSemanticDrift } from './useSemanticDrift.js';
+import { FirebaseServiceFactory } from '../services/api/firebase/index.js';
 
 export const useHighlightManagement = (
   currentUser, 
@@ -7,12 +9,31 @@ export const useHighlightManagement = (
   activeDocumentId, 
   highlights, 
   addHighlight, 
-  deleteHighlight
+  deleteHighlight,
+  appId = 'default' // Add appId parameter for semantic drift service
 ) => {
   const [currentSelection, setCurrentSelection] = useState(null);
   const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
   const [showModal, setShowModal] = useState(false);
   const [selectedText, setSelectedText] = useState('');
+
+  // Create service factory for semantic drift
+  const [services] = useState(() => new FirebaseServiceFactory(appId));
+
+  // Initialize semantic drift detection
+  const {
+    isDetecting,
+    driftData,
+    showDriftModal,
+    pendingHighlight,
+    detectDrift,
+    handleRefineDefinition,
+    handleSplitCode,
+    handleApplyAnyway,
+    closeDriftModal,
+    getPendingHighlight,
+    clearDriftState
+  } = useSemanticDrift(services, currentUser);
 
   const handleTextSelection = (selection, position, shouldShow) => {
     setCurrentSelection(selection);
@@ -109,14 +130,28 @@ export const useHighlightManagement = (
       return { success: false, error: 'Text selection mapping failed' };
     }
 
-    const result = await addHighlight({
-      code,
+    // Prepare highlight data
+    const highlightData = {
+      code: code,
+      codeId: code,
       startIndex: sourceStartIndex,
       endIndex: sourceEndIndex,
       text: sourceText.substring(sourceStartIndex, sourceEndIndex),
       documentId: activeDocumentId,
       documentTitle: activeDocument.title
-    });
+    };
+
+    // Perform semantic drift detection before applying highlight
+    const driftResult = await detectDrift(highlightData);
+    
+    if (driftResult.success && driftResult.driftDetected) {
+      // Drift detected - modal will be shown by the hook
+      // Don't apply highlight yet, wait for user decision
+      return { success: true, driftDetected: true, pendingHighlight: true };
+    }
+
+    // No drift detected or drift detection failed gracefully - proceed with highlight
+    const result = await addHighlight(highlightData);
 
     // Only close modal and clear selection for direct highlight creation
     // Don't close if this is part of a reflexive process (we'll handle that separately)
@@ -172,6 +207,25 @@ export const useHighlightManagement = (
     setSelectedText('');
   };
 
+  // Function to apply pending highlight after drift resolution
+  const applyPendingHighlight = async (specificHighlightData = null) => {
+    const pending = specificHighlightData || getPendingHighlight();
+    if (!pending) {
+      return { success: false, error: 'No pending highlight to apply' };
+    }
+    
+    const result = await addHighlight(pending);
+    
+    if (result.success) {
+      // Clear selection and close modal
+      window.getSelection().removeAllRanges();
+      setCurrentSelection(null);
+      clearDriftState();
+    }
+
+    return result;
+  };
+
 
   // Listen for global selection changes to clear state when text is deselected
   // But ignore changes when reflexive modal or other modals are active
@@ -207,6 +261,18 @@ export const useHighlightManagement = (
     checkCodeUsage,
     deleteHighlightsByCode,
     closeModal,
-    isSelectionActive: !!currentSelection
+    isSelectionActive: !!currentSelection,
+    // Semantic drift related
+    isDetecting,
+    driftData,
+    showDriftModal,
+    pendingHighlight,
+    handleRefineDefinition,
+    handleSplitCode,
+    handleApplyAnyway,
+    closeDriftModal,
+    getPendingHighlight,
+    clearDriftState,
+    applyPendingHighlight
   };
 };

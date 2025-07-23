@@ -5,6 +5,7 @@ import { CodeHistoryService } from './codeHistoryService.js';
 import { HighlightService } from './highlightService.js';
 import { NotificationService } from './notificationService.js';
 import { UserService } from './userService.js';
+import { SemanticDriftService } from './semanticDriftService.js';
 
 export class FirebaseServiceFactory {
   constructor(appId) {
@@ -16,6 +17,7 @@ export class FirebaseServiceFactory {
     this._highlightService = null;
     this._notificationService = null;
     this._userService = null;
+    this._semanticDriftService = null;
   }
 
   get auth() {
@@ -66,6 +68,13 @@ export class FirebaseServiceFactory {
     }
     return this._userService;
   }
+
+  get semanticDrift() {
+    if (!this._semanticDriftService) {
+      this._semanticDriftService = new SemanticDriftService(this.appId);
+    }
+    return this._semanticDriftService;
+  }
 }
 
 // Export individual services for direct use if needed
@@ -76,3 +85,4 @@ export { CodeHistoryService } from './codeHistoryService.js';
 export { HighlightService } from './highlightService.js';
 export { NotificationService } from './notificationService.js';
 export { UserService } from './userService.js';
+export { SemanticDriftService } from './semanticDriftService.js';

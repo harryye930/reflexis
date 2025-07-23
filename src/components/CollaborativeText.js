@@ -21,6 +21,7 @@ import UserProfileSetup from './UserProfileSetup.js';
 import DocumentBrowser from './document/DocumentBrowser.js';
 import Sidebar from './sidebar/Sidebar.js';
 import DocumentHeader from './document/DocumentHeader.js';
+import SemanticDriftModal from './semantic-drift/SemanticDriftModal.js';
 
 function CollaborativeTextContent() {
   // Custom hooks for data management
@@ -59,14 +60,25 @@ function CollaborativeTextContent() {
     checkCodeUsage,
     deleteHighlightsByCode,
     closeModal,
-    isSelectionActive
+    isSelectionActive,
+    // Semantic drift related
+    isDetecting,
+    driftData,
+    showDriftModal,
+    pendingHighlight,
+    handleRefineDefinition,
+    handleSplitCode,
+    handleApplyAnyway,
+    closeDriftModal,
+    applyPendingHighlight
   } = useHighlightManagement(
     currentUser, 
     activeDocument, 
     activeDocumentId, 
     highlights, 
     addHighlight, 
-    deleteHighlight
+    deleteHighlight,
+    appId // Add appId parameter
   );
 
   useUserActivity(appId, currentUser);
@@ -190,6 +202,25 @@ function CollaborativeTextContent() {
           selectedText={selectedText}
           currentUser={currentUser}
           documentId={activeDocumentId}
+        />
+      )}
+
+      {/* Semantic Drift Modal */}
+      {showDriftModal && (
+        <SemanticDriftModal
+          isOpen={showDriftModal}
+          onClose={closeDriftModal}
+          driftData={driftData}
+          pendingHighlight={pendingHighlight}
+          onRefineDefinition={handleRefineDefinition}
+          onSplitCode={handleSplitCode}
+          onApplyAnyway={handleApplyAnyway}
+          onMessage={showMessage}
+          allCodes={allCodes}
+          currentUser={currentUser}
+          isDetecting={isDetecting}
+          onApplyPendingHighlight={applyPendingHighlight}
+          onUpdateCode={updateCode}
         />
       )}
 
