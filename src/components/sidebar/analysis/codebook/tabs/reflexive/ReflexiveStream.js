@@ -19,7 +19,7 @@ import {
   getShortPromptText, 
   getPromptByType,
   PROMPT_SEQUENCE 
-} from '../../../../../constants/reflexivePrompts.js';
+} from '../../../../../../constants/reflexivePrompts.js';
 import ReflexiveSummary from './ReflexiveSummary.js';
 
 const ReflexiveStream = ({ 

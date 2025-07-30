@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import CodeChip from '../../../common/CodeChip.js';
+import DisagreementMetric from '../../../analysis/DisagreementMetric.js';
 
 const CodeItem = ({ 
   code, 
@@ -10,7 +11,8 @@ const CodeItem = ({
   showDescriptions,
   variant = "selection", // "selection" or "management"
   onCodeNameClick, // New prop for handling code name clicks
-  hideEditButtons = false // New prop to hide edit/delete buttons
+  hideEditButtons = false, // New prop to hide edit/delete buttons
+  disagreementData = null // New prop for disagreement data
 }) => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const getUserName = (userId) => {
@@ -66,6 +68,16 @@ const CodeItem = ({
                 variant="simple"
                 isTransitioning={isTransitioning}
               />
+              {/* Show disagreement metric when info is shown */}
+              {showDescriptions && disagreementData && (
+                <DisagreementMetric 
+                  disagreementData={disagreementData}
+                  size="xs"
+                  showLabel={true}
+                  showPercentage={false}
+                  variant="badge"
+                />
+              )}
             </div>
             <p className="text-xs text-gray-600 leading-relaxed">{code.description}</p>
             {getAuthorDisplay(code) && (
@@ -108,6 +120,16 @@ const CodeItem = ({
                 <span className="font-medium text-sm">
                   {code.label}
                 </span>
+                {/* Show disagreement status only when info is shown */}
+                {showDescriptions && disagreementData && disagreementData.hasMultipleUsers && (
+                  <DisagreementMetric 
+                    disagreementData={disagreementData}
+                    size="xs"
+                    showLabel={true}
+                    showPercentage={false}
+                    variant="badge"
+                  />
+                )}
                 {/* Connection indicator */}
                 {onCodeNameClick && (
                   <span className="text-xs text-gray-400">→</span>

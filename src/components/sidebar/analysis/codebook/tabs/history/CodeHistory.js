@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { appId } from '../../../../constants/index.js';
-import { CodeService } from '../../../../services/api/firebase/codeService.js';
-import CodeChip from '../../../common/CodeChip.js';
+import { appId } from '../../../../../../constants/index.js';
+import { CodeService } from '../../../../../../services/api/firebase/codeService.js';
+import CodeChip from '../../../../../common/CodeChip.js';
 
 // Error Boundary Component
 class CodeHistoryErrorBoundary extends React.Component {

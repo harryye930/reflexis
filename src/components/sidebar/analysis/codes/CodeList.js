@@ -12,7 +12,8 @@ const CodeList = ({
   userProfiles,
   variant = "selection",
   onCodeNameClick, // New prop for Living Codebook
-  hideEditButtons = false // New prop to hide edit buttons
+  hideEditButtons = false, // New prop to hide edit buttons
+  getCodeDisagreement = null // New prop for disagreement data function
 }) => {
   const [showDeletedCodes, setShowDeletedCodes] = useState(false);
   if (!allCodes || allCodes.length === 0) {
@@ -39,6 +40,7 @@ const CodeList = ({
           variant={variant}
           onCodeNameClick={onCodeNameClick}
           hideEditButtons={hideEditButtons}
+          disagreementData={getCodeDisagreement ? getCodeDisagreement(code.id) : null}
         />
       ))}
 

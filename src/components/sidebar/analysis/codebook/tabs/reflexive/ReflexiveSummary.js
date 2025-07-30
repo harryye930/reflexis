@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { groupResponsesByUserAndHighlight } from '../../../../../constants/reflexivePrompts.js';
+import { groupResponsesByUserAndHighlight } from '../../../../../../constants/reflexivePrompts.js';
 
 const ReflexiveSummary = ({ 
   responses, 

@@ -22,7 +22,8 @@ const AnalysisTab = ({
   onCodeNameClick,
   onBackToAllCodes,
   onUpdateCodeInLivingCodebook,
-  onNavigateToHighlight
+  onNavigateToHighlight,
+  getCodeDisagreement // New prop for disagreement data
 }) => {
   // If Living Codebook is active, show it instead of the normal view
   if (livingCodebookState.isActive && livingCodebookState.selectedCode) {
@@ -40,6 +41,7 @@ const AnalysisTab = ({
           onDeleteHighlightsByCode={onDeleteHighlightsByCode}
           onUpdateCodeInLivingCodebook={onUpdateCodeInLivingCodebook}
           onNavigateToHighlight={onNavigateToHighlight}
+          getCodeDisagreement={getCodeDisagreement}
         />
       </div>
     );
@@ -67,6 +69,7 @@ const AnalysisTab = ({
         onCheckCodeUsage={onCheckCodeUsage}
         onDeleteHighlightsByCode={onDeleteHighlightsByCode}
         onCodeNameClick={onCodeNameClick}
+        getCodeDisagreement={getCodeDisagreement}
       />
     </div>
   );

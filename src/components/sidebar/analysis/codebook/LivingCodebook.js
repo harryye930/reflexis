@@ -3,8 +3,9 @@ import { appId } from '../../../../constants/index.js';
 import { ReflexiveService } from '../../../../services/api/firebase/reflexiveService.js';
 import LivingCodebookHeader from './LivingCodebookHeader.js';
 import IntelligenceHub from './IntelligenceHub.js';
-import ReflexiveStream from './reflexive/ReflexiveStream.js';
-import CodeHistory from './CodeHistory.js';
+import ReflexiveStream from './tabs/reflexive/ReflexiveStream.js';
+import CodeHistory from './tabs/history/CodeHistory.js';
+import DisagreementTab from './tabs/disagreement/DisagreementTab.js';
 
 // Create reflexive service instance outside component to avoid re-instantiation
 const reflexiveService = new ReflexiveService(appId);
@@ -20,7 +21,8 @@ const LivingCodebook = ({
   onCheckCodeUsage,
   onDeleteHighlightsByCode,
   onUpdateCodeInLivingCodebook,
-  onNavigateToHighlight
+  onNavigateToHighlight,
+  getCodeDisagreement = null // New prop for disagreement data
 }) => {
   const [activeTab, setActiveTab] = useState('reflexive');
   const [reflexiveResponses, setReflexiveResponses] = useState([]);
@@ -150,6 +152,7 @@ const LivingCodebook = ({
     ? [{ id: 'history', label: 'History'}] // Only show history for deleted codes
     : [
         { id: 'reflexive', label: 'Reflexive Stream' },
+        { id: 'disagreement', label: 'Discussion Focus' },
         { id: 'history', label: 'History'}
       ];
 
@@ -180,6 +183,13 @@ const LivingCodebook = ({
             userProfiles={userProfiles}
             loading={loading}
             onNavigateToHighlight={onNavigateToHighlight}
+          />
+        );
+      case 'disagreement':
+        return (
+          <DisagreementTab 
+            code={code}
+            getCodeDisagreement={getCodeDisagreement}
           />
         );
       case 'history':

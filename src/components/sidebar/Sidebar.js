@@ -29,7 +29,9 @@ const Sidebar = ({
   disableHighlightManagement,
   onToggleDisableHighlightManagement,
   // Navigation props
-  onNavigateToHighlight
+  onNavigateToHighlight,
+  // Disagreement analysis props
+  getCodeDisagreement
 }) => {
   const [activeTab, setActiveTab] = useState('analysis');
   const [livingCodebookState, setLivingCodebookState] = useState({
@@ -125,6 +127,7 @@ const Sidebar = ({
             onBackToAllCodes={handleBackToAllCodes}
             onUpdateCodeInLivingCodebook={handleUpdateCodeInLivingCodebook}
             onNavigateToHighlight={onNavigateToHighlight}
+            getCodeDisagreement={getCodeDisagreement}
           />
         );
       

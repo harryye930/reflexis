@@ -16,7 +16,8 @@ const CodeManagement = ({
   onSplitCode, // New prop for splitting codes
   onMessage,
   title = "Available Codes",
-  onCodeNameClick // New prop for Living Codebook
+  onCodeNameClick, // New prop for Living Codebook
+  getCodeDisagreement = null // New prop for disagreement data function
 }) => {
   const [showDescriptions, setShowDescriptions] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -87,12 +88,11 @@ const CodeManagement = ({
         allCodes={allCodes}
         deletedCodes={deletedCodes}
         showDescriptions={showDescriptions}
-        onEdit={null} // No edit handler since editing is disabled
-        onDelete={null} // Remove delete functionality from list view
-        currentUser={currentUser}
+        onEdit={null}        onDelete={null}        currentUser={currentUser}
         userProfiles={userProfiles}
         onCodeNameClick={onCodeNameClick}
-        hideEditButtons={true} // Hide delete buttons in selection mode
+        hideEditButtons={true}
+        getCodeDisagreement={getCodeDisagreement}
       />
       
       <CodePaletteFooter

@@ -6,6 +6,7 @@ import { useHighlights } from '../hooks/useHighlights.js';
 import { useUserProfiles } from '../hooks/useUserProfiles.js';
 import { useUserActivity } from '../hooks/useUserActivity.js';
 import { useCodes } from '../hooks/useCodes.js';
+import { useCodeDisagreement } from '../hooks/useCodeDisagreement.js';
 import { useHighlightManagement } from '../hooks/useHighlightManagement.js';
 import { useMessageHandler } from '../hooks/useMessageHandler.js';
 import { useNavigateToHighlight } from '../hooks/useNavigateToHighlight.js';
@@ -30,6 +31,15 @@ function CollaborativeTextContent() {
   const { highlights, addHighlight, deleteHighlight } = useHighlights(appId, currentUser, activeDocumentId);
   const { userProfiles, userProfilesLoaded } = useUserProfiles(appId, currentUser);
   const { allCodes, deletedCodes, addCode, updateCode, deleteCode, mergeCodes, splitCode } = useCodes(appId, currentUser);
+  
+  // Disagreement analysis hook
+  const { 
+    codeDisagreementData, 
+    getCodeDisagreement, 
+    getCodesByDisagreement, 
+    getDisagreementSummary, 
+    loading: disagreementLoading 
+  } = useCodeDisagreement(appId, allCodes, userProfiles);
   
   // Services
   const reflexiveService = new ReflexiveService(appId);
@@ -189,6 +199,7 @@ function CollaborativeTextContent() {
           disableHighlightManagement={disableHighlightManagement}
           onToggleDisableHighlightManagement={toggleDisableHighlightManagement}
           onNavigateToHighlight={handleNavigateToHighlight}
+          getCodeDisagreement={getCodeDisagreement}
         />
       </div>
 
