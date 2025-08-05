@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { appId } from '../../../../constants/index.js';
 import { ReflexiveService } from '../../../../services/api/firebase/reflexiveService.js';
 import LivingCodebookHeader from './LivingCodebookHeader.js';
-import IntelligenceHub from './IntelligenceHub.js';
+import CodeApplications from './CodeApplications.js';
 import ReflexiveStream from './tabs/reflexive/ReflexiveStream.js';
 import CodeHistory from './tabs/history/CodeHistory.js';
 import DisagreementTab from './tabs/disagreement/DisagreementTab.js';
@@ -215,8 +215,14 @@ const LivingCodebook = ({
         onCancelEdit={handleCancelEdit}
       />
 
-      {/* Intelligence Hub - only for active codes */}
-      {!code?.isDeleted && <IntelligenceHub code={code} />}
+      {/* Code Applications - only for active codes */}
+      {!code?.isDeleted && (
+        <CodeApplications 
+          code={{ ...code, appId }} 
+          userProfiles={userProfiles}
+          onNavigateToHighlight={onNavigateToHighlight}
+        />
+      )}
 
       {/* Content Tabs */}
       <div className="flex-1 flex flex-col code-transition-enter">
