@@ -165,6 +165,7 @@ const HighlightedText = ({
         visible={managementPanel.visible}
         onClose={handleManagementPanelClose}
         onDeleteHighlight={onDeleteHighlight}
+        activeDocument={activeDocument}
       />
     </div>
   );

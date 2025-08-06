@@ -1,6 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import CodeChip from '../common/CodeChip.js';
 import { getUserDisplayColor, getUserDisplayName, shouldShowAuthorInfo } from '../../lib/utils/hoverUtils';
+import DiscussionPromptPanel from './DiscussionPromptPanel.js';
+import { useDiscussionPrompt } from '../../hooks/useDiscussionPrompt.js';
 
 const HighlightManagementPanel = ({ 
   highlights, 
@@ -11,9 +13,40 @@ const HighlightManagementPanel = ({
   position,
   visible,
   onClose,
-  onDeleteHighlight
+  onDeleteHighlight,
+  activeDocument
 }) => {
   const panelRef = useRef(null);
+  const [autoPromptGenerated, setAutoPromptGenerated] = useState(false);
+  
+  const { 
+    isGenerating, 
+    discussionPrompt, 
+    error: promptError, 
+    generateDiscussionPrompt, 
+    clearDiscussionPrompt 
+  } = useDiscussionPrompt();
+
+  // Check if we should show discussion prompt - different users with different codes
+  const shouldShowDiscussionPromptOption = useCallback(() => {
+    if (highlights.length < 2) return false;
+    
+    const uniqueUserCodes = new Map();
+    highlights.forEach(highlight => {
+      const userId = highlight.userId;
+      const codeId = highlight.code;
+      if (userId && codeId) {
+        uniqueUserCodes.set(userId, codeId);
+      }
+    });
+    
+    // Need at least 2 different users
+    if (uniqueUserCodes.size < 2) return false;
+    
+    // Check if they used different codes
+    const uniqueCodes = new Set(uniqueUserCodes.values());
+    return uniqueCodes.size > 1;
+  }, [highlights]);
 
   // click-outside handling for management panel
   useEffect(() => {
@@ -29,9 +62,35 @@ const HighlightManagementPanel = ({
     }
   }, [visible, onClose]);
 
+  // Auto-generate discussion prompt when conditions are met
+  useEffect(() => {
+    if (visible && shouldShowDiscussionPromptOption() && !autoPromptGenerated && !isGenerating) {
+      setAutoPromptGenerated(true);
+      generateDiscussionPrompt({
+        highlights,
+        userProfiles,
+        allCodes,
+        activeDocument
+      });
+    }
+  }, [visible, highlights, userProfiles, allCodes, activeDocument, autoPromptGenerated, isGenerating, generateDiscussionPrompt, shouldShowDiscussionPromptOption]);
+
+  // Reset auto-generation flag when panel closes or highlights change
+  useEffect(() => {
+    if (!visible) {
+      setAutoPromptGenerated(false);
+      clearDiscussionPrompt();
+    }
+  }, [visible, clearDiscussionPrompt]);
+
   if (!visible || !highlights || highlights.length === 0) {
     return null;
   }
+
+  const handleCloseDiscussionPrompt = () => {
+    clearDiscussionPrompt();
+    setAutoPromptGenerated(false);
+  };
 
   // Sort highlights by text length (longer first) and then by creation date
   const sortedHighlights = [...highlights].sort((a, b) => {
@@ -58,7 +117,7 @@ const HighlightManagementPanel = ({
         transform: 'translateX(-50%)'
       }}
     >
-      <div className="bg-white rounded-xl shadow-2xl border border-gray-100 p-5 max-w-sm">
+      <div className="bg-white rounded-xl shadow-2xl border border-gray-100 p-5 max-w-md">
         <div className="mb-4">
           <h3 className="text-base font-semibold text-gray-900 mb-1">
             {highlights.length > 1 ? 'Multiple Highlights' : 'Highlight Details'}
@@ -67,6 +126,35 @@ const HighlightManagementPanel = ({
             {highlights.length} highlight{highlights.length > 1 ? 's' : ''} on this text
           </p>
         </div>
+
+        {/* Auto-generated Discussion Prompt - Shows when different users use different codes */}
+        {(discussionPrompt || isGenerating) && (
+          <div className="mb-4">
+            {isGenerating ? (
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4 mb-4 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-amber-600"></div>
+                  <div>
+                    <h4 className="text-sm font-semibold text-amber-900">Generating Insight Opportunity...</h4>
+                    <p className="text-xs text-amber-700">Analyzing coding differences to create a discussion prompt</p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <DiscussionPromptPanel
+                discussionPrompt={discussionPrompt}
+                onClose={handleCloseDiscussionPrompt}
+                userProfiles={userProfiles}
+                allCodes={allCodes}
+              />
+            )}
+            {promptError && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-xs text-red-600">{promptError}</p>
+              </div>
+            )}
+          </div>
+        )}
         
         <div className="space-y-3 max-h-72 overflow-y-auto">
           {sortedHighlights.map((highlight, index) => {
