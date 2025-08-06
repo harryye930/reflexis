@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import CodeChip from '../common/CodeChip.js';
+import { getUserDisplayColor } from '../../lib/utils/hoverUtils.js';
 
 const DiscussionPromptPanel = ({ 
   discussionPrompt, 
@@ -101,12 +102,17 @@ const DiscussionPromptPanel = ({
             <h5 className="text-xs font-medium text-amber-800">Different Perspectives:</h5>
             {researchers.map((researcher, index) => {
               const code = allCodes?.find(c => c.id === researcher.codeId);
+              const user = userProfiles[researcher.userId];
+              const userColor = getUserDisplayColor(user, true); // Always show individual colors in this context
               
               return (
                 <div key={researcher.userId} className="flex items-start gap-3 p-2 bg-white/50 rounded-lg border border-amber-100">
                   <div className="flex-shrink-0">
-                    <div className="w-6 h-6 rounded-full bg-amber-200 flex items-center justify-center">
-                      <span className="text-xs font-medium text-amber-800">
+                    <div 
+                      className="w-6 h-6 rounded-full flex items-center justify-center border-2 border-white shadow-sm"
+                      style={{ backgroundColor: userColor }}
+                    >
+                      <span className="text-xs font-medium text-white">
                         {String.fromCharCode(65 + index)}
                       </span>
                     </div>
