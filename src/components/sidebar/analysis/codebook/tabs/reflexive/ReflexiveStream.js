@@ -162,28 +162,17 @@ const ReflexiveStream = ({
                 className="reflexive-group-card reflexive-stream-item bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                {/* Group Header - Always Visible */}
+                {/* Group Header - Always Visible (stacked top-down) */}
                 <div 
                   className="reflexive-group-header p-4 bg-gradient-to-r from-slate-50 to-blue-50 border-b border-gray-100 cursor-pointer hover:from-slate-100 hover:to-blue-100 transition-colors"
                   onClick={() => toggleGroupExpansion(groupKey)}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <span className="font-medium text-gray-800">
                           {getUserName(group.userId)}
                         </span>
-                        <div className="flex items-center gap-1">
-                          {hasAllResponses ? (
-                            <span className="completion-badge-complete inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium text-green-800">
-                              ✓ Complete Reflection
-                            </span>
-                          ) : (
-                            <span className="completion-badge-partial inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium text-orange-800">
-                              {responseCount}/3 responses
-                            </span>
-                          )}
-                        </div>
                       </div>
                       
                       <div className="text-sm text-gray-600 mb-2">
@@ -198,8 +187,8 @@ const ReflexiveStream = ({
                         <span>{formatTimestamp(group.createdAt)}</span>
                       </div>
                     </div>
-                    
-                    <div className="flex items-center gap-2 ml-4">
+
+                    <div className="flex items-center gap-2 mt-3">
                       <button 
                         className={`text-xs font-medium px-2 py-1 rounded transition-all duration-200 ${
                           onNavigateToHighlight && group.highlightId && group.documentId
@@ -240,24 +229,27 @@ const ReflexiveStream = ({
                 {/* Expanded Content - Individual Responses */}
                 {isExpanded && (
                   <div className="reflexive-expansion p-4 space-y-4">
-                    {PROMPT_SEQUENCE.map((promptTemplate) => {
-                      const response = group.responses[promptTemplate.type];
-                      
-                      return (
-                        <div key={promptTemplate.type} className="reflexive-response-card response-type-indicator border border-gray-100 rounded-lg p-3">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-lg">{promptTemplate.icon}</span>
-                            <span className="text-sm font-medium text-gray-700">
-                              {getShortPromptText(promptTemplate.type)}
-                            </span>
-                            {response && (
+                    {(() => {
+                      // Show only answered prompts, in the default order, and include NOTE at the end if present
+                      const answeredCore = PROMPT_SEQUENCE.filter(t => !!group.responses[t.type]);
+                      const noteTemplate = getPromptByType('note');
+                      const includeNote = !!group.responses['note'];
+                      const displayTemplates = includeNote ? [...answeredCore, noteTemplate] : answeredCore;
+
+                      return displayTemplates.map((promptTemplate) => {
+                        const response = group.responses[promptTemplate.type];
+                        if (!response) return null; // safety
+                        return (
+                          <div key={promptTemplate.type} className="reflexive-response-card response-type-indicator border border-gray-100 rounded-lg p-3">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="text-lg">{promptTemplate.icon}</span>
+                              <span className="text-sm font-medium text-gray-700">
+                                {getShortPromptText(promptTemplate.type)}
+                              </span>
                               <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                 ✓
                               </span>
-                            )}
-                          </div>
-                          
-                          {response ? (
+                            </div>
                             <div>
                               <blockquote className="text-sm text-gray-800 leading-relaxed border-l-2 border-blue-200 pl-3 italic mb-2">
                                 &ldquo;{response.response}&rdquo;
@@ -266,14 +258,10 @@ const ReflexiveStream = ({
                                 {formatTimestamp(response.createdAt)}
                               </div>
                             </div>
-                          ) : (
-                            <div className="text-sm text-gray-400 italic">
-                              No response provided
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                          </div>
+                        );
+                      });
+                    })()}
                   </div>
                 )}
               </div>

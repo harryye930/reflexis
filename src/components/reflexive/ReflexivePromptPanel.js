@@ -10,7 +10,8 @@ const ReflexivePromptPanel = ({
   documentId,
   highlightId,
   onComplete,
-  onClose
+  onClose,
+  prompts = PROMPT_SEQUENCE
 }) => {
   const [currentPromptIndex, setCurrentPromptIndex] = useState(0);
   const [responses, setResponses] = useState({});
@@ -19,8 +20,8 @@ const ReflexivePromptPanel = ({
   const [reflexiveService] = useState(() => new ReflexiveService(appId));
   const [isSliding, setIsSliding] = useState(false);
 
-  const currentPrompt = PROMPT_SEQUENCE[currentPromptIndex];
-  const isLastPrompt = currentPromptIndex === PROMPT_SEQUENCE.length - 1;
+  const currentPrompt = prompts[currentPromptIndex];
+  const isLastPrompt = currentPromptIndex === prompts.length - 1;
   const isFirstPrompt = currentPromptIndex === 0;
 
   // Load existing response for current prompt
@@ -123,7 +124,7 @@ const ReflexivePromptPanel = ({
         
         {/* Progress indicator with contemplative styling */}
         <div className="flex gap-2 mb-4">
-          {PROMPT_SEQUENCE.map((_, index) => (
+          {prompts.map((_, index) => (
             <div
               key={index}
               className={`h-1.5 flex-1 rounded-full transition-all duration-700 ease-out ${

@@ -34,6 +34,18 @@ export const REFLEXIVE_PROMPTS = {
     placeholder: 'Consider other possible interpretations and what evidence might support them...',
     icon: '🔄',
     type: 'alternative'
+  },
+
+  // Optional free-form note prompt (not in default sequence)
+  NOTE: {
+    id: 'note',
+    title: 'Note',
+    prompt: (codeLabel, selectedText) => 
+      `Would you like to add any additional notes or context about this highlight?`,
+    shortPrompt: 'Note',
+    placeholder: 'Add any quick note or context you want to remember...',
+    icon: '📝',
+    type: 'note'
   }
 };
 

@@ -919,27 +919,6 @@ button:active:not(:disabled) {
   border-color: #3b82f6;
 }
 
-/* Completion badges */
-.completion-badge-complete {
-  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-  border: 1px solid #86efac;
-  animation: completion-glow 2s ease-in-out infinite;
-}
-
-.completion-badge-partial {
-  background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
-  border: 1px solid #fb923c;
-}
-
-@keyframes completion-glow {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.2);
-  }
-  50% {
-    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0);
-  }
-}
-
 /* Response type indicators */
 .response-type-indicator {
   position: relative;

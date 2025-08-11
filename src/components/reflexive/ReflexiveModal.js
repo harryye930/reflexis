@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Draggable from 'react-draggable';
 import ReflexivePromptPanel from './ReflexivePromptPanel.js';
+import StrategySelector from '../common/StrategySelector.js';
+import { REFLEXIVE_PROMPTS, PROMPT_SEQUENCE } from '../../constants/reflexivePrompts.js';
 
 const ReflexiveModal = ({ 
   modalPosition, 
@@ -12,10 +14,38 @@ const ReflexiveModal = ({
   documentId,
   highlightId
 }) => {
-  const [currentStep, setCurrentStep] = useState('prompts'); // 'prompts' or 'completed'
+  const [currentStep, setCurrentStep] = useState('select'); // 'select' | 'prompts' | 'completed'
   const [isSliding, setIsSliding] = useState(false);
   const modalRef = useRef(null);
   const nodeRef = useRef(null);
+  const [selectedPromptIds, setSelectedPromptIds] = useState(PROMPT_SEQUENCE.map(p => p.id));
+
+  const strategyOptions = [
+    {
+      id: REFLEXIVE_PROMPTS.JUSTIFICATION.id,
+      title: REFLEXIVE_PROMPTS.JUSTIFICATION.title,
+      description: REFLEXIVE_PROMPTS.JUSTIFICATION.shortPrompt,
+      codeChip: null
+    },
+    {
+      id: REFLEXIVE_PROMPTS.POSITIONALITY.id,
+      title: REFLEXIVE_PROMPTS.POSITIONALITY.title,
+      description: REFLEXIVE_PROMPTS.POSITIONALITY.shortPrompt,
+      codeChip: null
+    },
+    {
+      id: REFLEXIVE_PROMPTS.ALTERNATIVE.id,
+      title: REFLEXIVE_PROMPTS.ALTERNATIVE.title,
+      description: REFLEXIVE_PROMPTS.ALTERNATIVE.shortPrompt,
+      codeChip: null
+    },
+    {
+      id: REFLEXIVE_PROMPTS.NOTE.id,
+      title: REFLEXIVE_PROMPTS.NOTE.title,
+      description: REFLEXIVE_PROMPTS.NOTE.shortPrompt,
+      codeChip: null
+    }
+  ];
 
   const handleComplete = (responses) => {
     setIsSliding(true);
@@ -68,6 +98,54 @@ const ReflexiveModal = ({
           ref={modalRef}
           className={`bg-gradient-to-br from-slate-50/90 via-white/85 to-blue-50/90 backdrop-blur-md rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-white/60 overflow-hidden ${isSliding ? 'transform scale-98 opacity-60 rotate-0.5' : 'transform scale-100 opacity-100 rotate-0'}`}
         >
+        {currentStep === 'select' && (
+          <div className="p-6 w-[520px]">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-light text-slate-800">Choose your reflection prompts</h3>
+              <button
+                onClick={onClose}
+                className="text-slate-400 hover:text-slate-600 transition-all duration-300 hover:bg-slate-100/60 rounded-lg p-2 backdrop-blur-sm"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <p className="text-sm text-slate-600 mb-4">Select one or more prompts. You can skip individual questions later.</p>
+            <StrategySelector
+              strategies={strategyOptions}
+              multiSelect
+              selectedStrategies={selectedPromptIds}
+              onStrategiesChange={setSelectedPromptIds}
+              title=""
+              description=""
+            />
+            <div className="flex items-center justify-between mt-2">
+              <button
+                onClick={() => setSelectedPromptIds(strategyOptions.map(s => s.id))}
+                className="px-3 py-2 text-sm text-slate-600 hover:text-slate-800 font-light transition-all duration-300 hover:bg-slate-50/80 rounded-xl backdrop-blur-sm border border-slate-200/50 hover:border-slate-300/60"
+              >
+                Select all
+              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={onClose}
+                  className="px-4 py-2.5 text-sm text-slate-600 hover:text-slate-800 font-light transition-all duration-300 hover:bg-slate-50/80 rounded-xl backdrop-blur-sm border border-slate-200/50 hover:border-slate-300/60"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => setCurrentStep('prompts')}
+                  disabled={selectedPromptIds.length === 0}
+                  className="px-5 py-2.5 bg-gradient-to-r from-indigo-500/90 to-purple-500/90 text-white text-sm font-light rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Start
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {currentStep === 'prompts' && (
           <ReflexivePromptPanel
             selectedCode={selectedCode}
@@ -77,6 +155,7 @@ const ReflexiveModal = ({
             highlightId={highlightId}
             onComplete={handleComplete}
             onClose={onClose}
+            prompts={[...PROMPT_SEQUENCE, REFLEXIVE_PROMPTS.NOTE].filter(p => selectedPromptIds.includes(p.id))}
           />
         )}
         

@@ -6,6 +6,7 @@ const openai = new OpenAI({
 
 // Local test flag - set to true to always return drift detected (for testing)
 const FORCE_DRIFT_FOR_TESTING = false;
+const DISABLED = true;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -26,6 +27,21 @@ export default async function handler(req, res) {
       return res.status(400).json({ 
         error: 'existingExamples must be a non-empty array' 
       });
+    }
+    if (DISABLED) {
+      const testResult = {
+        drift_detected: false,
+        explanation: `[TEST MODE] Semantic drift detection is disabled.`,
+        suggested_definition: null
+      };
+
+      console.log('Semantic drift analysis (TEST MODE):', {
+        codeName,
+        drift_detected: testResult.drift_detected,
+        examples_count: existingExamples.length
+      });
+
+      return res.status(200).json(testResult);
     }
 
     // Local testing override - always return drift if flag is enabled
