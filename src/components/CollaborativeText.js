@@ -16,7 +16,7 @@ import { ReflexiveService } from '../services/api/firebase/reflexiveService.js';
 // Components
 import HighlightedText from './highlight/HighlightedText.js';
 import HighlightingModal from './highlight/HighlightModal.js';
-import MessageBox from './MessageBox.js';
+import MessageBox from './common/MessageBox.js';
 import UserProfileSetup from './UserProfileSetup.js';
 import DocumentBrowser from './document/DocumentBrowser.js';
 import Sidebar from './sidebar/Sidebar.js';
