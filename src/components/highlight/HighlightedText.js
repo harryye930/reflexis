@@ -28,6 +28,7 @@ const HighlightedText = ({
     highlights: [],
     position: { x: 0, y: 0 }
   });
+  const [emphasisHighlightIds, setEmphasisHighlightIds] = useState([]);
 
   // Use the text from the active document
   const sourceText = activeDocument?.content || '';
@@ -106,6 +107,14 @@ const HighlightedText = ({
     setManagementPanel(prev => ({ ...prev, visible: false }));
   };
 
+  // When management panel is visible, emphasize the related highlight text in the document
+  useEffect(() => {
+    if (managementPanel.visible && Array.isArray(managementPanel.highlights)) {
+      setEmphasisHighlightIds(managementPanel.highlights.map(h => h.id));
+    } else {
+      setEmphasisHighlightIds([]);
+    }
+  }, [managementPanel.visible, managementPanel.highlights]);
 
 
   // Use the custom hook for text segmentation
@@ -121,6 +130,7 @@ const HighlightedText = ({
             userProfiles={userProfiles}
             currentUser={currentUser}
             showAuthorInfo={showAuthorInfo}
+            emphasisHighlightIds={emphasisHighlightIds}
             onHighlightClick={handleHighlightClick}
             onHighlightHover={handleHighlightHover}
             onHighlightLeave={handleHighlightLeave}

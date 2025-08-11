@@ -68,35 +68,6 @@ const DiscussionPromptPanel = ({
             </p>
           </div>
 
-          {/* Coded Text Context */}
-          <div>
-            <h5 className="text-xs font-medium text-amber-800 mb-2">Coded Text:</h5>
-            <div className="bg-white/50 rounded-lg p-3 border border-amber-100">
-              <p className="text-sm text-gray-700 leading-relaxed">
-                {context ? (
-                  // Show full context with highlighted coded text
-                  <span>
-                    {context.split(codedText).map((part, index, array) => (
-                      <span key={index}>
-                        {part}
-                        {index < array.length - 1 && (
-                          <span className="bg-yellow-100 px-1 rounded font-medium text-gray-900">
-                            &ldquo;{codedText}&rdquo;
-                          </span>
-                        )}
-                      </span>
-                    ))}
-                  </span>
-                ) : (
-                  // Fallback to just showing the coded text
-                  <span className="bg-yellow-100 px-1 rounded font-medium text-gray-900">
-                    &ldquo;{codedText}&rdquo;
-                  </span>
-                )}
-              </p>
-            </div>
-          </div>
-
           {/* Researchers and Their Codes */}
           <div className="space-y-2">
             <h5 className="text-xs font-medium text-amber-800">Different Perspectives:</h5>

@@ -17,6 +17,7 @@ const HighlightSegment = ({
   userProfiles,
   currentUser,
   showAuthorInfo,
+  emphasisHighlightIds = [],
   onHighlightClick,
   onHighlightHover,
   onHighlightLeave
@@ -128,6 +129,9 @@ const HighlightSegment = ({
 
   // Get background style using helper function
   const backgroundStyle = getBackgroundStyle(segment);
+
+  // Determine if this segment should be emphasized (any highlight id matches)
+  const isEmphasized = segment.highlights.some(h => emphasisHighlightIds.includes(h.id));
   
   // Determine CSS classes
   const highlightClasses = [
@@ -150,7 +154,11 @@ const HighlightSegment = ({
         margin: '0 -1px',
         cursor: 'pointer',
         border: 'none',
-        outline: outlineStyle
+        outline: outlineStyle,
+        // Emphasis styling: brighter background & glow
+        boxShadow: isEmphasized ? '0 0 0 2px rgba(255,255,0,0.6), 0 0 4px 3px rgba(255, 230, 0, 0.8)' : 'none',
+        backgroundColor: isEmphasized ? 'rgba(255, 255, 0, 0.35)' : backgroundStyle.backgroundColor,
+        transition: 'background-color 120ms ease, box-shadow 120ms ease'
       }}
       data-highlight-ids={segment.highlights.map(h => h.id).join(',')}
       onClick={(e) => onHighlightClick(e, segment.highlights)}
