@@ -349,7 +349,7 @@ export default function CodeHistoryGraphPage() {
             nodesDraggable={true}
             nodesConnectable={false}
             elementsSelectable={true}
-            panOnDrag={[1, 2]} // Allow panning with left and middle mouse button
+            panOnDrag={true} // Allow panning on drag (left/middle/right) over the pane
             selectionOnDrag={false} // Prevent selection box when dragging
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
