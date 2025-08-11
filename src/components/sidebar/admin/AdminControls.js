@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { appId } from '../../../constants/index.js';
 import HoverSettings from './HoverSettings.js';
 
@@ -86,12 +87,12 @@ const AdminControls = ({
       {/* Code History Graph */}
       <div>
         <h4 className="font-semibold text-gray-700 text-sm mb-3">Code History</h4>
-        <a
+        <Link
           href="/admin/code-history-graph"
           className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
         >
           View Code History Graph
-        </a>
+        </Link>
         <p className="text-xs text-gray-500 mt-2">Chronological, connected view of code evolution (merge/split included).</p>
       </div>
       {/* Hover Settings */}

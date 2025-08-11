@@ -42,6 +42,10 @@ const nodeTypes = {
 
 // Build a time-vs-code waterfall layout graph, including axis helper nodes
 function buildGraph(historyEntries, codesMap) {
+  // Layout constants
+  const NODE_WIDTH = 260;     // width of history nodes
+  const X_GAP = NODE_WIDTH + 20; // horizontal gap between time buckets
+  const Y_GAP = 200;          // vertical gap between codes (increased spacing)
   // 1) Sort events ascending by time
   const entries = [...historyEntries].sort(
     (a, b) => (a.timestamp?.toMillis?.() || +new Date(a.timestamp)) - (b.timestamp?.toMillis?.() || +new Date(b.timestamp))
@@ -84,8 +88,9 @@ function buildGraph(historyEntries, codesMap) {
   const edges = [];
   const lastNodePerCode = new Map();
 
-  const xGap = 220; // px between consecutive time buckets
-  const yGap = 120; // px between codes
+  // Use shared gaps so axis labels and nodes stay aligned
+  const xGap = X_GAP; // px between consecutive time buckets
+  const yGap = Y_GAP; // px between codes
 
   for (const entry of entries) {
     const id = `${entry.id}`;
@@ -110,7 +115,7 @@ function buildGraph(historyEntries, codesMap) {
         label: `${new Date(t).toLocaleString()}\n${(entry.type || '').toUpperCase()}\n${label}${entry.description ? `\n${entry.description}` : ''}`,
         className: `code-palette-unified ${bgClass} ${textClass} text-[12px] leading-snug p-2 rounded-md border border-gray-200 whitespace-pre-line`,
         style: {
-          width: 260,
+          width: NODE_WIDTH,
         },
       },
       draggable: true,
@@ -215,11 +220,9 @@ function buildGraph(historyEntries, codesMap) {
       id: `axis-x-${idx}`,
       type: 'default',
       position: { x: idx * xGap, y: -80 },
-      data: { 
-        label,
-        className: 'bg-white text-gray-700 text-[11px] px-2 py-1 rounded border border-gray-200 shadow-sm',
-        style: { width: 220 }
-      },
+  data: { label },
+  className: 'bg-white text-gray-700 text-[11px] px-2 py-1 rounded border border-gray-200 shadow-sm',
+  style: { width: NODE_WIDTH, minWidth: NODE_WIDTH, maxWidth: NODE_WIDTH },
       draggable: false,
       selectable: false,
       focusable: false,
@@ -235,11 +238,9 @@ function buildGraph(historyEntries, codesMap) {
       id: `axis-y-${codeId}`,
       type: 'default',
       position: { x: -260, y: (yIndex.get(codeId) || 0) * yGap },
-      data: { 
-        label,
-        className: 'bg-white text-gray-800 text-[12px] px-2 py-1 rounded border border-gray-200 shadow-sm',
-        style: { width: 240 }
-      },
+  data: { label },
+  className: 'bg-white text-gray-800 text-[12px] px-2 py-1 rounded border border-gray-200 shadow-sm',
+  style: { width: 240 },
       draggable: false,
       selectable: false,
       focusable: false,
