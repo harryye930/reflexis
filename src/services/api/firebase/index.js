@@ -3,7 +3,6 @@ import { DocumentService } from './documentService.js';
 import { CodeService } from './codeService.js';
 import { CodeHistoryService } from './codeHistoryService.js';
 import { HighlightService } from './highlightService.js';
-import { NotificationService } from './notificationService.js';
 import { UserService } from './userService.js';
 import { SemanticDriftService } from './semanticDriftService.js';
 
@@ -15,7 +14,6 @@ export class FirebaseServiceFactory {
     this._codeService = null;
     this._codeHistoryService = null;
     this._highlightService = null;
-    this._notificationService = null;
     this._userService = null;
     this._semanticDriftService = null;
   }
@@ -55,13 +53,6 @@ export class FirebaseServiceFactory {
     return this._highlightService;
   }
 
-  get notifications() {
-    if (!this._notificationService) {
-      this._notificationService = new NotificationService(this.appId);
-    }
-    return this._notificationService;
-  }
-
   get users() {
     if (!this._userService) {
       this._userService = new UserService(this.appId);
@@ -83,6 +74,5 @@ export { DocumentService } from './documentService.js';
 export { CodeService } from './codeService.js';
 export { CodeHistoryService } from './codeHistoryService.js';
 export { HighlightService } from './highlightService.js';
-export { NotificationService } from './notificationService.js';
 export { UserService } from './userService.js';
 export { SemanticDriftService } from './semanticDriftService.js';

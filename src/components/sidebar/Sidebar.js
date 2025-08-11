@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import SlidingTabControl from './shared/SlidingTabControl.js';
 import AnalysisTab from './analysis/AnalysisTab.js';
-import NotificationsTab from './notifications/NotificationsTab.js';
 import AdminTab from './admin/AdminTab.js';
-import { useNotificationContext } from '../../contexts/NotificationContext.js';
 
 const Sidebar = ({ 
   currentUser, 
@@ -38,18 +36,6 @@ const Sidebar = ({
     isActive: false,
     selectedCode: null
   });
-  
-  // Local notifications context (no Firebase)
-  const {
-    notifications,
-    loading: notificationsLoading,
-    unreadCount,
-    markAsRead,
-    markAsUnread,
-    deleteNotification,
-    markAllAsRead,
-    addDemoNotification
-  } = useNotificationContext();
 
   const handleCodeNameClick = (code) => {
     // Always select the latest code object from allCodes by id
@@ -131,19 +117,6 @@ const Sidebar = ({
           />
         );
       
-      case 'notifications':
-        return (
-          <NotificationsTab
-            notifications={notifications}
-            notificationsLoading={notificationsLoading}
-            markAsRead={markAsRead}
-            markAsUnread={markAsUnread}
-            deleteNotification={deleteNotification}
-            markAllAsRead={markAllAsRead}
-            addDemoNotification={addDemoNotification}
-          />
-        );
-      
       case 'admin':
         return (
           <AdminTab
@@ -171,7 +144,6 @@ const Sidebar = ({
         <SlidingTabControl
           activeTab={activeTab}
           onTabChange={setActiveTab}
-          unreadCount={unreadCount}
         />
       </div>
 
