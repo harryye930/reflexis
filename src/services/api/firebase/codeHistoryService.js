@@ -38,6 +38,51 @@ export class CodeHistoryService {
     }
   }
 
+  // Listen to all code history entries (across all codes)
+  onAllHistorySnapshot(callback) {
+    try {
+      const historyCollection = collection(db, `artifacts/${this.appId}/public/data/code_history`);
+      const historyQuery = query(
+        historyCollection,
+        orderBy('timestamp', 'asc')
+      );
+
+      return onSnapshot(
+        historyQuery,
+        (snapshot) => {
+          try {
+            const historyData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+            callback(historyData);
+          } catch (error) {
+            console.error('Error processing all-history snapshot:', error);
+            callback([]);
+          }
+        },
+        (error) => {
+          console.error('Error in all-history snapshot listener:', error);
+          callback([]);
+        }
+      );
+    } catch (error) {
+      console.error('Error setting up all-history listener:', error);
+      return () => {};
+    }
+  }
+
+  // Get all code history entries (across all codes)
+  async getAllHistory() {
+    try {
+      const historyCollection = collection(db, `artifacts/${this.appId}/public/data/code_history`);
+      const historyQuery = query(historyCollection, orderBy('timestamp', 'asc'));
+      const snapshot = await getDocs(historyQuery);
+      const historyData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      return { success: true, data: historyData };
+    } catch (error) {
+      console.error('Error getting all code history: ', error);
+      return { success: false, error };
+    }
+  }
+
   // Add a new history entry
   async addHistoryEntry(historyData) {
     try {

@@ -9,17 +9,8 @@ service cloud.firestore {
 
     // This rule handles highlights specifically.
     match /artifacts/{appId}/public/data/highlights/{highlightId} {
-        // Any authenticated user can create a highlight.
-        allow create: if request.auth != null 
-          && request.auth.uid == request.resource.data.userId;
-
-        // Only the user who created the highlight can update it.
-        allow update: if request.auth.uid == resource.data.userId;
-        
-        // Allow deletion if user owns the highlight OR if it's part of code deletion
-        // (any authenticated user can delete any highlight when deleting a code)
-        allow delete: if request.auth.uid == resource.data.userId 
-          || request.auth != null;
+        // Any authenticated user can create, update, or delete any highlight.
+        allow create, update, delete: if request.auth != null;
     }
 
     // This rule handles codes management.
@@ -48,15 +39,8 @@ service cloud.firestore {
 
     // This rule handles reflexive responses.
     match /artifacts/{appId}/public/data/reflexive_responses/{responseId} {
-        // Any authenticated user can read reflexive responses.
-        allow read: if request.auth != null;
-
-        // Any authenticated user can create a reflexive response.
-        allow create: if request.auth != null 
-          && request.auth.uid == request.resource.data.userId;
-
-        // Only the user who created the response can update or delete it.
-        allow update, delete: if request.auth.uid == resource.data.userId;
+        // Any authenticated user can create, update, delete, or read reflexive responses.
+        allow read, create, update, delete: if request.auth != null;
     }
 
     // This rule handles code history.

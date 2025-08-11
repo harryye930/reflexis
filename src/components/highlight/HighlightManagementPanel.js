@@ -160,7 +160,6 @@ const HighlightManagementPanel = ({
           {sortedHighlights.map((highlight, index) => {
             const user = userProfiles[highlight.userId];
             const code = allCodes?.find(c => c.id === highlight.code);
-            const isOwner = currentUser && highlight.userId === currentUser.uid;
             
             // Use hover utilities for user display
             const userColor = getUserDisplayColor(user, showAuthorInfo);
@@ -170,11 +169,7 @@ const HighlightManagementPanel = ({
             return (
               <div 
                 key={highlight.id} 
-                className={`code-palette-unified ${code?.color} rounded-xl border transition-all duration-200 ${
-                  isOwner 
-                    ? 'border-blue-200' 
-                    : 'border-gray-200'
-                }`}
+                className={`code-palette-unified ${code?.color} rounded-xl border transition-all duration-200 border-gray-200`}
               >
                 {/* Header with code and user info */}
                 <div className="p-3 border-b border-gray-100">
@@ -188,8 +183,8 @@ const HighlightManagementPanel = ({
                       />
                     </div>
                     
-                    {/* Delete button - only for owner */}
-                    {isOwner && (
+                    {/* Delete button - available to any authenticated user */}
+                    {currentUser && (
                       <button
                         onClick={() => handleDeleteClick(highlight)}
                         className={`hover:bg-red-100 rounded-md p-1.5 transition-colors hover:text-red-700`}

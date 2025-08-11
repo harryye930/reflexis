@@ -14,7 +14,8 @@
     "openai": "^5.10.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-draggable": "^4.5.0"
+  "react-draggable": "^4.5.0",
+  "reactflow": "^11.10.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

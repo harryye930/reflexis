@@ -46,6 +46,15 @@ export class FirebaseServiceFactory {
     return this._codeHistoryService;
   }
 
+  // Convenience passthroughs for code history across all codes
+  onAllHistorySnapshot(callback) {
+    return this.codeHistory.onAllHistorySnapshot(callback);
+  }
+
+  async getAllHistory() {
+    return this.codeHistory.getAllHistory();
+  }
+
   get highlights() {
     if (!this._highlightService) {
       this._highlightService = new HighlightService(this.appId);

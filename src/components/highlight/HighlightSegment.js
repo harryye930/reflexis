@@ -129,14 +129,10 @@ const HighlightSegment = ({
   // Get background style using helper function
   const backgroundStyle = getBackgroundStyle(segment);
   
-  // Determine if current user owns any of these highlights
-  const isOwner = segment.highlights.some(h => currentUser && h.userId === currentUser.uid);
-  
   // Determine CSS classes
   const highlightClasses = [
     'highlight',
     segment.highlights.length > 1 ? 'multiple-highlights' : '',
-    isOwner ? 'owned-highlight' : '',
     'highlight-segment'
   ].filter(Boolean).join(' ');
 
