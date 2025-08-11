@@ -66,15 +66,15 @@ Each section should be 2-3 sentences that synthesize patterns and provide action
             properties: {
               linguisticPatterns: {
                 type: "string",
-                description: "Analysis of recurring linguistic patterns the researcher focuses on"
+                description: "Analysis of recurring linguistic patterns the researcher focuses on (1-2 sentences)"
               },
               positionalityNarrative: {
                 type: "string", 
-                description: "Synthesized narrative of the researcher's background and perspectives"
+                description: "Synthesized narrative of the researcher's background and perspectives (1-2 sentences)"
               },
               alternativeThinkingPatterns: {
                 type: "string",
-                description: "Analysis of patterns in alternative interpretations and theoretical habits"
+                description: "Analysis of patterns in alternative interpretations and theoretical habits (1-2 sentences)"
               }
             },
             required: ["linguisticPatterns", "positionalityNarrative", "alternativeThinkingPatterns"],
