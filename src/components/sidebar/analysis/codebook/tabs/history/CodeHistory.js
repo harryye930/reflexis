@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { appId } from '../../../../../../constants/index.js';
-import { CodeService } from '../../../../../../services/api/firebase/codeService.js';
+import React from 'react';
+import Link from 'next/link';
 import CodeChip from '../../../../../common/CodeChip.js';
 
 // Error Boundary Component
@@ -23,7 +22,20 @@ class CodeHistoryErrorBoundary extends React.Component {
       return (
         <div className="p-6">
           <div className="mb-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Code History</h3>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Code History</h3>
+              </div>
+              <Link
+                href="/code-history-graph"
+                className="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 ml-4"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Full History Graph
+              </Link>
+            </div>
           </div>
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
@@ -48,14 +60,14 @@ class CodeHistoryErrorBoundary extends React.Component {
   }
 }
 
-// Create code service instance outside component to avoid re-instantiation
-const codeService = new CodeService(appId);
+const CodeHistory = ({ code, userProfiles, history = [], loading = false }) => {
+  // Remove internal state management since data is now passed as props
+  // const [history, setHistory] = useState([]);
+  // const [loading, setLoading] = useState(true);
+  // const prevCodeIdRef = useRef(null);
 
-const CodeHistory = ({ code, userProfiles }) => {
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const prevCodeIdRef = useRef(null);
-
+  // Remove the useEffect for loading data since it's now handled by parent
+  /*
   // Load code history when component mounts or code changes
   useEffect(() => {
     if (!code) {
@@ -88,6 +100,7 @@ const CodeHistory = ({ code, userProfiles }) => {
       setLoading(false);
     }
   }, [code]);
+  */
 
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return 'Unknown time';
@@ -589,10 +602,24 @@ const CodeHistory = ({ code, userProfiles }) => {
     return (
       <div className="p-6">
         <div className="mb-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Code History</h3>
-          <p className="text-sm text-gray-600">
-            Complete audit trail of how this code has evolved.
-          </p>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Code History</h3>
+              <p className="text-sm text-gray-600">
+                Complete audit trail of how this code has evolved.
+              </p>
+            </div>
+            <Link
+              href="/code-history-graph"
+              className="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 ml-4"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              Full History Graph
+            </Link>
+          </div>
+          <p className="text-xs text-gray-500 mb-4">Chronological, connected view of code evolution (merge/split included).</p>
         </div>
         
         <div className="text-center py-8">
@@ -606,10 +633,24 @@ const CodeHistory = ({ code, userProfiles }) => {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Code History</h3>
-        <p className="text-sm text-gray-600">
-          Complete audit trail of how this code has evolved.
-        </p>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Code History</h3>
+            <p className="text-sm text-gray-600">
+              Complete audit trail of how this code has evolved.
+            </p>
+          </div>
+          <Link
+            href="/code-history-graph"
+            className="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 ml-4"
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            Full History Graph
+          </Link>
+        </div>
+        <p className="text-xs text-gray-500 mb-4">Chronological, connected view of code evolution (merge/split included).</p>
         
         {/* Special section for deleted codes */}
         {code.isDeleted && (

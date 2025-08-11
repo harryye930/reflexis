@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { appId } from '../../../../constants/index.js';
 import { ReflexiveService } from '../../../../services/api/firebase/reflexiveService.js';
+import { CodeService } from '../../../../services/api/firebase/codeService.js';
 import LivingCodebookHeader from './LivingCodebookHeader.js';
 import CodeApplications from './CodeApplications.js';
 import ReflexiveStream from './tabs/reflexive/ReflexiveStream.js';
 import CodeHistory from './tabs/history/CodeHistory.js';
 import DisagreementTab from './tabs/disagreement/DisagreementTab.js';
 
-// Create reflexive service instance outside component to avoid re-instantiation
+// Create service instances outside component to avoid re-instantiation
 const reflexiveService = new ReflexiveService(appId);
+const codeService = new CodeService(appId);
 
 const LivingCodebook = ({ 
   code,
@@ -26,7 +28,9 @@ const LivingCodebook = ({
 }) => {
   const [activeTab, setActiveTab] = useState('reflexive');
   const [reflexiveResponses, setReflexiveResponses] = useState([]);
+  const [codeHistory, setCodeHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [historyLoading, setHistoryLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
     label: '',
@@ -147,6 +151,29 @@ const LivingCodebook = ({
     }
   }, [code]);
 
+  // Load code history for this code
+  useEffect(() => {
+    if (!code) {
+      setCodeHistory([]);
+      setHistoryLoading(false);
+      return;
+    }
+
+    setHistoryLoading(true);
+    try {
+      const unsubscribe = codeService.onCodeHistorySnapshot(code.id, (historyData) => {
+        setCodeHistory(historyData);
+        setHistoryLoading(false);
+      });
+
+      return () => unsubscribe();
+    } catch (error) {
+      console.error('LivingCodebook: Error loading code history:', error);
+      setCodeHistory([]);
+      setHistoryLoading(false);
+    }
+  }, [code]);
+
   // Different tabs for regular codes vs deleted codes
   const tabs = code?.isDeleted 
     ? [{ id: 'history', label: 'History'}] // Only show history for deleted codes
@@ -193,7 +220,14 @@ const LivingCodebook = ({
           />
         );
       case 'history':
-        return <CodeHistory code={code} userProfiles={userProfiles} />;
+        return (
+          <CodeHistory 
+            code={code} 
+            userProfiles={userProfiles} 
+            history={codeHistory}
+            loading={historyLoading}
+          />
+        );
       default:
         return null;
     }

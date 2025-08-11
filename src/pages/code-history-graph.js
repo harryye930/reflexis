@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { appId } from '../../constants/index.js';
-import { FirebaseServiceFactory } from '../../services/api/firebase/index.js';
+import { appId } from '../constants/index.js';
+import { FirebaseServiceFactory } from '../services/api/firebase/index.js';
 import 'reactflow/dist/style.css';
 import { applyNodeChanges, applyEdgeChanges } from 'reactflow';
 
