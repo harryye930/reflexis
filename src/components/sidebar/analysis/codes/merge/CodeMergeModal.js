@@ -3,6 +3,8 @@ import MultiStepModal from '../../../../common/MultiStepModal.js';
 import MergeStep1_SelectCodes from './MergeStep1_SelectCodes.js';
 import MergeStep2_ChooseStrategy from './MergeStep2_ChooseStrategy.js';
 import MergeStep3_ConfigureResult from './MergeStep3_ConfigureResult.js';
+import MergeStep4_ReviewMerge from './MergeStep4_ReviewMerge.js';
+import MergeStep5_DeleteConfirmation from './MergeStep5_DeleteConfirmation.js';
 
 const CodeMergeModal = ({ 
   allCodes,
@@ -22,6 +24,7 @@ const CodeMergeModal = ({
     color: 'bg-gray-200',
     textColor: 'text-gray-800'
   });
+  const [deleteSourceCodes, setDeleteSourceCodes] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Reset when modal opens
@@ -36,6 +39,7 @@ const CodeMergeModal = ({
         color: 'bg-gray-200',
         textColor: 'text-gray-800'
       });
+      setDeleteSourceCodes(false);
     }
   }, [isOpen]);
 
@@ -45,7 +49,8 @@ const CodeMergeModal = ({
     // Auto-populate result config based on strategy
     if (strategy.startsWith('merge_into_')) {
       const targetCodeId = strategy.replace('merge_into_', '');
-      const targetCode = selectedCodes.find(c => c.id === targetCodeId);
+      // Target can be any active code, not only selected
+      const targetCode = allCodes.find(c => c.id === targetCodeId);
       if (targetCode) {
         setResultConfig({
           label: targetCode.label,
@@ -91,6 +96,7 @@ const CodeMergeModal = ({
         selectedCodes,
         strategy: mergeStrategy,
         resultConfig,
+        deleteSourceCodes,
         userId: currentUser.uid
       });
 
@@ -139,6 +145,7 @@ const CodeMergeModal = ({
         return (
           <MergeStep2_ChooseStrategy
             selectedCodes={selectedCodes}
+            allCodes={allCodes}
             mergeStrategy={mergeStrategy}
             onStrategySelect={handleStrategySelect}
           />
@@ -147,9 +154,30 @@ const CodeMergeModal = ({
         return (
           <MergeStep3_ConfigureResult
             selectedCodes={selectedCodes}
+            allCodes={allCodes}
             mergeStrategy={mergeStrategy}
             resultConfig={resultConfig}
             onResultConfigChange={setResultConfig}
+          />
+        );
+      case 4:
+        return (
+          <MergeStep4_ReviewMerge
+            selectedCodes={selectedCodes}
+            allCodes={allCodes}
+            mergeStrategy={mergeStrategy}
+            resultConfig={resultConfig}
+          />
+        );
+      case 5:
+        return (
+          <MergeStep5_DeleteConfirmation
+            selectedCodes={selectedCodes}
+            allCodes={allCodes}
+            mergeStrategy={mergeStrategy}
+            resultConfig={resultConfig}
+            deleteSourceCodes={deleteSourceCodes}
+            onDeleteChoice={setDeleteSourceCodes}
           />
         );
       default:
@@ -158,12 +186,12 @@ const CodeMergeModal = ({
   };
 
   const getCustomActions = () => {
-    if (step < 3) {
+    if (step < 5) {
       return (
         <button
           onClick={handleNextStep}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          disabled={loading || (step === 1 && selectedCodes.length < 2) || (step === 2 && !mergeStrategy)}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={loading || (step === 1 && selectedCodes.length < 2) || (step === 2 && !mergeStrategy) || (step === 3 && (!resultConfig.label.trim() || !resultConfig.description.trim()))}
         >
           Next
         </button>
@@ -172,8 +200,8 @@ const CodeMergeModal = ({
       return (
         <button
           onClick={handleMerge}
-          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center gap-2"
-          disabled={loading || !resultConfig.label.trim() || !resultConfig.description.trim()}
+          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={loading}
         >
           {loading && (
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -190,7 +218,7 @@ const CodeMergeModal = ({
       isOpen={isOpen}
       onClose={onClose}
       currentStep={step}
-      totalSteps={3}
+      totalSteps={5}
       onPreviousStep={() => setStep(step - 1)}
       showPreviousButton={step > 1}
       showNextButton={false} // We handle this with custom actions

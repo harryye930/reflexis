@@ -286,7 +286,7 @@ export class CodeHistoryService {
   // Record code merge
   async recordCodeMerge(mergeData, userId) {
     try {
-      const { selectedCodes, strategy, resultConfig, targetCodeId, highlightTransferCount = 0, reflexiveResponseTransferCount = 0, perSourceHighlightCount = {}, perSourceReflexiveCount = {} } = mergeData;
+      const { selectedCodes, strategy, resultConfig, targetCodeId, highlightTransferCount = 0, reflexiveResponseTransferCount = 0, perSourceHighlightCount = {}, perSourceReflexiveCount = {}, deleteSourceCodes = false } = mergeData;
       
       // Validate input data
       if (!selectedCodes || !Array.isArray(selectedCodes) || selectedCodes.length === 0) {
@@ -320,7 +320,8 @@ export class CodeHistoryService {
         })),
         resultConfig,
         highlightTransferCount: highlightTransferCount,
-        reflexiveResponseTransferCount: reflexiveResponseTransferCount
+        reflexiveResponseTransferCount: reflexiveResponseTransferCount,
+        deleteSourceCodes
       }
     });
 
@@ -332,11 +333,11 @@ export class CodeHistoryService {
       try {
         await this.addHistoryEntry({
           codeId: sourceCode.id,
-          // New combined action type per product requirement
-          type: 'merge_and_delete',
+          // Use appropriate action type based on whether codes were actually deleted
+          type: deleteSourceCodes ? 'merge_and_delete' : 'merge',
           userId: userId,
           user: userId,
-          description: `Code "${sourceCode.label}" merged into "${resultConfig.label}" and deleted`,
+          description: deleteSourceCodes ? `Code "${sourceCode.label}" merged into "${resultConfig.label}" and deleted` : `Code "${sourceCode.label}" merged into "${resultConfig.label}"`,
           changes: {
             strategy,
             targetCode: {
@@ -356,7 +357,7 @@ export class CodeHistoryService {
             highlightTransferCount: perSourceHighlightCount[sourceCode.id] || 0,
             reflexiveResponseTransferCount: perSourceReflexiveCount[sourceCode.id] || 0,
             mergeOperation: true,
-            deleted: true,
+            deleted: deleteSourceCodes,
             targetCodeId: targetCodeId
           }
         });

@@ -78,7 +78,7 @@ const MultiStepModal = ({
               showNextButton && (
                 <button
                   onClick={onNextStep}
-                  className={`px-4 py-2 bg-${stepIndicatorColor}-600 text-white rounded-md hover:bg-${stepIndicatorColor}-700 transition-colors flex items-center gap-2`}
+                  className={`px-4 py-2 bg-${stepIndicatorColor}-600 text-white rounded-md hover:bg-${stepIndicatorColor}-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-${stepIndicatorColor}-600`}
                   disabled={loading || nextButtonDisabled}
                 >
                   {loading && (

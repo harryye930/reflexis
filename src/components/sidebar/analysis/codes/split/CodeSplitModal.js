@@ -271,7 +271,12 @@ const CodeSplitModal = ({
       onPreviousStep={handlePreviousStep}
       onNextStep={handleNextStep}
       showNextButton={step === 2}
-      nextButtonDisabled={step === 2 && highlights.length > 0 && !reassignments[highlights[currentHighlightIndex]?.id]?.newCodeId}
+      nextButtonDisabled={
+        step === 2 && (
+          highlightsLoading ||
+          (highlights.length > 0 && Object.keys(reassignments).length < highlights.length)
+        )
+      }
       showPreviousButton={step > 1}
       loading={loading}
       customActions={getCustomActions()}

@@ -12,14 +12,14 @@ const MergeStep2_ChooseStrategy = ({
     ...selectedCodes.map((code) => ({
       id: `merge_into_${code.id}`,
       title: "Merge all into",
-      description: `Keep "${code.label}" and merge all highlights from other codes into it. Other codes will be deleted.`,
+      description: `Keep "${code.label}" and merge all highlights from selected codes into it. You can choose to keep or delete the source codes in the final step.`,
       codeChip: code
     })),
     // Option to create new code
     {
       id: 'create_new',
-      title: 'Create new merged code',
-      description: 'Create a new code that combines the selected codes. All highlights will be transferred to the new code and old codes will be deleted.'
+      title: 'Create new code to merge into',
+      description: 'Create a new code that combines the selected codes. You can choose to keep or delete the original codes in the final step.'
     }
   ];
 
@@ -28,8 +28,8 @@ const MergeStep2_ChooseStrategy = ({
       strategies={strategies}
       selectedStrategy={mergeStrategy}
       onStrategySelect={onStrategySelect}
-      title="Choose Merge Strategy"
-      description="How would you like to merge the selected codes?"
+  title="Choose Merge Strategy"
+  description="Pick the destination for the merge. You can merge into any active code or create a new one."
     />
   );
 };

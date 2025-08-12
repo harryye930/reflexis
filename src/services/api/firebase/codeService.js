@@ -170,7 +170,7 @@ export class CodeService {
 
   // Merge multiple codes
   async mergeCodes(mergeData, userId) {
-    const { selectedCodes, strategy, resultConfig } = mergeData;
+    const { selectedCodes, strategy, resultConfig, deleteSourceCodes = false } = mergeData;
     
     try {
       let targetCodeId;
@@ -197,11 +197,12 @@ export class CodeService {
       } else {
         // Use existing code as target
         const extractedTargetCodeId = strategy.replace('merge_into_', '');
-        const targetCode = selectedCodes.find(c => c.id === extractedTargetCodeId);
-        
-        if (!targetCode) {
+        // Target may be outside the selected codes; fetch it
+        const targetResult = await this.getCode(extractedTargetCodeId);
+        if (!targetResult.success) {
           return { success: false, error: 'Target code not found' };
         }
+        const targetCode = targetResult.data;
         
         targetCodeId = targetCode.id;
         targetDocId = targetCode.docId;
@@ -301,26 +302,29 @@ export class CodeService {
         return { success: false, error: 'Failed to transfer reflexive responses' };
       }
       
-      // Step 3: Delete source codes (except target if merging into existing)
-      try {
-        for (const sourceCode of selectedCodes) {
-          if (strategy !== 'create_new' && sourceCode.id === targetCodeId) {
-            continue; // Skip target code in merge into existing strategies
+      // Step 3: Optionally delete source codes (except target code)
+      if (deleteSourceCodes) {
+        try {
+          for (const sourceCode of selectedCodes) {
+            // Skip the target code - we never want to delete the code we're merging into
+            if (sourceCode.id === targetCodeId) {
+              continue;
+            }
+            
+            const deleteResult = await this.deleteCode(
+              sourceCode.docId || sourceCode.id, 
+              userId, 
+              `Merged into "${resultConfig.label}"`,
+              true // Skip history - we'll record merge history instead
+            );
+            if (!deleteResult.success) {
+              console.warn(`Failed to delete source code ${sourceCode.id}:`, deleteResult.error);
+            }
           }
-          
-          const deleteResult = await this.deleteCode(
-            sourceCode.docId || sourceCode.id, 
-            userId, 
-            `Merged into "${resultConfig.label}"`,
-            true // Skip history - we'll record merge history instead
-          );
-          if (!deleteResult.success) {
-            console.warn(`Failed to delete source code ${sourceCode.id}:`, deleteResult.error);
-          }
+        } catch (error) {
+          console.error("Error deleting source codes: ", error);
+          // Don't fail the entire operation if deletion fails
         }
-      } catch (error) {
-        console.error("Error deleting source codes: ", error);
-        // Don't fail the entire operation if deletion fails
       }
       
       // Step 4: Record merge history
@@ -333,7 +337,8 @@ export class CodeService {
           highlightTransferCount: totalHighlightsMoved,
           reflexiveResponseTransferCount: totalReflexiveResponsesMoved,
           perSourceHighlightCount,
-          perSourceReflexiveCount
+          perSourceReflexiveCount,
+          deleteSourceCodes
         }, userId);
       } catch (error) {
         console.error("Error recording merge history: ", error);

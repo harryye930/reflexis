@@ -159,13 +159,16 @@ const SplitStep2_ReviewHighlights = ({
           >
             Previous
           </button>
-          <button
-            onClick={onNextHighlight}
-            disabled={!assignment?.newCodeId}
-            className="px-4 py-1 text-sm bg-orange-600 text-white rounded hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {currentHighlightIndex === highlights.length - 1 ? 'Review' : 'Next'}
-          </button>
+          {/* Only show Next/Review button if not on last highlight OR not all highlights are assigned */}
+          {(currentHighlightIndex < highlights.length - 1 || Object.keys(reassignments).length < highlights.length) && (
+            <button
+              onClick={onNextHighlight}
+              disabled={!assignment?.newCodeId}
+              className="px-4 py-1 text-sm bg-orange-600 text-white rounded hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {currentHighlightIndex === highlights.length - 1 ? 'Review' : 'Next'}
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -3,6 +3,7 @@ import { CODE_COLOR_OPTIONS } from '../../../../../constants/codeColors.js';
 
 const MergeStep3_ConfigureResult = ({ 
   selectedCodes,
+  allCodes = [],
   mergeStrategy,
   resultConfig,
   onResultConfigChange
@@ -15,7 +16,7 @@ const MergeStep3_ConfigureResult = ({
           ? 'Configure the new merged code:'
           : (() => {
               const targetCodeId = mergeStrategy.replace('merge_into_', '');
-              const targetCode = selectedCodes.find(c => c.id === targetCodeId);
+              const targetCode = allCodes.find(c => c.id === targetCodeId);
               return `Configure the target code "${targetCode?.label}":`;
             })()
         }
@@ -82,12 +83,12 @@ const MergeStep3_ConfigureResult = ({
         <h4 className="text-sm font-medium text-blue-900 mb-2">Merge Summary</h4>
         <p className="text-sm text-blue-800">
           {mergeStrategy === 'create_new' 
-            ? `Creating new code and transferring all highlights from ${selectedCodes.length} codes. Original codes will be deleted.`
+            ? `Creating new code and transferring all highlights from ${selectedCodes.length} codes. Deletion of originals will be decided next.`
             : (() => {
                 const targetCodeId = mergeStrategy.replace('merge_into_', '');
-                const targetCode = selectedCodes.find(c => c.id === targetCodeId);
-                const sourceCount = selectedCodes.length - 1;
-                return `Merging ${sourceCount} code${sourceCount !== 1 ? 's' : ''} into "${targetCode?.label}". Source codes will be deleted.`;
+                const targetCode = allCodes.find(c => c.id === targetCodeId);
+                const sourceCount = selectedCodes.length;
+                return `Merging ${sourceCount} code${sourceCount !== 1 ? 's' : ''} into "${targetCode?.label}". Deletion of sources will be decided next.`;
               })()
           }
         </p>
