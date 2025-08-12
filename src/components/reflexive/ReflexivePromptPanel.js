@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PROMPT_SEQUENCE } from '../../constants/reflexivePrompts.js';
+import { Search, Person, Autorenew, NoteAlt } from '@mui/icons-material';
 import { ReflexiveService } from '../../services/api/firebase/reflexiveService.js';
 import { appId } from '../../constants/index.js';
 
@@ -21,6 +22,20 @@ const ReflexivePromptPanel = ({
   const [isSliding, setIsSliding] = useState(false);
 
   const currentPrompt = prompts[currentPromptIndex];
+  const renderPromptIcon = (type) => {
+    switch (type) {
+      case 'justification':
+        return <Search sx={{ fontSize: 20 }} />;
+      case 'positionality':
+        return <Person sx={{ fontSize: 20 }} />;
+      case 'alternative':
+        return <Autorenew sx={{ fontSize: 20 }} />;
+      case 'note':
+        return <NoteAlt sx={{ fontSize: 20 }} />;
+      default:
+        return <Search sx={{ fontSize: 20 }} />;
+    }
+  };
   const isLastPrompt = currentPromptIndex === prompts.length - 1;
   const isFirstPrompt = currentPromptIndex === 0;
 
@@ -109,7 +124,7 @@ const ReflexivePromptPanel = ({
       <div className="bg-gradient-to-r from-indigo-50/80 via-purple-50/70 to-blue-50/80 p-6 border-b border-slate-200/50 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
-            <span className="text-2xl transition-transform duration-500 hover:scale-110 animate-gentle-float">{currentPrompt.icon}</span>
+            <span className="text-2xl transition-transform duration-500 hover:scale-110 animate-gentle-float">{renderPromptIcon(currentPrompt.type)}</span>
             <h3 className="font-light text-slate-800 text-lg tracking-wide">Reflexive <span className="font-medium text-indigo-700">Lens</span></h3>
           </div>
           <button
@@ -152,7 +167,7 @@ const ReflexivePromptPanel = ({
         {/* Current prompt */}
         <div className="mb-7">
           <h4 className="font-light text-slate-900 mb-3 flex items-center gap-3 text-lg">
-            <span className="text-2xl transition-transform duration-500 hover:scale-110 animate-gentle-float">{currentPrompt.icon}</span>
+            <span className="text-2xl transition-transform duration-500 hover:scale-110 animate-gentle-float">{renderPromptIcon(currentPrompt.type)}</span>
             <span className="tracking-wide">{currentPrompt.title}</span>
           </h4>
           <p className="text-sm text-slate-700 mb-5 leading-relaxed font-light bg-gradient-to-r from-slate-50/60 to-blue-50/40 p-4 rounded-xl border border-slate-200/50 backdrop-blur-sm">

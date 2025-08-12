@@ -140,7 +140,7 @@ const CodeSplitModal = ({
         const reassignedCount = Object.keys(reassignments).length;
         const transferredReflexiveCount = result.reflexiveResponsesTransferred || 0;
         
-        let message = `✂️ Code split completed! ${reassignedCount} highlight${reassignedCount !== 1 ? 's' : ''} reassigned.`;
+  let message = `Code split completed. ${reassignedCount} highlight${reassignedCount !== 1 ? 's' : ''} reassigned.`;
         
         if (transferredReflexiveCount > 0) {
           message += ` ${transferredReflexiveCount} reflexive response${transferredReflexiveCount !== 1 ? 's' : ''} transferred.`;

@@ -1,4 +1,5 @@
 import React from 'react';
+import { ContentCut } from '@mui/icons-material';
 import CodeChip from '../../../../common/CodeChip.js';
 
 const SplitStep2_ReviewHighlights = ({ 
@@ -33,7 +34,10 @@ const SplitStep2_ReviewHighlights = ({
           The code can be deleted without affecting any content.
         </p>
         <div className="bg-orange-50 rounded-lg p-4">
-          <h4 className="text-sm font-medium text-orange-900 mb-2">✂️ Split Summary</h4>
+          <h4 className="text-sm font-medium text-orange-900 mb-2 flex items-center gap-2">
+            <ContentCut sx={{ fontSize: 16 }} />
+            <span>Split Summary</span>
+          </h4>
           <p className="text-sm text-orange-800">
             Code &ldquo;{selectedCode?.label}&rdquo; will be deleted as it has no associated highlights.
           </p>

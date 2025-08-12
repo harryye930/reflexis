@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Label } from '@mui/icons-material';
 import { CODE_COLOR_OPTIONS } from '../../constants/codeColors.js';
 import CodeButton from './HighlightModalCodeButton.js';
 import ReflexiveModal from '../reflexive/ReflexiveModal.js';
@@ -95,7 +96,7 @@ const HighlightingModal = ({
           }}
         >
           <div className="flex items-center gap-2 mb-4">
-            <span className="text-blue-500 text-lg">🏷️</span>
+            <Label sx={{ fontSize: 18, color: '#3b82f6' }} />
             <p className="text-sm text-gray-700 font-medium">Apply code to selection:</p>
           </div>
           <div id="modal-codes-list" className="grid grid-cols-2 gap-3 auto-rows-max">

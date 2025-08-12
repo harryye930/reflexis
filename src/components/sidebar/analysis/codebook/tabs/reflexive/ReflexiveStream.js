@@ -14,6 +14,7 @@
  */
 
 import React, { useState } from 'react';
+import { People, ChatBubbleOutline } from '@mui/icons-material';
 import { 
   groupResponsesByUserAndHighlight, 
   getShortPromptText, 
@@ -112,7 +113,7 @@ const ReflexiveStream = ({
       <div className="mb-6">
         <div className="filter-control bg-gradient-to-r from-slate-50 to-gray-50 border border-gray-200/60 rounded-lg p-4">
           <label className="block text-sm font-medium text-slate-700 mb-3 flex items-center gap-2">
-            <span>👥</span>
+            <People sx={{ fontSize: 18 }} />
             Filter by User
           </label>
           <select
@@ -135,7 +136,7 @@ const ReflexiveStream = ({
         {sortedGroups.length === 0 ? (
           <div className="text-center py-12 bg-gradient-to-br from-slate-50 to-gray-50 border border-gray-200/60 rounded-lg">
             <div className="mb-4">
-              <span className="text-4xl opacity-40">💭</span>
+              <ChatBubbleOutline sx={{ fontSize: 28, opacity: 0.4 }} />
             </div>
             <h3 className="text-gray-600 text-base font-medium mb-2">No reflexive responses yet</h3>
             <p className="text-gray-500 text-sm leading-relaxed max-w-sm mx-auto">

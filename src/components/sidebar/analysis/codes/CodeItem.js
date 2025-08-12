@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Delete } from '@mui/icons-material';
 import CodeChip from '../../../common/CodeChip.js';
 import DisagreementMetric from '../../../analysis/DisagreementMetric.js';
 
@@ -94,7 +95,10 @@ const CodeItem = ({
                 className="text-sm px-3 py-1 text-red-600 hover:bg-red-50 rounded-md transition-colors"
                 title="Delete code"
               >
-                🗑️ Delete
+                <span className="inline-flex items-center gap-1">
+                  <Delete sx={{ fontSize: 16 }} />
+                  Delete
+                </span>
               </button>
             </div>
           )}
@@ -151,7 +155,7 @@ const CodeItem = ({
                   title="Delete code"
                   tabIndex={-1}
                 >
-                  🗑️
+                  <Delete sx={{ fontSize: 16 }} />
                 </button>
               </div>
             )}

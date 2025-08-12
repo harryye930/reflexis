@@ -9,13 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.1",
+    "@mui/material": "^7.3.1",
     "firebase": "^11.9.1",
     "next": "15.3.4",
     "openai": "^5.10.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-  "react-draggable": "^4.5.0",
-  "reactflow": "^11.10.1"
+    "react-draggable": "^4.5.0",
+    "reactflow": "^11.10.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { BarChart, Warning, Delete, History, GpsFixed, Edit, Label, EmojiEvents, MergeType, CallSplit } from '@mui/icons-material';
 import CodeChip from '../../../../../common/CodeChip.js';
 
 // Error Boundary Component
@@ -30,16 +31,14 @@ class CodeHistoryErrorBoundary extends React.Component {
                 href="/code-history-graph"
                 className="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 ml-4"
               >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
+                <BarChart sx={{ fontSize: 16, marginRight: 1 }} />
                 Full History Graph
               </Link>
             </div>
           </div>
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg">⚠️</span>
+              <Warning sx={{ fontSize: 18, color: '#dc2626' }} />
               <h4 className="text-sm font-medium text-red-800">Error Loading History</h4>
             </div>
             <p className="text-sm text-red-600">
@@ -120,26 +119,26 @@ const CodeHistory = ({ code, userProfiles, history = [], loading = false }) => {
 
   const getEventIcon = (type) => {
     switch (type) {
-  case 'create':
-        return '🎯';
-  case 'update':
-        return '✏️';
-  case 'delete':
-        return '🗑️';
-  case 'apply':
-        return '🏷️';
+      case 'create':
+        return <GpsFixed sx={{ fontSize: 16 }} />;
+      case 'update':
+        return <Edit sx={{ fontSize: 16 }} />;
+      case 'delete':
+        return <Delete sx={{ fontSize: 16 }} />;
+      case 'apply':
+        return <Label sx={{ fontSize: 16 }} />;
       case 'usage-milestone':
-        return '🏆';
-  case 'merge':
-        return '🔀';
+        return <EmojiEvents sx={{ fontSize: 16 }} />;
+      case 'merge':
+        return <MergeType sx={{ fontSize: 16 }} />;
       case 'merge_and_delete':
-        return '🔀';
+        return <MergeType sx={{ fontSize: 16 }} />;
       case 'split':
-        return '✂️';
+        return <CallSplit sx={{ fontSize: 16 }} />;
       case 'split_and_delete':
-        return '✂️';
+        return <CallSplit sx={{ fontSize: 16 }} />;
       default:
-        return '📝';
+        return <Edit sx={{ fontSize: 16 }} />;
     }
   };
 
@@ -654,9 +653,7 @@ const CodeHistory = ({ code, userProfiles, history = [], loading = false }) => {
               href="/code-history-graph"
               className="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 ml-4"
             >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
+              <BarChart sx={{ fontSize: 16, marginRight: 1 }} />
               Full History Graph
             </Link>
           </div>
@@ -685,9 +682,7 @@ const CodeHistory = ({ code, userProfiles, history = [], loading = false }) => {
             href="/code-history-graph"
             className="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 ml-4"
           >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
+            <BarChart sx={{ fontSize: 16, marginRight: 1 }} />
             Full History Graph
           </Link>
         </div>
@@ -697,7 +692,7 @@ const CodeHistory = ({ code, userProfiles, history = [], loading = false }) => {
         {code.isDeleted && (
           <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex items-center gap-3 mb-3">
-              <span className="text-red-600">🗑️</span>
+              <Delete sx={{ fontSize: 18, color: '#dc2626' }} />
               <h4 className="text-sm font-medium text-red-800">This code has been deleted</h4>
               <CodeChip 
                 code={code}  // Pass code directly
@@ -720,9 +715,7 @@ const CodeHistory = ({ code, userProfiles, history = [], loading = false }) => {
       {history.length === 0 ? (
         <div className="text-center py-8">
           <div className="text-gray-400 mb-2">
-            <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <History sx={{ fontSize: 48, margin: '0 auto', display: 'block' }} />
           </div>
           <p className="text-gray-500 text-sm">No history yet</p>
           <p className="text-gray-400 text-xs mt-1">
@@ -748,7 +741,7 @@ const CodeHistory = ({ code, userProfiles, history = [], loading = false }) => {
                   <div className="flex items-start space-x-4 relative z-10">
                     {/* Event icon */}
                     <div className="flex-shrink-0 w-12 h-12 bg-white border-2 border-gray-200 rounded-full flex items-center justify-center relative z-20">
-                      <span className="text-lg">{getEventIcon(event.type)}</span>
+                      {getEventIcon(event.type)}
                     </div>
 
                     {/* Event content */}
@@ -780,7 +773,7 @@ const CodeHistory = ({ code, userProfiles, history = [], loading = false }) => {
                 <div key={event?.id || index} className="relative">
                   <div className="flex items-start space-x-4 relative z-10">
                     <div className="flex-shrink-0 w-12 h-12 bg-red-50 border-2 border-red-200 rounded-full flex items-center justify-center">
-                      <span className="text-lg">⚠️</span>
+                      <Warning sx={{ fontSize: 18, color: '#dc2626' }} />
                     </div>
                     <div className="flex-1 bg-red-50 border border-red-200 rounded-lg p-4">
                       <p className="text-sm text-red-600">Error displaying history event</p>

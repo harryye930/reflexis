@@ -8,7 +8,7 @@ export const REFLEXIVE_PROMPTS = {
       `What specific language in this passage led you to code it as '${codeLabel}'?`,
     shortPrompt: 'Coding Justification',
     placeholder: 'Describe the specific words, phrases, or concepts that informed your coding decision...',
-    icon: '🔍',
+  icon: null,
     type: 'justification'
   },
 
@@ -20,7 +20,7 @@ export const REFLEXIVE_PROMPTS = {
       `What personal or professional experiences make '${codeLabel}' a salient concept for you here?`,
     shortPrompt: 'Personal/Professional Perspective',
     placeholder: 'Reflect on your background, experiences, and perspectives that influence this interpretation...',
-    icon: '👤',
+  icon: null,
     type: 'positionality'
   },
 
@@ -32,7 +32,7 @@ export const REFLEXIVE_PROMPTS = {
       `Could this behavior be interpreted differently from another perspective? What evidence would support or refute alternative interpretations?`,
     shortPrompt: 'Alternative Interpretations',
     placeholder: 'Consider other possible interpretations and what evidence might support them...',
-    icon: '🔄',
+  icon: null,
     type: 'alternative'
   },
 
@@ -44,7 +44,7 @@ export const REFLEXIVE_PROMPTS = {
       `Would you like to add any additional notes or context about this highlight?`,
     shortPrompt: 'Note',
     placeholder: 'Add any quick note or context you want to remember...',
-    icon: '📝',
+  icon: null,
     type: 'note'
   }
 };

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Person } from '@mui/icons-material';
 import DisagreementMetric from '../../../../../analysis/DisagreementMetric.js';
 import { formatDisagreementPercentage } from '../../../../../../lib/utils/disagreementUtils.js';
 
@@ -45,7 +46,7 @@ const DisagreementTab = ({
         <div className="text-center">
           <div className="mb-4">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <span className="text-2xl">👤</span>
+              <Person sx={{ fontSize: 24 }} />
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">Single User Code</h3>
             <p className="text-sm text-gray-600">

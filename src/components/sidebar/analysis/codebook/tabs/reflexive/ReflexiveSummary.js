@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { Warning, Search, Person, Autorenew } from '@mui/icons-material';
 import { groupResponsesByUserAndHighlight } from '../../../../../../constants/reflexivePrompts.js';
 
 const ReflexiveSummary = ({ 
@@ -147,7 +148,7 @@ const ReflexiveSummary = ({
                 disabled={summaryLoading}
                 className="px-3 py-1.5 bg-indigo-500/90 text-white text-xs font-medium rounded-md hover:bg-indigo-600/95 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap"
               >
-                {summaryLoading ? (
+        {summaryLoading ? (
                   <>
                     <div className="w-3 h-3 border-2 border-white/60 border-t-white rounded-full animate-spin"></div>
                     <span className="hidden sm:inline">Regenerating...</span>
@@ -155,7 +156,7 @@ const ReflexiveSummary = ({
                   </>
                 ) : (
                   <>
-                    <span>🔄</span>
+          <Autorenew sx={{ fontSize: 16 }} />
                     <span className="hidden sm:inline">Regenerate</span>
                   </>
                 )}
@@ -190,7 +191,7 @@ const ReflexiveSummary = ({
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
               <div className="flex items-center gap-2 text-red-800">
-                <span>⚠️</span>
+                <Warning sx={{ fontSize: 18 }} />
                 <span className="text-sm font-medium">Error generating summary</span>
               </div>
               <p className="text-sm text-red-600 mt-1">{error}</p>
@@ -215,7 +216,7 @@ const ReflexiveSummary = ({
               {/* Linguistic Patterns */}
               <div className="analysis-section">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-lg">🔍</span>
+                  <Search sx={{ fontSize: 18 }} />
                   <h4 className="text-sm font-semibold text-slate-800">Linguistic Patterns</h4>
                 </div>
                 <div className="bg-gradient-to-br from-blue-50/80 to-blue-100/40 border border-blue-200/60 rounded-lg p-3 shadow-sm">
@@ -226,7 +227,7 @@ const ReflexiveSummary = ({
               {/* Positionality Narrative */}
               <div className="analysis-section">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-lg">👤</span>
+                  <Person sx={{ fontSize: 18 }} />
                   <h4 className="text-sm font-semibold text-slate-800">Positionality Narrative</h4>
                 </div>
                 <div className="bg-gradient-to-br from-purple-50/80 to-purple-100/40 border border-purple-200/60 rounded-lg p-3 shadow-sm">
@@ -237,7 +238,7 @@ const ReflexiveSummary = ({
               {/* Alternative Thinking Patterns */}
               <div className="analysis-section">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-lg">🔄</span>
+                  <Autorenew sx={{ fontSize: 18 }} />
                   <h4 className="text-sm font-semibold text-slate-800">Alternative Thinking Patterns</h4>
                 </div>
                 <div className="bg-gradient-to-br from-green-50/80 to-green-100/40 border border-green-200/60 rounded-lg p-3 shadow-sm">

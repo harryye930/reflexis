@@ -1,4 +1,5 @@
 import React from 'react';
+import { Autorenew } from '@mui/icons-material';
 import CodeChip from '../../../../common/CodeChip.js';
 
 const MergeStep4_ReviewMerge = ({ 
@@ -88,7 +89,9 @@ const MergeStep4_ReviewMerge = ({
       </div>
 
       <div className="bg-blue-50 rounded-lg p-4">
-        <h4 className="text-sm font-medium text-blue-900 mb-2">🔄 Merge Summary</h4>
+        <h4 className="text-sm font-medium text-blue-900 mb-2 flex items-center gap-2">
+          <Autorenew sx={{ fontSize: 16 }} />
+          <span>Merge Summary</span></h4>
         <p className="text-sm text-blue-800">
           {isNewCode ? (
             <>

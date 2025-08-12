@@ -1,4 +1,5 @@
 import React from 'react';
+import { Warning } from '@mui/icons-material';
 
 const SplitStep4_DeleteConfirmation = ({ 
   selectedCode,
@@ -74,7 +75,12 @@ const SplitStep4_DeleteConfirmation = ({
               <h4 className="font-medium text-gray-900 mb-1">Delete Original Code</h4>
               <p className="text-sm text-gray-600">
                 The code &ldquo;{selectedCode?.label}&rdquo; will be permanently deleted from your codebook.
-                {!allHighlightsReassigned && ' ⚠️ Warning: This will also delete any remaining highlights that weren\'t reassigned.'}
+                {!allHighlightsReassigned && (
+                  <span className="inline-flex items-center gap-1 ml-1 text-red-700">
+                    <Warning sx={{ fontSize: 16 }} />
+                    <span>Warning: This will also delete any remaining highlights that weren&apos;t reassigned.</span>
+                  </span>
+                )}
               </p>
             </div>
           </div>

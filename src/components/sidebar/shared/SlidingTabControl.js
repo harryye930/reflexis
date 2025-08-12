@@ -1,41 +1,28 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
+import { Category, AdminPanelSettings } from '@mui/icons-material';
 
 const SlidingTabControl = ({ activeTab, onTabChange }) => {
-  const [indicatorStyle, setIndicatorStyle] = useState({});
-  const tabsRef = useRef([]);
-
   const tabs = useMemo(() => [
     { 
       id: 'analysis', 
       label: 'Codes',
-      icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a.997.997 0 01-1.414 0l-7-7A1.997 1.997 0 013 12V7a4 4 0 014-4z" />
-        </svg>
-      )
+  icon: (<Category sx={{ fontSize: 16 }} />)
     },
     { 
       id: 'admin', 
       label: 'Admin',
-      icon: (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
-        </svg>
-      )
+  icon: (<AdminPanelSettings sx={{ fontSize: 16 }} />)
     }
   ], []);
 
-  useEffect(() => {
-    const activeIndex = tabs.findIndex(tab => tab.id === activeTab);
-    const activeTabElement = tabsRef.current[activeIndex];
-    
-    if (activeTabElement) {
-      setIndicatorStyle({
-        left: activeTabElement.offsetLeft,
-        width: activeTabElement.offsetWidth,
-      });
-    }
-  }, [activeTab, tabs]);
+  // Simple percent-based slider: equal widths, slide by index
+  const activeIndex = Math.max(0, tabs.findIndex(tab => tab.id === activeTab));
+  // Narrow the indicator a bit (total horizontal inset in px across the slot)
+  const NARROW_TOTAL_PX = 8; // 4px inset on each side
+  const indicatorStyle = useMemo(() => ({
+    left: `calc(${activeIndex} * (100% / ${tabs.length}) + ${NARROW_TOTAL_PX / 2}px)`,
+    width: `calc(100% / ${tabs.length} - ${NARROW_TOTAL_PX}px)`,
+  }), [activeIndex, tabs.length]);
 
   return (
     <div className="relative">
@@ -48,11 +35,10 @@ const SlidingTabControl = ({ activeTab, onTabChange }) => {
         />
         
         {/* Tab Buttons */}
-        <div className="relative flex">
+        <div className="flex">
           {tabs.map((tab, index) => (
             <button
               key={tab.id}
-              ref={(el) => (tabsRef.current[index] = el)}
               onClick={() => onTabChange(tab.id)}
               className={`relative flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
                 activeTab === tab.id

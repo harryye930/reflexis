@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { DeleteForever } from '@mui/icons-material';
 import { appId } from '../../../constants/index.js';
 import HoverSettings from './HoverSettings.js';
 
@@ -104,11 +105,7 @@ const AdminControls = ({
           className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white text-sm font-medium rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
           title="Complete cleanup - removes ALL data and resets application"
         >
-          <span>
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </span>
+          <DeleteForever sx={{ fontSize: 16 }} />
           <span>{isLoading ? 'Cleaning...' : 'Complete Reset'}</span>
         </button>
         <p className="text-xs text-gray-500 mt-2">
