@@ -130,12 +130,12 @@ function buildGraph(historyEntries, codesMap) {
     const bgClass = isDeleted ? 'bg-gray-200' : (codeInfo.color || 'bg-amber-300');
     const textClass = isDeleted ? 'text-gray-800' : (codeInfo.textColor || 'text-gray-800');
 
-    nodes.push({
+  nodes.push({
       id,
       type: 'historyNode',
       position: { x, y },
       data: {
-        action: (entry.type || '').toUpperCase(),
+        action: (entry.type || '').replace(/_/g, ' ').toUpperCase(),
         timestampText: formatTimestamp(t),
         codeLabel: label,
         description: entry.description || '',
@@ -160,18 +160,18 @@ function buildGraph(historyEntries, codesMap) {
     lastNodePerCode.set(codeId, id);
 
     // Store merge/split info for post-processing
-    if (entry.type === 'merged' && entry.changes?.sourceCodeIds) {
+  if ((entry.type === 'merge' || entry.type === 'merge_and_delete') && entry.changes?.sourceCodeIds) {
       entry._mergeNodeId = id;
       entry._mergeSourceIds = entry.changes.sourceCodeIds;
     }
-    if (entry.type === 'split' && entry.changes?.targetCodes?.length) {
+  if ((entry.type === 'split' || entry.type === 'split_and_delete') && entry.changes?.targetCodes?.length) {
       entry._splitNodeId = id;
     }
   });
 
   // Create merge connections
   entries
-    .filter(e => e.type === 'merged' && e._mergeSourceIds?.length)
+  .filter(e => (e.type === 'merge' || e.type === 'merge_and_delete') && e._mergeSourceIds?.length)
     .forEach(mergeEntry => {
       const mergeNodeId = mergeEntry._mergeNodeId;
       if (!mergeNodeId) return;
@@ -194,15 +194,15 @@ function buildGraph(historyEntries, codesMap) {
 
   // Create split connections  
   entries
-    .filter(e => e.type === 'split' && e.changes?.targetCodes?.length)
+  .filter(e => (e.type === 'split' || e.type === 'split_and_delete') && e.changes?.targetCodes?.length)
     .forEach(splitEntry => {
       const splitNodeId = splitEntry._splitNodeId;
       if (!splitNodeId) return;
 
-      splitEntry.changes.targetCodes.forEach(tCode => {
+    splitEntry.changes.targetCodes.forEach(tCode => {
         const targetSplitEntries = entries.filter(e => 
           e.codeId === tCode.id && 
-          (e.type === 'created' || e.type === 'split' || 
+      (e.type === 'create' || e.type === 'split' || e.type === 'split_and_delete' || 
            (e.description && e.description.toLowerCase().includes('split')))
         );
         

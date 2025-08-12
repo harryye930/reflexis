@@ -112,7 +112,7 @@ export class CodeHistoryService {
   async recordCodeCreation(codeId, codeData, userId) {
     return await this.addHistoryEntry({
       codeId,
-      type: 'created',
+  type: 'create',
       userId: userId,
       user: userId, // Will be resolved to user name in the component
       description: `Code "${codeData.label}" created`,
@@ -160,7 +160,7 @@ export class CodeHistoryService {
 
     return await this.addHistoryEntry({
       codeId,
-      type: 'updated',
+  type: 'update',
       userId: userId,
       user: userId,
       description,
@@ -172,7 +172,7 @@ export class CodeHistoryService {
   async recordCodeDeletion(codeId, codeData, userId, deletionReason = 'User deleted') {
     return await this.addHistoryEntry({
       codeId,
-      type: 'deleted',
+  type: 'delete',
       userId: userId,
       user: userId,
       description: `Code "${codeData.label}" deleted: ${deletionReason}`,
@@ -187,7 +187,7 @@ export class CodeHistoryService {
   async recordCodeApplication(codeId, codeLabel, documentId, documentTitle, userId) {
     return await this.addHistoryEntry({
       codeId,
-      type: 'applied',
+  type: 'apply',
       userId: userId,
       user: userId,
       description: `Code "${codeLabel}" applied to text in document "${documentTitle}"`,
@@ -253,7 +253,7 @@ export class CodeHistoryService {
       const usageQuery = query(
         historyCollection,
         where('codeId', '==', codeId),
-        where('type', '==', 'applied'),
+  where('type', '==', 'apply'),
         orderBy('timestamp', 'desc')
       );
       
@@ -286,7 +286,7 @@ export class CodeHistoryService {
   // Record code merge
   async recordCodeMerge(mergeData, userId) {
     try {
-      const { selectedCodes, strategy, resultConfig, targetCodeId, highlightTransferCount = 0, reflexiveResponseTransferCount = 0 } = mergeData;
+      const { selectedCodes, strategy, resultConfig, targetCodeId, highlightTransferCount = 0, reflexiveResponseTransferCount = 0, perSourceHighlightCount = {}, perSourceReflexiveCount = {} } = mergeData;
       
       // Validate input data
       if (!selectedCodes || !Array.isArray(selectedCodes) || selectedCodes.length === 0) {
@@ -298,13 +298,13 @@ export class CodeHistoryService {
       }
       
       // Record merge event for the target/result code
-      const mergeDescription = strategy === 'create_new' 
+  const mergeDescription = strategy === 'create_new' 
         ? `New code "${resultConfig.label}" created by merging ${selectedCodes.length} codes: ${selectedCodes.map(c => c.label).join(', ')}`
         : `Code "${resultConfig.label}" updated by merging ${selectedCodes.length - 1} codes: ${selectedCodes.filter(c => c.id !== targetCodeId).map(c => c.label).join(', ')}`;
 
       await this.addHistoryEntry({
       codeId: targetCodeId,
-      type: 'merged',
+  type: 'merge',
       userId: userId,
       user: userId,
       description: mergeDescription,
@@ -324,24 +324,45 @@ export class CodeHistoryService {
       }
     });
 
-    // Record deletion events for source codes (except target if merging into existing)
+    // Record combined source-side MERGE_AND_DELETE events for source codes (except target if merging into existing)
     for (const sourceCode of selectedCodes) {
       if (strategy !== 'create_new' && sourceCode.id === targetCodeId) {
         continue; // Skip target code in merge into existing strategies
       }
-      
-      await this.addHistoryEntry({
-        codeId: sourceCode.id,
-        type: 'deleted',
-        userId: userId,
-        user: userId,
-        description: `Code "${sourceCode.label}" deleted: Merged into "${resultConfig.label}"`,
-        changes: {
-          deletedData: sourceCode,
-          mergeOperation: true,
-          targetCodeId: targetCodeId
-        }
-      });
+      try {
+        await this.addHistoryEntry({
+          codeId: sourceCode.id,
+          // New combined action type per product requirement
+          type: 'merge_and_delete',
+          userId: userId,
+          user: userId,
+          description: `Code "${sourceCode.label}" merged into "${resultConfig.label}" and deleted`,
+          changes: {
+            strategy,
+            targetCode: {
+              id: targetCodeId,
+              label: resultConfig.label,
+              description: resultConfig.description,
+              color: resultConfig.color,
+              textColor: resultConfig.textColor
+            },
+            sourceCodes: selectedCodes.map(c => ({
+              id: c.id || 'unknown',
+              label: c.label,
+              description: c.description,
+              color: c.color,
+              textColor: c.textColor
+            })),
+            highlightTransferCount: perSourceHighlightCount[sourceCode.id] || 0,
+            reflexiveResponseTransferCount: perSourceReflexiveCount[sourceCode.id] || 0,
+            mergeOperation: true,
+            deleted: true,
+            targetCodeId: targetCodeId
+          }
+        });
+      } catch (e) {
+        console.warn('Failed to add source-side merged_and_deleted history entry:', e);
+      }
     }
 
     return { success: true };
@@ -354,7 +375,7 @@ export class CodeHistoryService {
   // Record code split
   async recordCodeSplit(splitData, userId) {
     try {
-      const { sourceCode, reassignments, totalHighlightsReassigned, totalReflexiveResponsesDeleted, codeDeleted } = splitData;
+      const { sourceCode, reassignments, totalHighlightsReassigned, totalReflexiveResponsesTransferred = 0, totalReflexiveResponsesDeleted, codeDeleted } = splitData;
       
       // Validate input data
       if (!sourceCode) {
@@ -386,15 +407,15 @@ export class CodeHistoryService {
         }
       }
 
-      // Record split event for the source code
+      // Record split event for the source code; if deleted, use combined SPLIT_AND_DELETE action type
       const splitDescription = `Code "${sourceCode.label}" split into ${targetCodes.length} codes: ${targetCodes.map(c => c.label).join(', ')}`;
 
       await this.addHistoryEntry({
         codeId: sourceCode.id,
-        type: 'split',
+        type: codeDeleted ? 'split_and_delete' : 'split',
         userId: userId,
         user: userId,
-        description: splitDescription,
+        description: codeDeleted ? `${splitDescription} and deleted` : splitDescription,
         changes: {
           sourceCode: {
             id: sourceCode.id,
@@ -406,6 +427,7 @@ export class CodeHistoryService {
           targetCodes,
           reassignmentCount: Object.keys(reassignments).length,
           highlightTransferCount: totalHighlightsReassigned,
+          reflexiveResponseTransferCount: totalReflexiveResponsesTransferred,
           reflexiveResponsesDeleted: totalReflexiveResponsesDeleted,
           codeDeleted
         }
@@ -414,6 +436,9 @@ export class CodeHistoryService {
       // Record application events for target codes
       for (const targetCode of targetCodes) {
         const targetHighlightCount = Object.values(reassignments).filter(a => a.newCodeId === targetCode.id).length;
+        // Compute per-target reflexive received if splitData provided it
+        const perTarget = splitData.perTargetReflexiveReceived || {};
+        const targetReflexiveCount = perTarget[targetCode.id] || 0;
         
         if (targetHighlightCount > 0) {
           await this.addHistoryEntry({
@@ -431,6 +456,7 @@ export class CodeHistoryService {
                 textColor: sourceCode.textColor
               },
               highlightsReceived: targetHighlightCount,
+              reflexiveResponsesReceived: targetReflexiveCount,
               splitOperation: true
             }
           });

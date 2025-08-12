@@ -221,8 +221,11 @@ export class CodeService {
       }
       
       // Step 2: Transfer highlights and reflexive responses from source codes to target code
-      let totalHighlightsMoved = 0;
-      let totalReflexiveResponsesMoved = 0;
+  let totalHighlightsMoved = 0;
+  let totalReflexiveResponsesMoved = 0;
+  // Track per-source transfer counts for symmetric history recording
+  const perSourceHighlightCount = {};
+  const perSourceReflexiveCount = {};
       
       try {
         // Get all highlights for source codes
@@ -249,8 +252,10 @@ export class CodeService {
           
           if (codeHighlightCount > 0) {
             await batch.commit();
-            totalHighlightsMoved += codeHighlightCount;
           }
+          // Record per-source even if zero for symmetry
+          perSourceHighlightCount[sourceCode.id] = codeHighlightCount;
+          totalHighlightsMoved += codeHighlightCount;
         }
       } catch (error) {
         console.error("Error transferring highlights: ", error);
@@ -286,8 +291,10 @@ export class CodeService {
           
           if (codeReflexiveCount > 0) {
             await batch.commit();
-            totalReflexiveResponsesMoved += codeReflexiveCount;
           }
+          // Record per-source even if zero for symmetry
+          perSourceReflexiveCount[sourceCode.id] = codeReflexiveCount;
+          totalReflexiveResponsesMoved += codeReflexiveCount;
         }
       } catch (error) {
         console.error("Error transferring reflexive responses: ", error);
@@ -324,7 +331,9 @@ export class CodeService {
           resultConfig,
           targetCodeId,
           highlightTransferCount: totalHighlightsMoved,
-          reflexiveResponseTransferCount: totalReflexiveResponsesMoved
+          reflexiveResponseTransferCount: totalReflexiveResponsesMoved,
+          perSourceHighlightCount,
+          perSourceReflexiveCount
         }, userId);
       } catch (error) {
         console.error("Error recording merge history: ", error);
@@ -413,9 +422,10 @@ export class CodeService {
         return { success: true, highlightsWithReflexive };
       }
 
-      if (type === 'executeSplit') {
-        let totalHighlightsReassigned = 0;
-        let totalReflexiveResponsesTransferred = 0;
+    if (type === 'executeSplit') {
+  let totalHighlightsReassigned = 0;
+  let totalReflexiveResponsesTransferred = 0;
+  const perTargetReflexiveReceived = {};
 
         // Step 1: Reassign highlights to new codes
         if (reassignments && Object.keys(reassignments).length > 0) {
@@ -452,6 +462,8 @@ export class CodeService {
                   });
                   totalReflexiveResponsesTransferred++;
                 });
+                // Track per-target reflexive responses received
+                perTargetReflexiveReceived[newCodeId] = (perTargetReflexiveReceived[newCodeId] || 0) + reflexiveSnapshot.docs.length;
                 
                 if (reflexiveSnapshot.docs.length > 0) {
                   await updateBatch.commit();
@@ -463,32 +475,40 @@ export class CodeService {
           }
         }
 
-        // Step 2: Check if source code should be deleted
+        // Step 2: Check if source code should be deleted, but don't delete yet
         let codeDeleted = false;
+        let shouldDeleteCode = false;
         const remainingHighlightsQuery = query(
           collection(db, `artifacts/${this.appId}/public/data/highlights`),
           where('code', '==', sourceCode.id)
         );
         const remainingSnapshot = await getDocs(remainingHighlightsQuery);
         
-        // Delete the source code only if user explicitly chose to delete it AND no highlights remain
         if (forceDeleteSourceCode === true && remainingSnapshot.empty) {
+          shouldDeleteCode = true;
+        }
+
+        // Delete the source code first if needed (skip automatic delete history)
+        if (shouldDeleteCode) {
           const deleteResult = await this.deleteCode(
             sourceCode.docId || sourceCode.id, 
             userId, 
-            'Split operation - user chose to delete source code'
+            'Split operation - user chose to delete source code',
+            true // Skip automatic delete history - we'll record it manually
           );
           codeDeleted = deleteResult.success;
         }
 
-        // Record split history
+        // Record split history AFTER potential deletion so we can mark combined action type
         try {
           await this.historyService.recordCodeSplit({
             sourceCode,
             reassignments,
             totalHighlightsReassigned,
+            totalReflexiveResponsesTransferred,
             totalReflexiveResponsesDeleted: 0, // In splits, reflexive responses are transferred, not deleted
-            codeDeleted
+            codeDeleted,
+            perTargetReflexiveReceived
           }, userId);
         } catch (error) {
           console.error("Error recording split history: ", error);

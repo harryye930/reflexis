@@ -269,36 +269,6 @@ const ReflexiveStream = ({
           })
         )}
       </div>
-
-      {/* Summary Stats */}
-      {sortedGroups.length > 0 && (
-        <div className="mt-6 p-4 bg-gradient-to-r from-slate-50 to-gray-50 border border-gray-200/60 rounded-lg shadow-sm">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-lg">📊</span>
-            <h4 className="text-sm font-semibold text-slate-700">Stream Summary</h4>
-          </div>
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div className="bg-white/60 rounded-md p-2 border border-gray-100">
-              <div className="text-gray-500 text-xs">Reflection Sessions</div>
-              <div className="font-semibold text-slate-700">{groupedResponses.length}</div>
-            </div>
-            <div className="bg-white/60 rounded-md p-2 border border-gray-100">
-              <div className="text-gray-500 text-xs">Contributors</div>
-              <div className="font-semibold text-slate-700">{uniqueUsers.length}</div>
-            </div>
-            <div className="bg-white/60 rounded-md p-2 border border-gray-100">
-              <div className="text-gray-500 text-xs">Total Responses</div>
-              <div className="font-semibold text-slate-700">{responses.length}</div>
-            </div>
-            <div className="bg-white/60 rounded-md p-2 border border-gray-100">
-              <div className="text-gray-500 text-xs">Complete Reflections</div>
-              <div className="font-semibold text-slate-700">
-                {groupedResponses.filter(g => Object.keys(g.responses).length === PROMPT_SEQUENCE.length).length}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

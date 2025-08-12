@@ -65,7 +65,7 @@ async function initializeDefaultCodes(db) {
       const historyRef = db.collection('artifacts/scholarmate-collab/public/data/code_history').doc();
       historyBatch.set(historyRef, {
         codeId: code.id,
-        type: 'created',
+        type: 'create',
         userId: 'system',
         user: 'system',
         description: `Code "${code.label}" created as part of default set`,

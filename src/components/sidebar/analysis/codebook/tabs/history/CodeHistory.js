@@ -120,19 +120,23 @@ const CodeHistory = ({ code, userProfiles, history = [], loading = false }) => {
 
   const getEventIcon = (type) => {
     switch (type) {
-      case 'created':
+  case 'create':
         return '🎯';
-      case 'updated':
+  case 'update':
         return '✏️';
-      case 'deleted':
+  case 'delete':
         return '🗑️';
-      case 'applied':
+  case 'apply':
         return '🏷️';
       case 'usage-milestone':
         return '🏆';
-      case 'merged':
+  case 'merge':
+        return '🔀';
+      case 'merge_and_delete':
         return '🔀';
       case 'split':
+        return '✂️';
+      case 'split_and_delete':
         return '✂️';
       default:
         return '📝';
@@ -141,23 +145,33 @@ const CodeHistory = ({ code, userProfiles, history = [], loading = false }) => {
 
   const getEventColor = (type) => {
     switch (type) {
-      case 'created':
+  case 'create':
         return 'bg-green-100 text-green-800';
-      case 'updated':
+  case 'update':
         return 'bg-blue-100 text-blue-800';
-      case 'deleted':
+  case 'delete':
         return 'bg-red-100 text-red-800';
-      case 'applied':
+  case 'apply':
         return 'bg-purple-100 text-purple-800';
       case 'usage-milestone':
         return 'bg-yellow-100 text-yellow-800';
-      case 'merged':
+  case 'merge':
+        return 'bg-orange-100 text-orange-800';
+      case 'merge_and_delete':
         return 'bg-orange-100 text-orange-800';
       case 'split':
+        return 'bg-orange-100 text-orange-800';
+      case 'split_and_delete':
         return 'bg-orange-100 text-orange-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const formatTypeLabel = (type) => {
+    if (type === 'merge_and_delete') return 'Merge and Delete';
+    if (type === 'split_and_delete') return 'Split and Delete';
+    return type.charAt(0).toUpperCase() + type.slice(1);
   };
 
   // Helper function to parse and style code names in text
@@ -165,7 +179,7 @@ const CodeHistory = ({ code, userProfiles, history = [], loading = false }) => {
     if (!text) return text;
     
     // For split events, handle the special pattern "split into X codes: code1, code2, ..."
-    if (event?.type === 'split') {
+  if (event?.type === 'split' || event?.type === 'split_and_delete') {
       const splitPattern = /split into \d+ codes: (.+)$/;
       const splitMatch = text.match(splitPattern);
       
@@ -205,9 +219,9 @@ const CodeHistory = ({ code, userProfiles, history = [], loading = false }) => {
       }
     }
     
-    // For "applied" events, we only want to style the code name, not document titles
-    // The format is: Code "CodeName" applied to text in "DocumentTitle"
-    if (event?.type === 'applied') {
+  // For apply events, we only want to style the code name, not document titles
+  // The format is: Code "CodeName" applied to text in "DocumentTitle"
+  if (event?.type === 'apply') {
       // Only style the first quoted item (which should be the code name)
       const codeNameMatch = text.match(/Code "([^"]+)"/);
       if (codeNameMatch) {
@@ -390,7 +404,7 @@ const CodeHistory = ({ code, userProfiles, history = [], loading = false }) => {
 
     try {
       switch (event.type) {
-      case 'updated':
+  case 'update':
         return (
           <div className="mt-3 p-3 bg-gray-50 rounded-md">
             {event.changes.label && (
@@ -473,7 +487,8 @@ const CodeHistory = ({ code, userProfiles, history = [], loading = false }) => {
           </div>
         );
       
-      case 'merged':
+  case 'merge':
+  case 'merge_and_delete':
         return (
           <div className="mt-3 p-3 bg-gray-50 rounded-md">
             <div className="space-y-2">
@@ -481,6 +496,19 @@ const CodeHistory = ({ code, userProfiles, history = [], loading = false }) => {
                 <div>
                   <span className="text-xs font-medium text-orange-600">Strategy:</span>
                   {renderMergeStrategy(event.changes.strategy, event)}
+                </div>
+              )}
+              {/* For source-side merged events, show the destination */}
+              {event.changes.targetCode && (
+                <div>
+                  <span className="text-xs font-medium text-orange-600">Merged Into:</span>
+                  <div className="mt-1">
+                    <CodeChip 
+                      code={event.changes.targetCode}
+                      size="md"
+                      variant="unified"
+                    />
+                  </div>
                 </div>
               )}
               {event.changes.sourceCodes && Array.isArray(event.changes.sourceCodes) && (
@@ -523,7 +551,8 @@ const CodeHistory = ({ code, userProfiles, history = [], loading = false }) => {
           </div>
         );
       
-      case 'split':
+  case 'split':
+  case 'split_and_delete':
         return (
           <div className="mt-3 p-3 bg-gray-50 rounded-md">
             <div className="space-y-2">
@@ -572,6 +601,18 @@ const CodeHistory = ({ code, userProfiles, history = [], loading = false }) => {
                   {((event.changes.highlightsReceived || event.changes.highlightTransferCount || 0) === 0) && (event.changes.splitOperation ? ' (no highlights received)' : ' (no highlights to reassign)')}
                 </p>
               </div>
+              {/* Show reflexive information if present */}
+              {(event.changes.reflexiveResponseTransferCount != null || event.changes.reflexiveResponsesReceived != null) && (
+                <div>
+                  <span className="text-xs font-medium text-orange-600">
+                    {event.changes.splitOperation ? 'Reflexive Responses Received:' : 'Reflexive Responses Transferred:'}
+                  </span>
+                  <p className="text-xs text-gray-700 mt-1">
+                    {(event.changes.reflexiveResponsesReceived != null ? event.changes.reflexiveResponsesReceived : (event.changes.reflexiveResponseTransferCount || 0))} reflexive response{((event.changes.reflexiveResponsesReceived != null ? event.changes.reflexiveResponsesReceived : (event.changes.reflexiveResponseTransferCount || 0)) !== 1) ? 's' : ''}
+                    {((event.changes.reflexiveResponsesReceived != null ? event.changes.reflexiveResponsesReceived : (event.changes.reflexiveResponseTransferCount || 0)) === 0) && (event.changes.splitOperation ? ' (no reflexive responses received)' : ' (no reflexive responses to transfer)')}
+                  </p>
+                </div>
+              )}
               {/* Show if original code was deleted */}
               {event.changes.codeDeleted && (
                 <div>
@@ -714,7 +755,7 @@ const CodeHistory = ({ code, userProfiles, history = [], loading = false }) => {
                 <div className="flex-1 bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
                   <div className="flex items-center justify-between mb-2">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getEventColor(event.type)}`}>
-                      {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
+                      {formatTypeLabel(event.type)}
                     </span>
                     <span className="text-xs text-gray-500">{formatTimestamp(event.timestamp)}</span>
                   </div>
