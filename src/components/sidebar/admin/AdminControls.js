@@ -58,7 +58,7 @@ const AdminControls = ({
       const result = await response.json();
 
       if (result.success) {
-        const deletedUsers = result.result?.deletedCount || 0;
+        const deletedUsers = result.result?.usersDeleted || 0;
         const deletedHighlights = result.result?.highlightsDeleted || 0;
         
         onMessage(
@@ -69,7 +69,7 @@ const AdminControls = ({
         // Force browser refresh immediately to register as new user
         setTimeout(() => {
           window.location.reload(true); // true forces reload from server, not cache
-        }, 1500);
+        }, 3000);
       } else {
         onMessage(`❌ Cleanup failed: ${result.error || 'Unknown error'}`, true);
       }
