@@ -154,6 +154,15 @@ function buildGraph(historyEntries, codesMap) {
         target: id, 
         sourceHandle: 'right',
         targetHandle: 'left',
+        style: {
+          strokeWidth: 1.5
+        },
+        markerEnd: {
+          type: 'arrowclosed',
+          color: '#6B7280',
+          width: 15,
+          height: 15
+        },
         animated: true 
       });
     }
@@ -186,7 +195,28 @@ function buildGraph(historyEntries, codesMap) {
             target: mergeNodeId, 
             sourceHandle: 'right',
             targetHandle: 'left',
-            style: { stroke: '#7C3AED' } 
+            label: 'MERGE',
+            labelStyle: { 
+              fontSize: '10px', 
+              fontWeight: 'bold', 
+              fill: '#7C3AED',
+              backgroundColor: 'white',
+              padding: '2px 4px',
+              borderRadius: '3px',
+              border: '1px solid #7C3AED'
+            },
+            labelBgStyle: { fill: 'white', fillOpacity: 0.9 },
+            style: { 
+              stroke: '#7C3AED',
+              strokeWidth: 2
+            },
+            markerEnd: {
+              type: 'arrowclosed',
+              color: '#7C3AED',
+              width: 20,
+              height: 20
+            },
+            animated: true
           });
         }
       });
@@ -216,7 +246,28 @@ function buildGraph(historyEntries, codesMap) {
               target: `${targetEntry.id}`, 
               sourceHandle: 'right',
               targetHandle: 'left',
-              style: { stroke: '#EA580C' } 
+              label: 'SPLIT',
+              labelStyle: { 
+                fontSize: '10px', 
+                fontWeight: 'bold', 
+                fill: '#EA580C',
+                backgroundColor: 'white',
+                padding: '2px 4px',
+                borderRadius: '3px',
+                border: '1px solid #EA580C'
+              },
+              labelBgStyle: { fill: 'white', fillOpacity: 0.9 },
+              style: { 
+                stroke: '#EA580C',
+                strokeWidth: 2
+              },
+              markerEnd: {
+                type: 'arrowclosed',
+                color: '#EA580C',
+                width: 20,
+                height: 20
+              },
+              animated: true
             });
             break;
           }
