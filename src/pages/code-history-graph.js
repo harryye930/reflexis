@@ -51,9 +51,11 @@ const HistoryNode = ({ data, selected }) => {
       className={`${data.className} ${selected ? 'ring-2 ring-blue-400' : ''} ${zoomedOut ? 'py-3' : ''}`}
       style={data.style}
     >
-      <Handle type="target" position="left" style={{ background: '#555' }} />
+  {/* Explicit handle IDs so edges can target left/right intentionally */}
+  <Handle type="target" position="left" id="target-left" style={{ background: '#555' }} />
+  <Handle type="target" position="right" id="target-right" style={{ background: '#555' }} />
       {display}
-      <Handle type="source" position="right" style={{ background: '#555' }} />
+  <Handle type="source" position="right" id="source-right" style={{ background: '#555' }} />
     </div>
   );
 };
@@ -152,8 +154,8 @@ function buildGraph(historyEntries, codesMap) {
         id: `${codeId}-${prevId}->${id}`, 
         source: prevId, 
         target: id, 
-        sourceHandle: 'right',
-        targetHandle: 'left',
+        sourceHandle: 'source-right',
+        targetHandle: 'target-left',
         style: {
           strokeWidth: 1.5
         },
@@ -193,9 +195,9 @@ function buildGraph(historyEntries, codesMap) {
             id: `merge-${srcId}->${mergeNodeId}`, 
             source: sourceLastNode, 
             target: mergeNodeId, 
-            sourceHandle: 'right',
-            targetHandle: 'left',
-            label: 'MERGE',
+            sourceHandle: 'source-right',
+            targetHandle: 'target-right',
+            label: 'MERGE INTO',
             labelStyle: { 
               fontSize: '10px', 
               fontWeight: 'bold', 
@@ -209,12 +211,6 @@ function buildGraph(historyEntries, codesMap) {
             style: { 
               stroke: '#7C3AED',
               strokeWidth: 2
-            },
-            markerEnd: {
-              type: 'arrowclosed',
-              color: '#7C3AED',
-              width: 20,
-              height: 20
             },
             animated: true
           });
@@ -244,9 +240,9 @@ function buildGraph(historyEntries, codesMap) {
               id: `split-${splitNodeId}->${targetEntry.id}`, 
               source: splitNodeId, 
               target: `${targetEntry.id}`, 
-              sourceHandle: 'right',
-              targetHandle: 'left',
-              label: 'SPLIT',
+              sourceHandle: 'source-right',
+              targetHandle: 'target-right',
+              label: 'SPLIT INTO',
               labelStyle: { 
                 fontSize: '10px', 
                 fontWeight: 'bold', 
@@ -260,12 +256,6 @@ function buildGraph(historyEntries, codesMap) {
               style: { 
                 stroke: '#EA580C',
                 strokeWidth: 2
-              },
-              markerEnd: {
-                type: 'arrowclosed',
-                color: '#EA580C',
-                width: 20,
-                height: 20
               },
               animated: true
             });
