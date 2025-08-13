@@ -6,7 +6,7 @@ const openai = new OpenAI({
 
 // Local test flag - set to true to always return drift detected (for testing)
 const FORCE_DRIFT_FOR_TESTING = false;
-const DISABLED = true;
+const DISABLED = false;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {

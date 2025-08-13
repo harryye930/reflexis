@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { DeleteForever } from '@mui/icons-material';
 import { appId } from '../../../constants/index.js';
-import HoverSettings from './HoverSettings.js';
+import AdminToggles from './AdminToggles.js';
 
 const AdminControls = ({ 
   onMessage,
@@ -10,7 +10,9 @@ const AdminControls = ({
   onToggleHoverTooltips,
   onToggleAuthorInfo,
   disableHighlightManagement,
-  onToggleDisableHighlightManagement
+  onToggleDisableHighlightManagement,
+  disableCodeDriftDetection,
+  onToggleDisableCodeDriftDetection
 }) => {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -86,13 +88,15 @@ const AdminControls = ({
     <div className="space-y-6">
       {/* Hover Settings */}
       <div>
-        <HoverSettings
+        <AdminToggles
           showHoverTooltips={showHoverTooltips}
           showAuthorInfo={showAuthorInfo}
           onToggleHoverTooltips={onToggleHoverTooltips}
           onToggleAuthorInfo={onToggleAuthorInfo}
           disableHighlightManagement={disableHighlightManagement}
           onToggleDisableHighlightManagement={onToggleDisableHighlightManagement}
+          disableCodeDriftDetection={disableCodeDriftDetection}
+          onToggleDisableCodeDriftDetection={onToggleDisableCodeDriftDetection}
         />
       </div>
       

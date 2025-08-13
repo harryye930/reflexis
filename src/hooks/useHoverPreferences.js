@@ -4,6 +4,7 @@ export const useHoverPreferences = (appId) => {
   const [showHoverTooltips, setShowHoverTooltips] = useState(true);
   const [showAuthor, setShowAuthor] = useState(true); // Show author info by default - true = show individual colors and names, false = unified color and no names
   const [disableHighlightManagement, setDisableHighlightManagement] = useState(false);
+  const [disableCodeDriftDetection, setDisableCodeDriftDetection] = useState(false);
 
   // Load preferences from localStorage on mount
   useEffect(() => {
@@ -15,6 +16,7 @@ export const useHoverPreferences = (appId) => {
         // Handle legacy storage key: showAuthorInfo was inverted logic (codes only)
         setShowAuthor(!(prefs.showAuthorInfo ?? false)); // Invert legacy value
         setDisableHighlightManagement(prefs.disableHighlightManagement ?? false);
+        setDisableCodeDriftDetection(prefs.disableCodeDriftDetection ?? false);
       } catch (error) {
         console.warn('Error loading hover preferences:', error);
       }
@@ -26,10 +28,11 @@ export const useHoverPreferences = (appId) => {
     const prefs = {
       showHoverTooltips,
       showAuthorInfo: !showAuthor, // Keep legacy key but invert for backwards compatibility
-      disableHighlightManagement
+      disableHighlightManagement,
+      disableCodeDriftDetection
     };
     localStorage.setItem(`hoverPrefs_${appId}`, JSON.stringify(prefs));
-  }, [appId, showHoverTooltips, showAuthor, disableHighlightManagement]);
+  }, [appId, showHoverTooltips, showAuthor, disableHighlightManagement, disableCodeDriftDetection]);
 
   const toggleHoverTooltips = () => {
     setShowHoverTooltips(prev => !prev);
@@ -43,12 +46,18 @@ export const useHoverPreferences = (appId) => {
     setDisableHighlightManagement(prev => !prev);
   };
 
+  const toggleDisableCodeDriftDetection = () => {
+    setDisableCodeDriftDetection(prev => !prev);
+  };
+
   return {
     showHoverTooltips,
     showAuthorInfo: showAuthor, // Export with correct logic
     toggleHoverTooltips,
     toggleAuthorInfo: toggleAuthor,
     disableHighlightManagement,
-    toggleDisableHighlightManagement
+    toggleDisableHighlightManagement,
+    disableCodeDriftDetection,
+    toggleDisableCodeDriftDetection
   };
 };

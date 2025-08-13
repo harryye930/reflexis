@@ -12,7 +12,9 @@ const AdminTab = ({
   onToggleHoverTooltips,
   onToggleAuthorInfo,
   disableHighlightManagement,
-  onToggleDisableHighlightManagement
+  onToggleDisableHighlightManagement,
+  disableCodeDriftDetection,
+  onToggleDisableCodeDriftDetection
 }) => {
   // Get current user profile from userProfiles
   const currentUserProfile = currentUser ? userProfiles[currentUser.uid] : null;
@@ -50,6 +52,8 @@ const AdminTab = ({
         onToggleAuthorInfo={onToggleAuthorInfo}
         disableHighlightManagement={disableHighlightManagement}
         onToggleDisableHighlightManagement={onToggleDisableHighlightManagement}
+        disableCodeDriftDetection={disableCodeDriftDetection}
+        onToggleDisableCodeDriftDetection={onToggleDisableCodeDriftDetection}
       />
     </div>
   );

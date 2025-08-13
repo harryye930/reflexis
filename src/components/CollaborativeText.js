@@ -21,7 +21,7 @@ import UserProfileSetup from './UserProfileSetup.js';
 import DocumentBrowser from './document/DocumentBrowser.js';
 import Sidebar from './sidebar/Sidebar.js';
 import DocumentHeader from './document/DocumentHeader.js';
-import SemanticDriftModal from './semantic-drift/SemanticDriftModal.js';
+import CodeDriftModal from './code-drift/CodeDriftModal.js';
 
 function CollaborativeTextContent() {
   // Custom hooks for data management
@@ -53,7 +53,9 @@ function CollaborativeTextContent() {
     toggleHoverTooltips, 
     toggleAuthorInfo,
     disableHighlightManagement,
-    toggleDisableHighlightManagement
+    toggleDisableHighlightManagement,
+    disableCodeDriftDetection,
+    toggleDisableCodeDriftDetection
   } = useHoverPreferences(appId);
   
   // Highlight management hook
@@ -86,7 +88,8 @@ function CollaborativeTextContent() {
     highlights, 
     addHighlight, 
     deleteHighlight,
-    appId // Add appId parameter
+    appId, // Add appId parameter
+    disableCodeDriftDetection // Add disableCodeDriftDetection parameter
   );
 
   useUserActivity(appId, currentUser);
@@ -189,6 +192,8 @@ function CollaborativeTextContent() {
           onToggleAuthorInfo={toggleAuthorInfo}
           disableHighlightManagement={disableHighlightManagement}
           onToggleDisableHighlightManagement={toggleDisableHighlightManagement}
+          disableCodeDriftDetection={disableCodeDriftDetection}
+          onToggleDisableCodeDriftDetection={toggleDisableCodeDriftDetection}
           onNavigateToHighlight={handleNavigateToHighlight}
           getCodeDisagreement={getCodeDisagreement}
         />
@@ -209,7 +214,7 @@ function CollaborativeTextContent() {
 
       {/* Semantic Drift Modal */}
       {showDriftModal && (
-        <SemanticDriftModal
+        <CodeDriftModal
           isOpen={showDriftModal}
           onClose={closeDriftModal}
           driftData={driftData}

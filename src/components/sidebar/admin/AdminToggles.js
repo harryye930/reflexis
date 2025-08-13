@@ -1,12 +1,14 @@
 import React from 'react';
 
-const HoverSettings = ({ 
+const AdminToggles = ({ 
   showHoverTooltips, 
   showAuthorInfo, 
   onToggleHoverTooltips, 
   onToggleAuthorInfo,
   disableHighlightManagement,
-  onToggleDisableHighlightManagement
+  onToggleDisableHighlightManagement,
+  disableCodeDriftDetection,
+  onToggleDisableCodeDriftDetection
 }) => {
   return (
     <div className="space-y-3">
@@ -72,9 +74,29 @@ const HoverSettings = ({
             />
           </button>
         </div>
+
+        {/* Toggle for code drift detection */}
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <label className="text-sm text-gray-600">Enable code drift detection</label>
+            <p className="text-xs text-gray-500">Detect and prevent conceptual drift when applying codes to text</p>
+          </div>
+          <button
+            onClick={onToggleDisableCodeDriftDetection}
+            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+              !disableCodeDriftDetection ? 'bg-blue-600' : 'bg-gray-200'
+            }`}
+          >
+            <span
+              className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                !disableCodeDriftDetection ? 'translate-x-5' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
-export default HoverSettings;
+export default AdminToggles;

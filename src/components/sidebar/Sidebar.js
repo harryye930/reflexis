@@ -26,6 +26,8 @@ const Sidebar = ({
   onToggleAuthorInfo,
   disableHighlightManagement,
   onToggleDisableHighlightManagement,
+  disableCodeDriftDetection,
+  onToggleDisableCodeDriftDetection,
   // Navigation props
   onNavigateToHighlight,
   // Disagreement analysis props
@@ -129,6 +131,8 @@ const Sidebar = ({
             onToggleAuthorInfo={onToggleAuthorInfo}
             disableHighlightManagement={disableHighlightManagement}
             onToggleDisableHighlightManagement={onToggleDisableHighlightManagement}
+            disableCodeDriftDetection={disableCodeDriftDetection}
+            onToggleDisableCodeDriftDetection={onToggleDisableCodeDriftDetection}
           />
         );
       

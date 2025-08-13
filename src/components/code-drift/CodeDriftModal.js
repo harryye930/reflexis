@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import MultiStepModal from '../common/MultiStepModal.js';
 import CodeForm from '../sidebar/analysis/codes/CodeForm.js';
 
-const SemanticDriftModal = ({ 
+const CodeDriftModal = ({ 
   isOpen,
   onClose,
   driftData,
@@ -357,7 +357,7 @@ const SemanticDriftModal = ({
 
   return (
     <MultiStepModal
-      title="Semantic Drift Detected"
+      title="Code Drift Detected"
       isOpen={isOpen}
       onClose={onClose}
       currentStep={step}
@@ -375,4 +375,4 @@ const SemanticDriftModal = ({
   );
 };
 
-export default SemanticDriftModal;
+export default CodeDriftModal;

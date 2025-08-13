@@ -117,7 +117,7 @@ export class SemanticDriftService {
    */
   async _analyzeDriftWithLLM({ codeName, codeDefinition, existingExamples, newPassage }) {
     try {
-      const response = await fetch('/api/semantic-drift/detect', {
+      const response = await fetch('/api/code-drift/detect', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

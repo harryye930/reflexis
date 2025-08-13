@@ -10,7 +10,8 @@ export const useHighlightManagement = (
   highlights, 
   addHighlight, 
   deleteHighlight,
-  appId = 'default' // Add appId parameter for semantic drift service
+  appId = 'default', // Add appId parameter for semantic drift service
+  disableCodeDriftDetection = false // Add parameter to disable code drift detection
 ) => {
   const [currentSelection, setCurrentSelection] = useState(null);
   const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
@@ -33,7 +34,7 @@ export const useHighlightManagement = (
     closeDriftModal,
     getPendingHighlight,
     clearDriftState
-  } = useSemanticDrift(services, currentUser);
+  } = useSemanticDrift(services, currentUser, disableCodeDriftDetection);
 
   const handleTextSelection = (selection, position, shouldShow) => {
     setCurrentSelection(selection);

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export const useSemanticDrift = (services, currentUser) => {
+export const useSemanticDrift = (services, currentUser, disableCodeDriftDetection = false) => {
   const [isDetecting, setIsDetecting] = useState(false);
   const [driftData, setDriftData] = useState(null);
   const [showDriftModal, setShowDriftModal] = useState(false);
@@ -17,6 +17,17 @@ export const useSemanticDrift = (services, currentUser) => {
   const detectDrift = async (highlightData) => {
     if (!currentUser || !highlightData || !services) {
       return { success: false, error: 'Missing required data for drift detection' };
+    }
+
+    // Check if code drift detection is disabled by admin
+    if (disableCodeDriftDetection) {
+      return { success: true, driftDetected: false, reason: 'Code drift detection disabled by admin' };
+    }
+
+    // Check if reflexive modal is open (users are in reflexive mode)
+    const isReflexiveModalOpen = document.querySelector('.reflexive-modal');
+    if (isReflexiveModalOpen) {
+      return { success: true, driftDetected: false, reason: 'Reflexive mode active - drift detection disabled' };
     }
 
     setIsDetecting(true);
