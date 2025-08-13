@@ -6,39 +6,11 @@ admin.initializeApp();
 // Default codes configuration
 const DEFAULT_CODES = [
   { 
-    id: 'key_insight', 
-    label: 'Key Insight', 
-    description: 'Mark important discoveries or realizations from the text',
-    color: 'bg-blue-200', 
-    textColor: 'text-blue-800' 
-  },
-  { 
-    id: 'question', 
-    label: 'Question', 
-    description: 'Highlight areas that raise questions or need clarification',
-    color: 'bg-yellow-200', 
-    textColor: 'text-yellow-800' 
-  },
-  { 
-    id: 'agreement', 
-    label: 'Agreement', 
-    description: 'Mark text you agree with or that supports your views',
-    color: 'bg-green-200', 
-    textColor: 'text-green-800' 
-  },
-  { 
-    id: 'disagreement', 
-    label: 'Disagreement', 
-    description: 'Highlight text you disagree with or find problematic',
-    color: 'bg-red-200', 
-    textColor: 'text-red-800' 
-  },
-  { 
-    id: 'important_quote', 
-    label: 'Important Quote', 
-    description: 'Mark significant quotes worth referencing later',
-    color: 'bg-purple-200', 
-    textColor: 'text-purple-800' 
+    id: 'default_code', 
+    label: 'Default Code', 
+    description: 'Default description',
+    color: 'bg-gray-200', 
+    textColor: 'text-gray-800' 
   }
 ];
 

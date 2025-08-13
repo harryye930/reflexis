@@ -66,12 +66,6 @@ export const useCodes = (appId, currentUser) => {
     return await codeService.deleteCode(docId, currentUser.uid, 'User deleted');
   };
 
-  const initializeDefaultCodes = async () => {
-    if (!currentUser) return { success: false, error: 'User not authenticated' };
-
-    return await codeService.initializeDefaultCodes(availableCodes, currentUser.uid);
-  };
-
   const mergeCodes = async (mergeData) => {
     if (!currentUser) return { success: false, error: 'User not authenticated' };
 
@@ -94,7 +88,6 @@ export const useCodes = (appId, currentUser) => {
     addCode, 
     updateCode, 
     deleteCode, 
-    initializeDefaultCodes,
     mergeCodes,
     splitCode
   };
