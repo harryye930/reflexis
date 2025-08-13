@@ -96,13 +96,12 @@ Where:
 
     // Call OpenAI API
     const response = await openai.chat.completions.create({
-      model: 'gpt-4.1',
+      model: 'gpt-5-mini',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
       ],
-      temperature: 0.3, // Lower temperature for more consistent analysis
-      max_tokens: 500,
+      reasoning_effort: "low"
     });
 
     const responseText = response.choices[0].message.content.trim();

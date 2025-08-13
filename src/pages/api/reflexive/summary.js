@@ -52,11 +52,12 @@ Please provide a structured analysis with exactly three sections:
 Each section should be 2-3 sentences that synthesize patterns and provide actionable insights for the researcher's self-awareness.`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4.1",
+      model: "gpt-5",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }
       ],
+      reasoning_effort: "low",
       response_format: {
         type: "json_schema",
         json_schema: {
@@ -82,8 +83,6 @@ Each section should be 2-3 sentences that synthesize patterns and provide action
           }
         }
       },
-      temperature: 0.7,
-      max_tokens: 800
     });
 
     const analysis = JSON.parse(completion.choices[0].message.content);

@@ -63,21 +63,23 @@ ${researcherDescriptions}
 CODE DEFINITIONS:
 ${codeDefinitionsText}
 
-Please generate a concise "Insight Opportunity" prompt (1-2 sentences) that:
+Please generate a concise Insight Opportunity prompt (1-2 sentences) that:
 - Acknowledges both perspectives as valuable
 - Encourages exploration of how their backgrounds influenced their interpretations
 - References the specific meanings of the codes they applied
 - Highlights what this difference reveals about the data's complexity
 - Promotes collaborative reflection rather than consensus-seeking
+- Keep it personal and relatable to coders. Address to them directly.
 
 Frame it as an opportunity for deeper understanding, not a problem to solve.`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4.1",
+      model: "gpt-5",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }
       ],
+      reasoning_effort: "low",
       response_format: {
         type: "json_schema",
         json_schema: {
@@ -99,8 +101,6 @@ Frame it as an opportunity for deeper understanding, not a problem to solve.`;
           }
         }
       },
-      temperature: 0.7,
-      max_tokens: 500
     });
 
     const result = JSON.parse(completion.choices[0].message.content);
