@@ -1,6 +1,7 @@
 import React from 'react';
 import CollaboratorLegend from './CollaboratorLegend.js';
 import AdminControls from './AdminControls.js';
+import ResearcherProfile from './ResearcherProfile.js';
 
 const AdminTab = ({ 
   userProfiles,
@@ -13,6 +14,9 @@ const AdminTab = ({
   disableHighlightManagement,
   onToggleDisableHighlightManagement
 }) => {
+  // Get current user profile from userProfiles
+  const currentUserProfile = currentUser ? userProfiles[currentUser.uid] : null;
+
   return (
     <div className="p-6">
       <div className="mb-6">
@@ -21,6 +25,13 @@ const AdminTab = ({
           Manage application settings and perform administrative tasks
         </p>
       </div>
+      
+      {/* Researcher Profile Section */}
+      <ResearcherProfile 
+        currentUser={currentUser}
+        currentUserProfile={currentUserProfile}
+        onMessage={onMessage}
+      />
       
       {/* Collaborators Section */}
       <div className="mb-6">
