@@ -71,7 +71,7 @@ function CollaborativeTextContent() {
     deleteHighlightsByCode,
     closeModal,
     isSelectionActive,
-    // Semantic drift related
+    //conceptual drift related
     isDetecting,
     driftData,
     showDriftModal,
@@ -104,8 +104,8 @@ function CollaborativeTextContent() {
   );
 
   // Enhanced handlers with message feedback
-  const handleAddHighlight = async (code) => {
-    const result = await baseHandleAddHighlight(code);
+  const handleAddHighlight = async (code, options = {}) => {
+    const result = await baseHandleAddHighlight(code, options);
     if (result.success) {
       showMessage('Highlight added!');
     } else {
@@ -212,7 +212,7 @@ function CollaborativeTextContent() {
         />
       )}
 
-      {/* Semantic Drift Modal */}
+      {/* Conceptual Drift Modal */}
       {showDriftModal && (
         <CodeDriftModal
           isOpen={showDriftModal}

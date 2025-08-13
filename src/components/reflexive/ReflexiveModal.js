@@ -85,7 +85,7 @@ const ReflexiveModal = ({
     >
       <div
         ref={nodeRef}
-        className="absolute z-[200]"
+        className="absolute z-[200] reflexive-modal"
         style={{ 
           left: modalPosition.x,
           top: modalPosition.y

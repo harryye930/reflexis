@@ -4,7 +4,7 @@ import { CodeService } from './codeService.js';
 import { CodeHistoryService } from './codeHistoryService.js';
 import { HighlightService } from './highlightService.js';
 import { UserService } from './userService.js';
-import { SemanticDriftService } from './semanticDriftService.js';
+import { ConceptualDriftService } from './conceptualDriftService.js';
 
 export class FirebaseServiceFactory {
   constructor(appId) {
@@ -15,7 +15,7 @@ export class FirebaseServiceFactory {
     this._codeHistoryService = null;
     this._highlightService = null;
     this._userService = null;
-    this._semanticDriftService = null;
+    this._conceptualDriftService = null;
   }
 
   get auth() {
@@ -69,11 +69,11 @@ export class FirebaseServiceFactory {
     return this._userService;
   }
 
-  get semanticDrift() {
-    if (!this._semanticDriftService) {
-      this._semanticDriftService = new SemanticDriftService(this.appId);
+  get conceptualDrift() {
+    if (!this._conceptualDriftService) {
+      this._conceptualDriftService = new ConceptualDriftService(this.appId);
     }
-    return this._semanticDriftService;
+    return this._conceptualDriftService;
   }
 }
 
@@ -84,4 +84,4 @@ export { CodeService } from './codeService.js';
 export { CodeHistoryService } from './codeHistoryService.js';
 export { HighlightService } from './highlightService.js';
 export { UserService } from './userService.js';
-export { SemanticDriftService } from './semanticDriftService.js';
+export { ConceptualDriftService } from './conceptualDriftService.js';

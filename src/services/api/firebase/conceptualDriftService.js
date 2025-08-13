@@ -2,21 +2,21 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../../lib/firebase.js';
 import { CodeService } from './codeService.js';
 
-export class SemanticDriftService {
+export class ConceptualDriftService {
   constructor(appId) {
     this.appId = appId;
     this.codeService = new CodeService(appId);
   }
 
   /**
-   * Detect semantic drift by analyzing a new passage against existing code examples
+   * Detect conceptual drift by analyzing a new passage against existing code examples
    * @param {Object} params - Detection parameters
    * @param {string} params.codeId - The code ID to check against
    * @param {string} params.newPassage - The new text passage to analyze
    * @param {string} params.documentId - Current document ID
    * @returns {Object} Drift detection result
    */
-  async detectSemanticDrift({ codeId, newPassage, documentId }) {
+  async detectConceptualDrift({ codeId, newPassage, documentId }) {
     try {
       // Get the code definition using existing CodeService
       const codeResult = await this.codeService.getCode(codeId);
@@ -40,14 +40,14 @@ export class SemanticDriftService {
           success: true,
           data: {
             drift_detected: false,
-            explanation: 'Insufficient examples for semantic drift detection',
+            explanation: 'Insufficient examples for conceptual drift detection',
             suggested_definition: null,
             examples_count: examples.length
           }
         };
       }
 
-      // Call LLM API for semantic drift analysis
+      // Call LLM API for conceptual drift analysis
       const driftResult = await this._analyzeDriftWithLLM({
         codeName: code.label,
         codeDefinition: code.description,
@@ -58,7 +58,7 @@ export class SemanticDriftService {
       return driftResult;
 
     } catch (error) {
-      console.error('Error detecting semantic drift:', error);
+      console.error('Error detecting conceptual drift:', error);
       return { success: false, error: error.message };
     }
   }
@@ -112,7 +112,7 @@ export class SemanticDriftService {
   }
 
   /**
-   * Analyze semantic drift using LLM
+   * Analyze conceptual drift using LLM
    * @private
    */
   async _analyzeDriftWithLLM({ codeName, codeDefinition, existingExamples, newPassage }) {
@@ -147,18 +147,18 @@ export class SemanticDriftService {
       };
 
     } catch (error) {
-      console.error('Error calling LLM API for semantic drift detection:', error);
+      console.error('Error calling LLM API for conceptual drift detection:', error);
       return { 
         success: false, 
-        error: `Failed to analyze semantic drift: ${error.message}` 
+        error: `Failed to analyze conceptual drift: ${error.message}` 
       };
     }
   }
 
   /**
-   * Get semantic drift history for a code (for analytics/debugging)
+   * Get conceptual drift history for a code (for analytics/debugging)
    */
-  async getSemanticDriftHistory(codeId) {
+  async getConceptualDriftHistory(codeId) {
     try {
       // This could be implemented to track drift detection events
       // For now, return empty history as this is not stored in Firebase
@@ -167,7 +167,7 @@ export class SemanticDriftService {
         data: []
       };
     } catch (error) {
-      console.error('Error getting semantic drift history:', error);
+      console.error('Error getting conceptual drift history:', error);
       return { success: false, error: error.message };
     }
   }

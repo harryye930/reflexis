@@ -31,11 +31,11 @@ export default async function handler(req, res) {
     if (DISABLED) {
       const testResult = {
         drift_detected: false,
-        explanation: `[TEST MODE] Semantic drift detection is disabled.`,
+        explanation: `[TEST MODE] Conceptual drift detection is disabled.`,
         suggested_definition: null
       };
 
-      console.log('Semantic drift analysis (TEST MODE):', {
+      console.log('Conceptual drift analysis (TEST MODE):', {
         codeName,
         drift_detected: testResult.drift_detected,
         examples_count: existingExamples.length
@@ -48,11 +48,11 @@ export default async function handler(req, res) {
     if (FORCE_DRIFT_FOR_TESTING) {
       const testResult = {
         drift_detected: true,
-        explanation: `[TEST MODE] Simulated semantic drift detected for code "${codeName}". The new passage appears to expand the concept beyond the current definition.`,
+        explanation: `[TEST MODE] Simulated conceptual drift detected for code "${codeName}". The new passage appears to expand the concept beyond the current definition.`,
         suggested_definition: `${codeDefinition} This definition has been expanded to include the new usage pattern from the test passage.`
       };
 
-      console.log('Semantic drift analysis (TEST MODE):', {
+      console.log('Conceptual drift analysis (TEST MODE):', {
         codeName,
         drift_detected: testResult.drift_detected,
         examples_count: existingExamples.length
@@ -61,10 +61,10 @@ export default async function handler(req, res) {
       return res.status(200).json(testResult);
     }
 
-    // Create system prompt for semantic drift detection
-    const systemPrompt = `You are a helpful assistant for qualitative thematic analysis. Your task is to compare a new text passage against an existing code's definition and examples to spot 'semantic drift'.
+    // Create system prompt for conceptual drift detection
+    const systemPrompt = `You are a helpful assistant for qualitative thematic analysis. Your task is to compare a new text passage against an existing code's definition and examples to spot 'conceptual drift'.
 
-Semantic drift occurs when a new passage represents a significant expansion or shift in the meaning of a code beyond its current definition and usage patterns. This can indicate that:
+Conceptual drift occurs when a new passage represents a significant expansion or shift in the meaning of a code beyond its current definition and usage patterns. This can indicate that:
 1. The code definition needs to be refined/expanded to be more inclusive
 2. The new passage represents a genuinely different concept that should be coded separately
 3. The code should be split into multiple more specific codes
@@ -90,7 +90,7 @@ Does the new passage represent a significant expansion or shift in the meaning o
 Respond in JSON format: { "drift_detected": boolean, "explanation": string, "suggested_definition": string }
 
 Where:
-- drift_detected: true if significant semantic drift is detected
+- drift_detected: true if significant conceptual drift is detected
 - explanation: brief explanation of the drift or why no drift was detected
 - suggested_definition: if drift detected, provide a revised definition that encompasses both existing and new usage; if no drift, return null`;
 
@@ -128,7 +128,7 @@ Where:
     }
 
     // Log for debugging (remove in production)
-    console.log('Semantic drift analysis:', {
+    console.log('Conceptual drift analysis:', {
       codeName,
       drift_detected: result.drift_detected,
       examples_count: existingExamples.length
@@ -137,8 +137,8 @@ Where:
     return res.status(200).json(result);
 
   } catch (error) {
-    console.error('Error in semantic drift detection:', error);
-    
+    console.error('Error in conceptual drift detection:', error);
+
     if (error.code === 'insufficient_quota') {
       return res.status(429).json({ 
         error: 'OpenAI API quota exceeded. Please try again later.' 
@@ -152,7 +152,7 @@ Where:
     }
 
     return res.status(500).json({ 
-      error: 'Internal server error during semantic drift analysis',
+      error: 'Internal server error during conceptual drift analysis',
       message: error.message 
     });
   }

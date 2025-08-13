@@ -72,8 +72,8 @@ const CodeDriftModal = ({
     try {
       const result = await onApplyAnyway();
       if (result.success) {
-        onMessage('Highlight applied despite semantic drift');
-        
+        onMessage('Highlight applied despite conceptual drift');
+
         // Apply pending highlight if requested
         if (result.applyPendingHighlight && onApplyPendingHighlight) {
           try {
@@ -109,7 +109,7 @@ const CodeDriftModal = ({
                 <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
-                <h3 className="font-semibold text-amber-800">Semantic Drift Detected</h3>
+                <h3 className="font-semibold text-amber-800">Conceptual Drift Detected While Coding</h3>
               </div>
               <p className="text-sm text-amber-700 mb-3">
                 {driftData.explanation}

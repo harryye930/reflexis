@@ -48,7 +48,8 @@ const HighlightingModal = ({
 
   const handleReflexiveApply = async (code) => {
     // Create the highlight first, before starting reflexive process
-    const result = await onCodeSelect(code.id);
+    // Skip conceptual drift during reflexive flow to avoid double prompts
+    const result = await onCodeSelect(code.id, { skipDrift: true });
     
     if (result?.success) {
       // Set highlight ID if available, otherwise use a placeholder

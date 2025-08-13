@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getAbsoluteIndex, findTextWithContext } from '../lib/utils/selectionUtils.js';
-import { useSemanticDrift } from './useSemanticDrift.js';
+import { useConceptualDrift } from './useConceptualDrift.js';
 import { FirebaseServiceFactory } from '../services/api/firebase/index.js';
 
 export const useHighlightManagement = (
@@ -10,18 +10,18 @@ export const useHighlightManagement = (
   highlights, 
   addHighlight, 
   deleteHighlight,
-  appId = 'default', // Add appId parameter for semantic drift service
-  disableCodeDriftDetection = false // Add parameter to disable code drift detection
+  appId = 'default', // Add appId parameter for conceptual drift service
+  disableCodeDriftDetection = false // Add parameter to disable conceptual drift detection
 ) => {
   const [currentSelection, setCurrentSelection] = useState(null);
   const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
   const [showModal, setShowModal] = useState(false);
   const [selectedText, setSelectedText] = useState('');
 
-  // Create service factory for semantic drift
+  // Create service factory for conceptual drift
   const [services] = useState(() => new FirebaseServiceFactory(appId));
 
-  // Initialize semantic drift detection
+  // Initialize conceptual drift detection
   const {
     isDetecting,
     driftData,
@@ -34,7 +34,7 @@ export const useHighlightManagement = (
     closeDriftModal,
     getPendingHighlight,
     clearDriftState
-  } = useSemanticDrift(services, currentUser, disableCodeDriftDetection);
+  } = useConceptualDrift(services, currentUser, disableCodeDriftDetection);
 
   const handleTextSelection = (selection, position, shouldShow) => {
     setCurrentSelection(selection);
@@ -52,7 +52,8 @@ export const useHighlightManagement = (
     }
   };
 
-  const handleAddHighlight = async (code) => {
+  const handleAddHighlight = async (code, options = {}) => {
+    const { skipDrift = false } = options;
     if (!currentSelection || !currentUser || !activeDocument) {
       const error = `Missing: selection=${!!currentSelection}, user=${!!currentUser}, document=${!!activeDocument}`;
       return { success: false, error };
@@ -142,13 +143,15 @@ export const useHighlightManagement = (
       documentTitle: activeDocument.title
     };
 
-    // Perform semantic drift detection before applying highlight
-    const driftResult = await detectDrift(highlightData);
-    
-    if (driftResult.success && driftResult.driftDetected) {
-      // Drift detected - modal will be shown by the hook
-      // Don't apply highlight yet, wait for user decision
-      return { success: true, driftDetected: true, pendingHighlight: true };
+    // Perform conceptual drift detection before applying highlight (unless explicitly skipped)
+    if (!skipDrift) {
+      const driftResult = await detectDrift(highlightData);
+      
+      if (driftResult.success && driftResult.driftDetected) {
+        // Drift detected - modal will be shown by the hook
+        // Don't apply highlight yet, wait for user decision
+        return { success: true, driftDetected: true, pendingHighlight: true };
+      }
     }
 
     // No drift detected or drift detection failed gracefully - proceed with highlight
@@ -263,12 +266,12 @@ export const useHighlightManagement = (
     deleteHighlightsByCode,
     closeModal,
     isSelectionActive: !!currentSelection,
-    // Semantic drift related
+    // Conceptual drift related
     isDetecting,
     driftData,
     showDriftModal,
     pendingHighlight,
-    handleRefineDefinition,
+  handleRefineDefinition,
     handleSplitCode,
     handleApplyAnyway,
     closeDriftModal,

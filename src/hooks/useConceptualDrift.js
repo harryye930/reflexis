@@ -1,13 +1,13 @@
 import { useState } from 'react';
 
-export const useSemanticDrift = (services, currentUser, disableCodeDriftDetection = false) => {
+export const useConceptualDrift = (services, currentUser, disableCodeDriftDetection = false) => {
   const [isDetecting, setIsDetecting] = useState(false);
   const [driftData, setDriftData] = useState(null);
   const [showDriftModal, setShowDriftModal] = useState(false);
   const [pendingHighlight, setPendingHighlight] = useState(null);
 
   /**
-   * Detect semantic drift for a potential highlight
+   * Detect conceptual drift for a potential highlight
    * @param {Object} highlightData - The highlight data to check
    * @param {string} highlightData.codeId - Code ID to check against
    * @param {string} highlightData.text - The new text passage
@@ -32,7 +32,7 @@ export const useSemanticDrift = (services, currentUser, disableCodeDriftDetectio
 
     setIsDetecting(true);
     try {
-      const result = await services.semanticDrift.detectSemanticDrift({
+      const result = await services.conceptualDrift.detectConceptualDrift({
         codeId: highlightData.codeId,
         newPassage: highlightData.text,
         documentId: highlightData.documentId
@@ -50,12 +50,12 @@ export const useSemanticDrift = (services, currentUser, disableCodeDriftDetectio
           return { success: true, driftDetected: false, data: result.data };
         }
       } else {
-        console.error('Semantic drift detection failed:', result.error);
+        console.error('Conceptual drift detection failed:', result.error);
         // On failure, allow highlight to proceed (graceful degradation)
         return { success: true, driftDetected: false, error: result.error };
       }
     } catch (error) {
-      console.error('Error detecting semantic drift:', error);
+      console.error('Error detecting conceptual drift:', error);
       // On error, allow highlight to proceed (graceful degradation)
       return { success: true, driftDetected: false, error: error.message };
     } finally {
