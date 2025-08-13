@@ -49,7 +49,7 @@ Please provide a structured analysis with exactly three sections:
 2. Positionality Narrative  
 3. Alternative Thinking Patterns
 
-Each section should be 2-3 sentences that synthesize patterns and provide actionable insights for the researcher's self-awareness.`;
+Each section should be 1-2 sentences that synthesize patterns and provide actionable insights for the researcher's self-awareness. You should address to the researchers that completed the reflections, instead of the individual researcher.`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-5",

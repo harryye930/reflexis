@@ -44,7 +44,7 @@ const HighlightSegment = ({
 
   // Early return for segments without highlights
   if (segment.highlights.length === 0) {
-    return <span>{segment.text}</span>;
+    return <span style={{ whiteSpace: 'pre-wrap' }}>{segment.text}</span>;
   }
 
   // Helper function to render coder indicators
@@ -155,6 +155,7 @@ const HighlightSegment = ({
         cursor: 'pointer',
         border: 'none',
         outline: outlineStyle,
+        whiteSpace: 'pre-wrap', // Preserve line breaks and whitespace
         // Emphasis styling: brighter background & glow
         boxShadow: isEmphasized ? '0 0 0 2px rgba(255,255,0,0.6), 0 0 4px 3px rgba(255, 230, 0, 0.8)' : 'none',
         backgroundColor: isEmphasized ? 'rgba(255, 255, 0, 0.35)' : backgroundStyle.backgroundColor,
