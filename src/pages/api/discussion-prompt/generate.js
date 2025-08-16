@@ -31,16 +31,16 @@ export default async function handler(req, res) {
 Your prompts should:
 1. Acknowledge the value of different perspectives
 2. Encourage exploration of what the coding differences reveal about data complexity
-3. Be specific to the actual codes and text provided
+3. Be specific to the actual codes and text provided, but do not reference the source text directly
 4. Promote collaborative learning rather than consensus-seeking
-5. Be concise but thought-provoking (1-2 sentences)
+5. Be concise but thought-provoking
 6. Frame differences as opportunities for deeper understanding
 
 Focus on how the researchers' unique backgrounds and perspectives influenced their interpretations, and what this reveals about the richness and complexity of the data.`;
 
     // Build the user prompt with the specific context
     const researcherDescriptions = researchers.map((r, i) => 
-      `Researcher ${String.fromCharCode(65 + i)}: Background - "${r.positionality || 'Not specified'}", Applied code - "${r.code}"`
+      `Researcher ${String.fromCharCode(65 + i)} - ${r.name}: Background - "${r.positionality || 'Not specified'}", Applied code - "${r.code}"`
     ).join('\n');
 
     // Build code definitions section
@@ -63,13 +63,15 @@ ${researcherDescriptions}
 CODE DEFINITIONS:
 ${codeDefinitionsText}
 
-Please generate a concise Insight Opportunity prompt (1-2 sentences) that:
-- Acknowledges both perspectives as valuable
-- Encourages exploration of how their backgrounds influenced their interpretations
+Please generate a concise Insight Opportunity prompt that:
+- Use bullet point format, start with •, add \n nextline at the end, keep it readable, limit to at most 3 bullet points.
+- Acknowledges both perspectives as valuable (1 bullet point discuss researchers' unique backgrounds)
+- Encourages exploration of how their backgrounds influenced their interpretations (1-2 general prompts to allow researchers to reflect)
 - References the specific meanings of the codes they applied
 - Highlights what this difference reveals about the data's complexity
 - Promotes collaborative reflection rather than consensus-seeking
-- Keep it personal and relatable to coders. Address to them directly.
+- Reduce reference to source text, as it's displayed right next to this information.
+- Keep it personal and relatable to coders. Address to researchers directly by their first name provided.
 
 Frame it as an opportunity for deeper understanding, not a problem to solve.`;
 
@@ -104,6 +106,8 @@ Frame it as an opportunity for deeper understanding, not a problem to solve.`;
     });
 
     const result = JSON.parse(completion.choices[0].message.content);
+    console.log('system')
+    console.log('Generated discussion prompt:', result);
     
     res.status(200).json({
       success: true,

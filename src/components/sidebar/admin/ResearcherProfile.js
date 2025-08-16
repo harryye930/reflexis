@@ -7,6 +7,7 @@ import {
   formatResearchBackgroundForStorage,
   validateResearchBackgroundSection
 } from '../../../constants/researchBackground.js';
+import ResearchBackgroundDisplay from '../../common/ResearchBackgroundDisplay.js';
 
 const ResearcherProfile = ({ currentUser, currentUserProfile, onMessage }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -24,33 +25,7 @@ const ResearcherProfile = ({ currentUser, currentUserProfile, onMessage }) => {
     return parseResearchBackgroundFromStorage(researchBackground);
   };
 
-  // Function to format research background for display
-  const formatResearchBackgroundForDisplay = (researchBackground) => {
-    const parsed = parseResearchBackground(researchBackground);
-    
-    return (
-      <div className="space-y-3">
-        <div>
-          <div className="text-xs font-medium text-gray-600 mb-1">{RESEARCH_BACKGROUND_SECTIONS.QUALITATIVE_HISTORY.displayLabel}</div>
-          <div className="text-xs text-gray-700 leading-relaxed bg-gray-50 p-2 rounded">
-            {parsed.qualitativeHistory || 'Not provided'}
-          </div>
-        </div>
-        <div>
-          <div className="text-xs font-medium text-gray-600 mb-1">{RESEARCH_BACKGROUND_SECTIONS.BACKGROUND_EXPERIENCE.displayLabel}</div>
-          <div className="text-xs text-gray-700 leading-relaxed bg-gray-50 p-2 rounded">
-            {parsed.backgroundExperience || 'Not provided'}
-          </div>
-        </div>
-        <div>
-          <div className="text-xs font-medium text-gray-600 mb-1">{RESEARCH_BACKGROUND_SECTIONS.INITIAL_DATA_VIEW.displayLabel}</div>
-          <div className="text-xs text-gray-700 leading-relaxed bg-gray-50 p-2 rounded">
-            {parsed.initialDataView || 'Not provided'}
-          </div>
-        </div>
-      </div>
-    );
-  };
+  // Display handled by ResearchBackgroundDisplay component
 
   const handleEditClick = () => {
     const parsed = parseResearchBackground(currentUserProfile?.researchBackground || '');
@@ -176,7 +151,13 @@ const ResearcherProfile = ({ currentUser, currentUserProfile, onMessage }) => {
             {/* Research Background */}
             <div>
               <div className="text-xs text-gray-500 mb-2">Research Background & Positionality:</div>
-              {formatResearchBackgroundForDisplay(currentUserProfile.researchBackground)}
+              <ResearchBackgroundDisplay 
+                researchBackground={currentUserProfile.researchBackground}
+                variant="block"
+                size="xs"
+                showHeaders={true}
+                useShortHeaders={false}
+              />
             </div>
           </>
         ) : (

@@ -4,6 +4,7 @@ export const RESEARCH_BACKGROUND_SECTIONS = {
   QUALITATIVE_HISTORY: {
     id: 'qualitativeHistory',
     title: 'Brief History of Qualitative Data Analysis',
+    shortLabel: 'History',
     label: 'Brief History of Qualitative Data Analysis',
     displayLabel: 'Brief History of Qualitative Data Analysis:',
     headerMarkdown: '## Brief History of Qualitative Data Analysis',
@@ -16,6 +17,7 @@ export const RESEARCH_BACKGROUND_SECTIONS = {
   BACKGROUND_EXPERIENCE: {
     id: 'backgroundExperience',
     title: 'How Your Background May Affect Interpretation',
+    shortLabel: 'Background Positionality',
     label: 'How Your Background May Affect Interpretation',
     displayLabel: 'Background Effects on Interpretation:',
     headerMarkdown: '## Background and Experience Effects on Interpretation',
@@ -28,6 +30,7 @@ export const RESEARCH_BACKGROUND_SECTIONS = {
   INITIAL_DATA_VIEW: {
     id: 'initialDataView',
     title: 'Your Initial View of the Data',
+    shortLabel: 'Initial View',
     label: 'Your Initial View of the Data',
     displayLabel: 'Initial View of the Data:',
     headerMarkdown: '## Initial View of the Data',

@@ -91,7 +91,7 @@ Respond in JSON format: { "drift_detected": boolean, "explanation": string, "sug
 
 Where:
 - drift_detected: true if significant conceptual drift is detected
-- explanation: brief explanation of the drift or why no drift was detected
+- explanation: brief explanation of the drift or why no drift was detected, it should be short and straightforward to read.
 - suggested_definition: if drift detected, provide a revised definition that encompasses both existing and new usage; if no drift, return null`;
 
     // Call OpenAI API
@@ -101,8 +101,32 @@ Where:
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
       ],
-      reasoning_effort: "low"
-    });
+      reasoning_effort: "low",
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'conceptual_drift',
+          schema: {
+            type: 'object',
+            properties: {
+              drift_detected: {
+                type: 'boolean',
+                description: 'Indicates if conceptual drift was detected'
+              },
+              explanation: {
+                type: 'string',
+                description: 'Brief explanation of the drift or why no drift was detected'
+              },
+              suggested_definition: {
+                type: 'string',
+                description: 'Revised definition if drift detected, otherwise null'
+              }
+            },
+            required: ['drift_detected', 'explanation'],
+            additionalProperties: false
+          }
+        }
+    }});
 
     const responseText = response.choices[0].message.content.trim();
     

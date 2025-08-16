@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import CodeChip from '../common/CodeChip.js';
+import ResearchBackgroundDisplay from '../common/ResearchBackgroundDisplay.js';
 import { getUserDisplayColor } from '../../lib/utils/hoverUtils.js';
 
 const DiscussionPromptPanel = ({ 
@@ -63,8 +64,8 @@ const DiscussionPromptPanel = ({
         <div className="space-y-3 border-t border-amber-200 pt-3">
           {/* Discussion Prompt */}
           <div className="bg-white/70 rounded-lg p-3 border border-amber-100">
-            <p className="text-sm text-gray-800 leading-relaxed italic">
-              &ldquo;{prompt}&rdquo;
+            <p className="text-sm text-gray-800 leading-relaxed italic" style={{ whiteSpace: 'pre-line' }}>
+              {prompt}
             </p>
           </div>
 
@@ -101,9 +102,15 @@ const DiscussionPromptPanel = ({
                       )}
                     </div>
                     {researcher.positionality && researcher.positionality !== 'Not specified' && (
-                      <p className="text-xs text-gray-600 leading-relaxed">
-                        <span className="font-medium">Background:</span> {researcher.positionality}
-                      </p>
+                      <div className="mt-1">
+                        <ResearchBackgroundDisplay
+                          researchBackground={researcher.positionality}
+                          variant="inline"
+                          size="xs"
+                          showHeaders={true}
+                          useShortHeaders={true}
+                        />
+                      </div>
                     )}
                   </div>
                 </div>
