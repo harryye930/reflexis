@@ -64,9 +64,9 @@ CODE DEFINITIONS:
 ${codeDefinitionsText}
 
 Please generate a concise Insight Opportunity prompt that:
-- Use bullet point format, start with •, add \n nextline at the end, keep it readable, limit to at most 3 bullet points.
+- Use bullet point format, start with •, add \n nextline at the end, keep it readable, limit to at most 2 bullet points.
 - Acknowledges both perspectives as valuable (1 bullet point discuss researchers' unique backgrounds)
-- Encourages exploration of how their backgrounds influenced their interpretations (1-2 general prompts to allow researchers to reflect)
+- Encourages exploration of how their backgrounds influenced their interpretations (1 bullet point for general prompts to allow researchers to reflect)
 - References the specific meanings of the codes they applied
 - Highlights what this difference reveals about the data's complexity
 - Promotes collaborative reflection rather than consensus-seeking
@@ -76,7 +76,7 @@ Please generate a concise Insight Opportunity prompt that:
 Frame it as an opportunity for deeper understanding, not a problem to solve.`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-5",
+      model: "gpt-5-mini",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }
@@ -106,8 +106,6 @@ Frame it as an opportunity for deeper understanding, not a problem to solve.`;
     });
 
     const result = JSON.parse(completion.choices[0].message.content);
-    console.log('system')
-    console.log('Generated discussion prompt:', result);
     
     res.status(200).json({
       success: true,

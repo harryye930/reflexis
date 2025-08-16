@@ -21,7 +21,8 @@ export class UserService {
           profiles[data.userId] = { 
             name: data.name, 
             color: data.color,
-            researchBackground: data.researchBackground || null
+            researchBackground: data.researchBackground || null,
+            reducedResearchBackground: data.reducedResearchBackground || null
           };
         }
       });
@@ -49,7 +50,8 @@ export class UserService {
           profiles[data.userId] = { 
             name: data.name, 
             color: data.color,
-            researchBackground: data.researchBackground || null
+            researchBackground: data.researchBackground || null,
+            reducedResearchBackground: data.reducedResearchBackground || null
           };
         }
       });

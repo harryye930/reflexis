@@ -101,10 +101,11 @@ const DiscussionPromptPanel = ({
                         />
                       )}
                     </div>
-                    {researcher.positionality && researcher.positionality !== 'Not specified' && (
+                    {researcher.researchBackground && researcher.researchBackground !== 'Not specified' && (
                       <div className="mt-1">
                         <ResearchBackgroundDisplay
-                          researchBackground={researcher.positionality}
+                          researchBackground={researcher.researchBackground}
+                          reducedResearchBackground={user?.reducedResearchBackground}
                           variant="inline"
                           size="xs"
                           showHeaders={true}

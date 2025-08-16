@@ -2,6 +2,7 @@ import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../../../lib/firebase.js';
 import { getAvailableColor } from '../../../lib/utils/colorUtils.js';
+import { ResearchBackgroundSummaryService } from './researchBackgroundSummaryService.js';
 
 export class AuthService {
   constructor(appId) {
@@ -56,6 +57,30 @@ export class AuthService {
   // Update user document
   async updateUserDocument(userId, updateData) {
     try {
+      // If research background is being updated, generate reduced version
+      if (updateData.researchBackground) {
+        // Get user name for context (either from updateData or existing document)
+        let userName = updateData.name;
+        if (!userName) {
+          const existingUserResult = await this.getUserDocument(userId);
+          if (existingUserResult.success) {
+            userName = existingUserResult.data.name;
+          }
+        }
+
+        const summaryResult = await this.generateReducedResearchBackground(
+          updateData.researchBackground,
+          userName
+        );
+        
+        if (summaryResult.success) {
+          updateData.reducedResearchBackground = summaryResult.keywords;
+        } else {
+          console.warn('Failed to generate reduced research background:', summaryResult.error);
+          // Continue with update even if summary generation fails
+        }
+      }
+
       const userDocRef = doc(db, `artifacts/${this.appId}/public/data/users`, userId);
       await setDoc(userDocRef, updateData, { merge: true });
       return { success: true };
@@ -68,13 +93,29 @@ export class AuthService {
   // Complete user profile
   async completeProfile(userId, displayName, researchBackground) {
     try {
-      const userDocRef = doc(db, `artifacts/${this.appId}/public/data/users`, userId);
-      await setDoc(userDocRef, {
+      // Generate reduced research background
+      const summaryResult = await this.generateReducedResearchBackground(
+        researchBackground,
+        displayName
+      );
+      
+      const updateData = {
         name: displayName,
         researchBackground,
         profileCompleted: true,
         lastSeen: new Date()
-      }, { merge: true });
+      };
+
+      // Add reduced research background if generation was successful
+      if (summaryResult.success) {
+        updateData.reducedResearchBackground = summaryResult.keywords;
+      } else {
+        console.warn('Failed to generate reduced research background:', summaryResult.error);
+        // Continue with profile completion even if summary generation fails
+      }
+
+      const userDocRef = doc(db, `artifacts/${this.appId}/public/data/users`, userId);
+      await setDoc(userDocRef, updateData, { merge: true });
       
       return { success: true };
     } catch (error) {
@@ -107,5 +148,21 @@ export class AuthService {
     return await this.updateUserDocument(userId, {
       lastSeen: new Date()
     });
+  }
+
+  // Helper method to generate reduced research background
+  async generateReducedResearchBackground(researchBackground, userName = null) {
+    try {
+      return await ResearchBackgroundSummaryService.generateSummary(
+        researchBackground,
+        userName
+      );
+    } catch (error) {
+      console.error('Error generating reduced research background:', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to generate reduced research background'
+      };
+    }
   }
 } 

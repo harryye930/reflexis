@@ -27,7 +27,7 @@ export const useDiscussionPrompt = () => {
           codeId,
           codeName: code.label,
           codeDescription: code.description,
-          positionality: userProfiles[userId]?.researchBackground,
+          researchBackground: userProfiles[userId]?.researchBackground,
           userName: userProfiles[userId]?.name
         });
       }
@@ -77,7 +77,7 @@ export const useDiscussionPrompt = () => {
       const researchers = [...uniqueUserCodes.entries()].map(([userId, data]) => ({
         userId,
         name: data.userName || 'Anonymous',
-        positionality: data.positionality || 'Not specified',
+        researchBackground: data.researchBackground || 'Not specified',
         code: data.codeName,
         codeId: data.codeId,
         codeDescription: data.codeDescription
