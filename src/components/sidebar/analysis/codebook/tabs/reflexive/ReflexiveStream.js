@@ -13,7 +13,7 @@
  * - "View Source" button - navigates to document and highlights the source text
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { People, ChatBubbleOutline } from '@mui/icons-material';
 import { 
   groupResponsesByUserAndHighlight, 
@@ -22,6 +22,7 @@ import {
   PROMPT_SEQUENCE 
 } from '../../../../../../constants/reflexivePrompts.js';
 import ReflexiveSummary from './ReflexiveSummary.js';
+import ResearchBackgroundDisplay from '../../../../../common/ResearchBackgroundDisplay.js';
 
 const ReflexiveStream = ({ 
   responses, 
@@ -32,6 +33,18 @@ const ReflexiveStream = ({
 }) => {
   const [filterUser, setFilterUser] = useState('all');
   const [expandedGroups, setExpandedGroups] = useState(new Set());
+
+  // Group responses by user and highlight
+  const groupedResponses = groupResponsesByUserAndHighlight(responses);
+  
+  // Expand all groups by default when responses change
+  useEffect(() => {
+    const groups = groupResponsesByUserAndHighlight(responses);
+    if (groups.length > 0) {
+      const allGroupKeys = groups.map(group => `${group.userId}-${group.highlightId}`);
+      setExpandedGroups(new Set(allGroupKeys));
+    }
+  }, [responses]); // Re-run when responses change
 
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return 'Unknown time';
@@ -58,10 +71,6 @@ const ReflexiveStream = ({
     return userProfiles[userId]?.name || 'Unknown User';
   };
 
-  const getUserPositionality = (userId) => {
-    return userProfiles[userId]?.researchBackground || 'Not specified';
-  };
-
   const toggleGroupExpansion = (groupKey) => {
     const newExpanded = new Set(expandedGroups);
     if (newExpanded.has(groupKey)) {
@@ -72,9 +81,6 @@ const ReflexiveStream = ({
     setExpandedGroups(newExpanded);
   };
 
-  // Group responses by user and highlight
-  const groupedResponses = groupResponsesByUserAndHighlight(responses);
-  
   // Get unique users for filter
   const uniqueUsers = [...new Set(responses.map(r => r.userId))].filter(Boolean);
   
@@ -184,7 +190,17 @@ const ReflexiveStream = ({
                       </div>
                       
                       <div className="flex items-center justify-between text-xs text-gray-500">
-                        <span>Positionality: {getUserPositionality(group.userId)}</span>
+                        <div className="flex-1 min-w-0">
+                          <ResearchBackgroundDisplay
+                            researchBackground={userProfiles[group.userId]?.researchBackground}
+                            reducedResearchBackground={userProfiles[group.userId]?.reducedResearchBackground}
+                            variant="inline"
+                            size="xs"
+                            showHeaders={true}
+                            useShortHeaders={true}
+                            className="text-xs text-gray-500"
+                          />
+                        </div>
                         <span>{formatTimestamp(group.createdAt)}</span>
                       </div>
                     </div>

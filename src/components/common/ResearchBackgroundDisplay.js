@@ -82,7 +82,7 @@ const ResearchBackgroundDisplay = ({
         <p className={`${baseTextClass} text-gray-700 leading-relaxed`}>
           {showHeaders && (
             <span className="font-semibold text-gray-700">
-              {useShortHeaders ? 'Background (reduced)' : 'Research Background'}:
+              {useShortHeaders ? 'Research Background (reduced)' : 'Research Background'}:
             </span>
           )}
           {showHeaders ? ' ' : ''}
