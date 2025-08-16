@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { DeleteForever } from '@mui/icons-material';
-import { appId } from '../../../constants/index.js';
+import { appId } from '../../../constants/appId.js';
 import AdminToggles from './AdminToggles.js';
 
 const AdminControls = ({ 

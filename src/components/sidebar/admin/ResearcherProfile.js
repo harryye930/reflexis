@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AuthService } from '../../../services/api/firebase/authService.js';
-import { appId } from '../../../constants/index.js';
+import { appId } from '../../../constants/appId.js';
 import { 
   RESEARCH_BACKGROUND_SECTIONS,
   parseResearchBackgroundFromStorage,

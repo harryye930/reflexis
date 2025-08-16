@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PROMPT_SEQUENCE } from '../../constants/reflexivePrompts.js';
 import { Search, Person, Autorenew, NoteAlt } from '@mui/icons-material';
 import { ReflexiveService } from '../../services/api/firebase/reflexiveService.js';
-import { appId } from '../../constants/index.js';
+import { appId } from '../../constants/appId.js';
 
 const ReflexivePromptPanel = ({ 
   selectedCode, 

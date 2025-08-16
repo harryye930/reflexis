@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { DocumentService } from '../services/api/firebase/documentService.js';
-import { defaultDocuments } from '../constants/index.js';
+import { defaultDocuments } from '../constants/defaultDocuments.js';
 
 export const useDocuments = (appId, currentUser) => {
   const [documents, setDocuments] = useState([]);

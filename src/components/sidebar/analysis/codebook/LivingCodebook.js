@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { appId } from '../../../../constants/index.js';
+import { appId } from '../../../../constants/appId.js';
 import { ReflexiveService } from '../../../../services/api/firebase/reflexiveService.js';
 import { CodeService } from '../../../../services/api/firebase/codeService.js';
 import LivingCodebookHeader from './LivingCodebookHeader.js';

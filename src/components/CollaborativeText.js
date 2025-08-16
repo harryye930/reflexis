@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { appId } from '../constants/index.js';
+import { appId } from '../constants/appId.js';
 import { useAuth } from '../hooks/useAuth.js';
 import { useDocuments } from '../hooks/useDocuments.js';
 import { useHighlights } from '../hooks/useHighlights.js';
