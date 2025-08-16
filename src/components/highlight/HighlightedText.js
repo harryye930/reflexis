@@ -11,11 +11,15 @@ const HighlightedText = ({
   currentUser, 
   onTextSelection, 
   onDeleteHighlight,
+  onReflexiveClick,
   allCodes,
   activeDocument,
   showHoverTooltips = true,
   showAuthorInfo = true,
-  disableHighlightManagement = false
+  disableHighlightManagement = false,
+  // Reflexive modal state for emphasis
+  showReflexiveModal = false,
+  reflexiveHighlightId = null
 }) => {
   const textContainerRef = useRef(null);
   const [tooltip, setTooltip] = useState({
@@ -107,14 +111,32 @@ const HighlightedText = ({
     setManagementPanel(prev => ({ ...prev, visible: false }));
   };
 
+  // Handle reflexive click - close management panel and forward to parent
+  const handleReflexiveClick = (highlight, code) => {
+    // Close the management panel first
+    handleManagementPanelClose();
+    // Forward to parent component
+    if (onReflexiveClick) {
+      onReflexiveClick(highlight, code);
+    }
+  };
+
   // When management panel is visible, emphasize the related highlight text in the document
   useEffect(() => {
+    let emphasisIds = [];
+    
+    // Add highlights from management panel
     if (managementPanel.visible && Array.isArray(managementPanel.highlights)) {
-      setEmphasisHighlightIds(managementPanel.highlights.map(h => h.id));
-    } else {
-      setEmphasisHighlightIds([]);
+      emphasisIds = [...emphasisIds, ...managementPanel.highlights.map(h => h.id)];
     }
-  }, [managementPanel.visible, managementPanel.highlights]);
+    
+    // Add highlight from reflexive modal
+    if (showReflexiveModal && reflexiveHighlightId) {
+      emphasisIds = [...emphasisIds, reflexiveHighlightId];
+    }
+    
+    setEmphasisHighlightIds(emphasisIds);
+  }, [managementPanel.visible, managementPanel.highlights, showReflexiveModal, reflexiveHighlightId]);
 
 
   // Use the custom hook for text segmentation
@@ -175,6 +197,7 @@ const HighlightedText = ({
         visible={managementPanel.visible}
         onClose={handleManagementPanelClose}
         onDeleteHighlight={onDeleteHighlight}
+        onReflexiveClick={handleReflexiveClick}
         activeDocument={activeDocument}
       />
     </div>

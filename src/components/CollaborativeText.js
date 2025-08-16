@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { appId } from '../constants/appId.js';
 import { useAuth } from '../hooks/useAuth.js';
 import { useDocuments } from '../hooks/useDocuments.js';
@@ -16,6 +16,7 @@ import { ReflexiveService } from '../services/api/firebase/reflexiveService.js';
 // Components
 import HighlightedText from './highlight/HighlightedText.js';
 import HighlightingModal from './highlight/HighlightModal.js';
+import ReflexiveModal from './reflexive/ReflexiveModal.js';
 import MessageBox from './common/MessageBox.js';
 import UserProfileSetup from './UserProfileSetup.js';
 import DocumentBrowser from './document/DocumentBrowser.js';
@@ -42,6 +43,12 @@ function CollaborativeTextContent() {
   
   // Services
   const reflexiveService = new ReflexiveService(appId);
+  
+  // Reflexive modal state
+  const [showReflexiveModal, setShowReflexiveModal] = useState(false);
+  const [reflexiveModalPosition, setReflexiveModalPosition] = useState({ x: 0, y: 0 });
+  const [selectedHighlightForReflexive, setSelectedHighlightForReflexive] = useState(null);
+  const [selectedCodeForReflexive, setSelectedCodeForReflexive] = useState(null);
   
   // Custom hooks for UI management
   const { message, showMessage } = useMessageHandler();
@@ -126,6 +133,35 @@ function CollaborativeTextContent() {
     return result;
   };
 
+  // Handle reflexive click for existing highlights
+  const handleReflexiveClick = (highlight, code) => {
+    setSelectedHighlightForReflexive(highlight);
+    setSelectedCodeForReflexive(code);
+    
+    // Position the modal near the center of the viewport
+    const modalPosition = {
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 2 - 200
+    };
+    setReflexiveModalPosition(modalPosition);
+    setShowReflexiveModal(true);
+  };
+
+  // Handle reflexive modal completion
+  const handleReflexiveComplete = () => {
+    setShowReflexiveModal(false);
+    setSelectedHighlightForReflexive(null);
+    setSelectedCodeForReflexive(null);
+    showMessage('Reflexive responses saved successfully');
+  };
+
+  // Handle reflexive modal close
+  const handleReflexiveClose = () => {
+    setShowReflexiveModal(false);
+    setSelectedHighlightForReflexive(null);
+    setSelectedCodeForReflexive(null);
+  };
+
   const currentUserProfile = currentUser && userProfiles[currentUser.uid];
 
   return (
@@ -160,11 +196,14 @@ function CollaborativeTextContent() {
               currentUser={currentUser}
               onTextSelection={handleTextSelection}
               onDeleteHighlight={handleDeleteHighlight}
+              onReflexiveClick={handleReflexiveClick}
               allCodes={allCodes}
               activeDocument={activeDocument}
               showHoverTooltips={showHoverTooltips}
               showAuthorInfo={showAuthorInfo}
               disableHighlightManagement={disableHighlightManagement}
+              showReflexiveModal={showReflexiveModal}
+              reflexiveHighlightId={selectedHighlightForReflexive?.id}
             />
           )}
         </div>
@@ -213,6 +252,20 @@ function CollaborativeTextContent() {
           selectedText={selectedText}
           currentUser={currentUser}
           documentId={activeDocumentId}
+        />
+      )}
+
+      {/* Reflexive Modal for existing highlights */}
+      {showReflexiveModal && selectedHighlightForReflexive && selectedCodeForReflexive && (
+        <ReflexiveModal
+          modalPosition={reflexiveModalPosition}
+          selectedCode={selectedCodeForReflexive}
+          selectedText={selectedHighlightForReflexive.text}
+          onComplete={handleReflexiveComplete}
+          onClose={handleReflexiveClose}
+          currentUser={currentUser}
+          documentId={activeDocumentId}
+          highlightId={selectedHighlightForReflexive.id}
         />
       )}
 
