@@ -14,11 +14,6 @@ const DisagreementMetric = ({
 
   const { agreementPercentage, disagreementLevel, color, hasMultipleUsers } = disagreementData;
 
-  // Don't show for codes with no multiple users unless explicitly requested
-  if (!hasMultipleUsers && variant !== 'full') {
-    return null;
-  }
-
   const disagreementPercentage = formatDisagreementPercentage(agreementPercentage);
   
   // Size classes

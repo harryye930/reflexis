@@ -40,7 +40,7 @@ function CollaborativeTextContent() {
     getCodesByDisagreement, 
     getDisagreementSummary, 
     loading: disagreementLoading 
-  } = useCodeDisagreement(appId, allCodes, userProfiles);
+  } = useCodeDisagreement(appId, allCodes, userProfiles, currentUser);
   
   // Services
   const reflexiveService = new ReflexiveService(appId);

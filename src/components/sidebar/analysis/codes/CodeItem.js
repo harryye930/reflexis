@@ -125,7 +125,7 @@ const CodeItem = ({
                   {code.label}
                 </span>
                 {/* Show disagreement status only when info is shown */}
-                {showDescriptions && disagreementData && disagreementData.hasMultipleUsers && (
+                {showDescriptions && disagreementData && (
                   <DisagreementMetric 
                     disagreementData={disagreementData}
                     size="xs"

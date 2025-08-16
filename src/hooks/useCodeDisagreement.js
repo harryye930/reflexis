@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../lib/firebase.js';
 import { calculateCodeDisagreement } from '../lib/utils/disagreementUtils.js';
 
@@ -10,13 +10,14 @@ import { calculateCodeDisagreement } from '../lib/utils/disagreementUtils.js';
  * @param {Object} userProfiles - User profiles object
  * @returns {Object} Disagreement data and utilities
  */
-export const useCodeDisagreement = (appId, allCodes, userProfiles) => {
+export const useCodeDisagreement = (appId, allCodes, userProfiles, currentUser) => {
   const [allHighlights, setAllHighlights] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Listen to all highlights across all documents for real-time updates
   useEffect(() => {
-    if (!appId) {
+    // Wait for both appId and currentUser to be available
+    if (!appId || !currentUser) {
       setAllHighlights([]);
       setLoading(false);
       return;
@@ -36,11 +37,12 @@ export const useCodeDisagreement = (appId, allCodes, userProfiles) => {
       setLoading(false);
     }, (error) => {
       console.error('Error listening to highlights:', error);
+      setAllHighlights([]);
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [appId]);
+  }, [appId, currentUser]);
 
   // Calculate disagreement metrics for all codes
   const codeDisagreementData = useMemo(() => {

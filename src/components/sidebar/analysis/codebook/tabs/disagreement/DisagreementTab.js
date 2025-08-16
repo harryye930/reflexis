@@ -56,7 +56,7 @@ const DisagreementTab = ({
           <div className="bg-gray-50 rounded-lg p-4">
             <div className="text-sm text-gray-600">
               <p><strong>{totalHighlights}</strong> highlight{totalHighlights !== 1 ? 's' : ''} applied</p>
-              <p>by <strong>1</strong> user</p>
+              <p>by <strong>{uniqueUsers || 0}</strong> user{(uniqueUsers || 1) !== 1 ? 's' : ''}</p>
             </div>
           </div>
         </div>
@@ -168,6 +168,13 @@ const DisagreementTab = ({
                 <span className="font-medium">Needs Discussion</span>
               </div>
               <p className="text-xs">Prioritize for team discussion and refinement</p>
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+                <span className="font-medium">Not Enough Data</span>
+              </div>
+              <p className="text-xs">Single user or no highlights available</p>
             </div>
           </div>
         </div>
