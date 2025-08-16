@@ -9,7 +9,7 @@ const DocumentHeader = ({ activeDocument }) => {
       {activeDocument?.description && (
         <p className="text-gray-600 mb-2">{activeDocument.description}</p>
       )}
-      <p className="text-gray-500 text-sm md:text-base">
+      <p className="text-gray-500 text-sm md:text-base italic">
         Select text with your mouse to apply a code.
       </p>
     </div>
