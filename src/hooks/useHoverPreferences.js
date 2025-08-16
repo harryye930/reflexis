@@ -5,6 +5,7 @@ export const useHoverPreferences = (appId) => {
   const [showAuthor, setShowAuthor] = useState(true); // Show author info by default - true = show individual colors and names, false = unified color and no names
   const [disableHighlightManagement, setDisableHighlightManagement] = useState(false);
   const [disableCodeDriftDetection, setDisableCodeDriftDetection] = useState(false);
+  const [showCodeDetails, setShowCodeDetails] = useState(true);
 
   // Load preferences from localStorage on mount
   useEffect(() => {
@@ -17,6 +18,7 @@ export const useHoverPreferences = (appId) => {
         setShowAuthor(!(prefs.showAuthorInfo ?? false)); // Invert legacy value
         setDisableHighlightManagement(prefs.disableHighlightManagement ?? false);
         setDisableCodeDriftDetection(prefs.disableCodeDriftDetection ?? false);
+        setShowCodeDetails(prefs.showCodeDetails ?? true);
       } catch (error) {
         console.warn('Error loading hover preferences:', error);
       }
@@ -29,10 +31,11 @@ export const useHoverPreferences = (appId) => {
       showHoverTooltips,
       showAuthorInfo: !showAuthor, // Keep legacy key but invert for backwards compatibility
       disableHighlightManagement,
-      disableCodeDriftDetection
+      disableCodeDriftDetection,
+      showCodeDetails
     };
     localStorage.setItem(`hoverPrefs_${appId}`, JSON.stringify(prefs));
-  }, [appId, showHoverTooltips, showAuthor, disableHighlightManagement, disableCodeDriftDetection]);
+  }, [appId, showHoverTooltips, showAuthor, disableHighlightManagement, disableCodeDriftDetection, showCodeDetails]);
 
   const toggleHoverTooltips = () => {
     setShowHoverTooltips(prev => !prev);
@@ -50,6 +53,10 @@ export const useHoverPreferences = (appId) => {
     setDisableCodeDriftDetection(prev => !prev);
   };
 
+  const toggleShowCodeDetails = () => {
+    setShowCodeDetails(prev => !prev);
+  };
+
   return {
     showHoverTooltips,
     showAuthorInfo: showAuthor, // Export with correct logic
@@ -58,6 +65,8 @@ export const useHoverPreferences = (appId) => {
     disableHighlightManagement,
     toggleDisableHighlightManagement,
     disableCodeDriftDetection,
-    toggleDisableCodeDriftDetection
+    toggleDisableCodeDriftDetection,
+    showCodeDetails,
+    toggleShowCodeDetails
   };
 };

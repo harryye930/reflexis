@@ -24,7 +24,8 @@ const LivingCodebook = ({
   onDeleteHighlightsByCode,
   onUpdateCodeInLivingCodebook,
   onNavigateToHighlight,
-  getCodeDisagreement = null // New prop for disagreement data
+  getCodeDisagreement = null, // New prop for disagreement data
+  showCodeDetails = true // New prop for showing/hiding code details
 }) => {
   const [activeTab, setActiveTab] = useState('reflexive');
   const [reflexiveResponses, setReflexiveResponses] = useState([]);
@@ -249,8 +250,8 @@ const LivingCodebook = ({
         onCancelEdit={handleCancelEdit}
       />
 
-      {/* Code Applications - only for active codes */}
-      {!code?.isDeleted && (
+      {/* Code Applications - only for active codes and when code details are enabled */}
+      {!code?.isDeleted && showCodeDetails && (
         <CodeApplications 
           code={{ ...code, appId }} 
           userProfiles={userProfiles}
@@ -259,11 +260,12 @@ const LivingCodebook = ({
       )}
 
       {/* Content Tabs */}
-      <div className="flex-1 flex flex-col code-transition-enter">
-        {/* Tab Navigation */}
-        <div className="border-b border-gray-200 px-6">
-          <nav className="flex space-x-8">
-            {tabs.map((tab) => (
+      {showCodeDetails && (
+        <div className="flex-1 flex flex-col code-transition-enter">
+          {/* Tab Navigation */}
+          <div className="border-b border-gray-200 px-6">
+            <nav className="flex space-x-8">
+              {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
@@ -284,6 +286,7 @@ const LivingCodebook = ({
           {renderTabContent()}
         </div>
       </div>
+      )}
     </div>
   );
 };

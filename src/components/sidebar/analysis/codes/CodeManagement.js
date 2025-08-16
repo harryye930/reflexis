@@ -17,7 +17,8 @@ const CodeManagement = ({
   onMessage,
   title = "Available Codes",
   onCodeNameClick, // New prop for Living Codebook
-  getCodeDisagreement = null // New prop for disagreement data function
+  getCodeDisagreement = null, // New prop for disagreement data function
+  showCodeDetails = true // New prop for showing/hiding code details
 }) => {
   const [showDescriptions, setShowDescriptions] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -62,19 +63,27 @@ const CodeManagement = ({
 
   return (
     <div className="mb-6">
-      <CodePaletteHeader
-        showDescriptions={showDescriptions}
-        onToggleDescriptions={() => setShowDescriptions(!showDescriptions)}
-        showAddForm={showAddForm}
-        onToggleAddForm={handleToggleAddForm}
-        onToggleMergeModal={handleToggleMergeModal}
-        onToggleSplitModal={handleToggleSplitModal}
-        currentUser={currentUser}
-        title={title}
-      />
+      {showCodeDetails && (
+        <CodePaletteHeader
+          showDescriptions={showDescriptions}
+          onToggleDescriptions={() => setShowDescriptions(!showDescriptions)}
+          showAddForm={showAddForm}
+          onToggleAddForm={handleToggleAddForm}
+          onToggleMergeModal={handleToggleMergeModal}
+          onToggleSplitModal={handleToggleSplitModal}
+          currentUser={currentUser}
+          title={title}
+        />
+      )}
 
-      {/* Add Form (only for adding new codes) */}
-      {showAddForm && currentUser && (
+      {!showCodeDetails && (
+        <div className="mb-4">
+          <h3 className="font-semibold text-gray-700">{title}</h3>
+        </div>
+      )}
+
+      {/* Add Form (only for adding new codes) - only show if code details are enabled */}
+      {showCodeDetails && showAddForm && currentUser && (
         <CodeForm
           editingCode={null}
           onSubmit={handleFormSubmit}
@@ -88,19 +97,23 @@ const CodeManagement = ({
         allCodes={allCodes}
         deletedCodes={deletedCodes}
         showDescriptions={showDescriptions}
-        onEdit={null}        onDelete={null}        currentUser={currentUser}
+        onEdit={null}
+        onDelete={null}
+        currentUser={currentUser}
         userProfiles={userProfiles}
         onCodeNameClick={onCodeNameClick}
         hideEditButtons={true}
         getCodeDisagreement={getCodeDisagreement}
       />
       
-      <CodePaletteFooter
-        currentUser={currentUser}
-      />
+      {showCodeDetails && (
+        <CodePaletteFooter
+          currentUser={currentUser}
+        />
+      )}
 
-      {/* Code Merge Modal */}
-      {showMergeModal && (
+      {/* Code Merge Modal - only show if code details are enabled */}
+      {showCodeDetails && showMergeModal && (
         <CodeMergeModal
           allCodes={allCodes}
           currentUser={currentUser}
@@ -112,8 +125,8 @@ const CodeManagement = ({
         />
       )}
 
-      {/* Code Split Modal */}
-      {showSplitModal && (
+      {/* Code Split Modal - only show if code details are enabled */}
+      {showCodeDetails && showSplitModal && (
         <CodeSplitModal
           allCodes={allCodes}
           currentUser={currentUser}

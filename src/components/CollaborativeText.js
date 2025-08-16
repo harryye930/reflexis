@@ -55,7 +55,9 @@ function CollaborativeTextContent() {
     disableHighlightManagement,
     toggleDisableHighlightManagement,
     disableCodeDriftDetection,
-    toggleDisableCodeDriftDetection
+    toggleDisableCodeDriftDetection,
+    showCodeDetails,
+    toggleShowCodeDetails
   } = useHoverPreferences(appId);
   
   // Highlight management hook
@@ -194,6 +196,8 @@ function CollaborativeTextContent() {
           onToggleDisableHighlightManagement={toggleDisableHighlightManagement}
           disableCodeDriftDetection={disableCodeDriftDetection}
           onToggleDisableCodeDriftDetection={toggleDisableCodeDriftDetection}
+          showCodeDetails={showCodeDetails}
+          onToggleShowCodeDetails={toggleShowCodeDetails}
           onNavigateToHighlight={handleNavigateToHighlight}
           getCodeDisagreement={getCodeDisagreement}
         />

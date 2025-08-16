@@ -28,6 +28,8 @@ const Sidebar = ({
   onToggleDisableHighlightManagement,
   disableCodeDriftDetection,
   onToggleDisableCodeDriftDetection,
+  showCodeDetails,
+  onToggleShowCodeDetails,
   // Navigation props
   onNavigateToHighlight,
   // Disagreement analysis props
@@ -116,6 +118,7 @@ const Sidebar = ({
             onUpdateCodeInLivingCodebook={handleUpdateCodeInLivingCodebook}
             onNavigateToHighlight={onNavigateToHighlight}
             getCodeDisagreement={getCodeDisagreement}
+            showCodeDetails={showCodeDetails}
           />
         );
       
@@ -133,6 +136,8 @@ const Sidebar = ({
             onToggleDisableHighlightManagement={onToggleDisableHighlightManagement}
             disableCodeDriftDetection={disableCodeDriftDetection}
             onToggleDisableCodeDriftDetection={onToggleDisableCodeDriftDetection}
+            showCodeDetails={showCodeDetails}
+            onToggleShowCodeDetails={onToggleShowCodeDetails}
           />
         );
       

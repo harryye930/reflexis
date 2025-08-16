@@ -12,7 +12,9 @@ const AdminControls = ({
   disableHighlightManagement,
   onToggleDisableHighlightManagement,
   disableCodeDriftDetection,
-  onToggleDisableCodeDriftDetection
+  onToggleDisableCodeDriftDetection,
+  showCodeDetails,
+  onToggleShowCodeDetails
 }) => {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -97,6 +99,8 @@ const AdminControls = ({
           onToggleDisableHighlightManagement={onToggleDisableHighlightManagement}
           disableCodeDriftDetection={disableCodeDriftDetection}
           onToggleDisableCodeDriftDetection={onToggleDisableCodeDriftDetection}
+          showCodeDetails={showCodeDetails}
+          onToggleShowCodeDetails={onToggleShowCodeDetails}
         />
       </div>
       
