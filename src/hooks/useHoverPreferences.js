@@ -6,6 +6,8 @@ export const useHoverPreferences = (appId) => {
   const [disableHighlightManagement, setDisableHighlightManagement] = useState(false);
   const [disableCodeDriftDetection, setDisableCodeDriftDetection] = useState(false);
   const [showCodeDetails, setShowCodeDetails] = useState(true);
+  // When true: hide highlights where all overlapping codings use the same code
+  const [hideSameCodeHighlights, setHideSameCodeHighlights] = useState(false);
 
   // Load preferences from localStorage on mount
   useEffect(() => {
@@ -35,7 +37,7 @@ export const useHoverPreferences = (appId) => {
       showCodeDetails
     };
     localStorage.setItem(`hoverPrefs_${appId}`, JSON.stringify(prefs));
-  }, [appId, showHoverTooltips, showAuthor, disableHighlightManagement, disableCodeDriftDetection, showCodeDetails]);
+  }, [appId, showHoverTooltips, showAuthor, disableHighlightManagement, disableCodeDriftDetection, showCodeDetails, hideSameCodeHighlights]);
 
   const toggleHoverTooltips = () => {
     setShowHoverTooltips(prev => !prev);
@@ -57,6 +59,10 @@ export const useHoverPreferences = (appId) => {
     setShowCodeDetails(prev => !prev);
   };
 
+  const toggleHideSameCodeHighlights = () => {
+    setHideSameCodeHighlights(prev => !prev);
+  };
+
   return {
     showHoverTooltips,
     showAuthorInfo: showAuthor, // Export with correct logic
@@ -67,6 +73,8 @@ export const useHoverPreferences = (appId) => {
     disableCodeDriftDetection,
     toggleDisableCodeDriftDetection,
     showCodeDetails,
-    toggleShowCodeDetails
+  toggleShowCodeDetails,
+  hideSameCodeHighlights,
+  toggleHideSameCodeHighlights
   };
 };

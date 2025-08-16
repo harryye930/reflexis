@@ -14,7 +14,9 @@ const AdminControls = ({
   disableCodeDriftDetection,
   onToggleDisableCodeDriftDetection,
   showCodeDetails,
-  onToggleShowCodeDetails
+  onToggleShowCodeDetails,
+  hideSameCodeHighlights,
+  onToggleHideSameCodeHighlights
 }) => {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -101,6 +103,8 @@ const AdminControls = ({
           onToggleDisableCodeDriftDetection={onToggleDisableCodeDriftDetection}
           showCodeDetails={showCodeDetails}
           onToggleShowCodeDetails={onToggleShowCodeDetails}
+          hideSameCodeHighlights={hideSameCodeHighlights}
+          onToggleHideSameCodeHighlights={onToggleHideSameCodeHighlights}
         />
       </div>
       

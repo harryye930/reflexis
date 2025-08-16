@@ -12,6 +12,7 @@ import { useMessageHandler } from '../hooks/useMessageHandler.js';
 import { useNavigateToHighlight } from '../hooks/useNavigateToHighlight.js';
 import { useHoverPreferences } from '../hooks/useHoverPreferences.js';
 import { ReflexiveService } from '../services/api/firebase/reflexiveService.js';
+import { filterUniquelyCodedHighlights } from '../lib/utils/highlightFilterUtils.js';
 
 // Components
 import HighlightedText from './highlight/HighlightedText.js';
@@ -64,10 +65,12 @@ function CollaborativeTextContent() {
     disableCodeDriftDetection,
     toggleDisableCodeDriftDetection,
     showCodeDetails,
-    toggleShowCodeDetails
+  toggleShowCodeDetails,
+  hideSameCodeHighlights,
+  toggleHideSameCodeHighlights
   } = useHoverPreferences(appId);
   
-  // Highlight management hook
+  // Highlight management hook - uses original highlights for management operations
   const {
     currentSelection,
     modalPosition,
@@ -94,7 +97,7 @@ function CollaborativeTextContent() {
     currentUser, 
     activeDocument, 
     activeDocumentId, 
-    highlights, 
+    highlights,
     addHighlight, 
     deleteHighlight,
     appId, // Add appId parameter
@@ -107,7 +110,7 @@ function CollaborativeTextContent() {
   const handleNavigateToHighlight = useNavigateToHighlight(
     appId, 
     activeDocumentId, 
-    highlights, 
+    highlights,
     switchActiveDocument, 
     showMessage
   );
@@ -164,6 +167,9 @@ function CollaborativeTextContent() {
 
   const currentUserProfile = currentUser && userProfiles[currentUser.uid];
 
+  // Filter highlights based on uniquely coded text setting
+  const filteredHighlights = filterUniquelyCodedHighlights(highlights, hideSameCodeHighlights);
+
   return (
     <div className="flex h-screen">
       {/* Document Browser - Left Panel */}
@@ -191,7 +197,7 @@ function CollaborativeTextContent() {
 
           {!loading && documentsLoaded && (
             <HighlightedText
-              highlights={highlights}
+              highlights={filteredHighlights}
               userProfiles={userProfiles}
               currentUser={currentUser}
               onTextSelection={handleTextSelection}
@@ -237,6 +243,8 @@ function CollaborativeTextContent() {
           onToggleDisableCodeDriftDetection={toggleDisableCodeDriftDetection}
           showCodeDetails={showCodeDetails}
           onToggleShowCodeDetails={toggleShowCodeDetails}
+          hideSameCodeHighlights={hideSameCodeHighlights}
+          onToggleHideSameCodeHighlights={toggleHideSameCodeHighlights}
           onNavigateToHighlight={handleNavigateToHighlight}
           getCodeDisagreement={getCodeDisagreement}
         />

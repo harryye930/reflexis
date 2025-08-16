@@ -16,7 +16,9 @@ const AdminTab = ({
   disableCodeDriftDetection,
   onToggleDisableCodeDriftDetection,
   showCodeDetails,
-  onToggleShowCodeDetails
+  onToggleShowCodeDetails,
+  hideSameCodeHighlights,
+  onToggleHideSameCodeHighlights
 }) => {
   // Get current user profile from userProfiles
   const currentUserProfile = currentUser ? userProfiles[currentUser.uid] : null;
@@ -46,7 +48,7 @@ const AdminTab = ({
         />
       </div>
       
-      <AdminControls 
+  <AdminControls 
         onMessage={onMessage}
         showHoverTooltips={showHoverTooltips}
         showAuthorInfo={showAuthorInfo}
@@ -56,8 +58,10 @@ const AdminTab = ({
         onToggleDisableHighlightManagement={onToggleDisableHighlightManagement}
         disableCodeDriftDetection={disableCodeDriftDetection}
         onToggleDisableCodeDriftDetection={onToggleDisableCodeDriftDetection}
-        showCodeDetails={showCodeDetails}
-        onToggleShowCodeDetails={onToggleShowCodeDetails}
+  showCodeDetails={showCodeDetails}
+  onToggleShowCodeDetails={onToggleShowCodeDetails}
+  hideSameCodeHighlights={hideSameCodeHighlights}
+  onToggleHideSameCodeHighlights={onToggleHideSameCodeHighlights}
       />
     </div>
   );

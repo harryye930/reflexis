@@ -10,7 +10,9 @@ const AdminToggles = ({
   disableCodeDriftDetection,
   onToggleDisableCodeDriftDetection,
   showCodeDetails,
-  onToggleShowCodeDetails
+  onToggleShowCodeDetails,
+  hideSameCodeHighlights,
+  onToggleHideSameCodeHighlights
 }) => {
   return (
     <div className="space-y-3">
@@ -92,6 +94,26 @@ const AdminToggles = ({
             <span
               className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
                 showCodeDetails ? 'translate-x-5' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Toggle for hiding same-code highlights */}
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <label className="text-sm text-gray-600">Hide same-code highlights</label>
+            <p className="text-xs text-gray-500">Temporarily hide highlights where all overlapping codings use the same code</p>
+          </div>
+          <button
+            onClick={onToggleHideSameCodeHighlights}
+            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+              hideSameCodeHighlights ? 'bg-blue-600' : 'bg-gray-200'
+            }`}
+          >
+            <span
+              className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                hideSameCodeHighlights ? 'translate-x-5' : 'translate-x-1'
               }`}
             />
           </button>
