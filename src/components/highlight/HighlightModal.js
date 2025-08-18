@@ -103,7 +103,7 @@ const HighlightingModal = ({
             <div className="absolute inset-0 bg-white/70 backdrop-blur-sm rounded-xl flex items-center justify-center z-10">
               <div className="flex items-center gap-2 text-gray-600">
                 <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-300 border-t-transparent"></div>
-                <span className="text-sm">Analyzing code drift…</span>
+                <span className="text-sm">Analyzing coding consistency...</span>
               </div>
             </div>
           )}

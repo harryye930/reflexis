@@ -178,7 +178,7 @@ export class CodeService {
       
       // Step 1: Handle target code creation or selection
       if (strategy === 'create_new') {
-        // Create new code (skip automatic history recording for merge operations)
+        // Create new code with normal creation history first
         const newCodeId = resultConfig.label.toLowerCase().replace(/[^a-z0-9]/g, '_');
         const addResult = await this.addCode({
           id: newCodeId,
@@ -186,7 +186,7 @@ export class CodeService {
           description: resultConfig.description,
           color: resultConfig.color,
           textColor: resultConfig.textColor
-        }, userId, true); // Skip history - we'll record merge history instead
+        }, userId, false); // Record creation history - merge history will be added separately
         
         if (!addResult.success) {
           return { success: false, error: 'Failed to create new merged code' };
@@ -427,6 +427,43 @@ export class CodeService {
         return { success: true, highlightsWithReflexive };
       }
 
+      if (type === 'createCode') {
+        // Create a new code during split operation
+        const { codeData } = splitData;
+        
+        if (!codeData) {
+          return { success: false, error: 'Missing code data for creation' };
+        }
+        
+        // Generate a unique code ID from the label
+        const newCodeId = codeData.label.toLowerCase().replace(/[^a-z0-9]/g, '_');
+        
+        // Create the code using the existing addCode method
+        const addResult = await this.addCode({
+          id: newCodeId,
+          label: codeData.label,
+          description: codeData.description,
+          color: codeData.color,
+          textColor: codeData.textColor
+        }, userId);
+        
+        if (addResult.success) {
+          return { 
+            success: true, 
+            code: { 
+              id: newCodeId, 
+              docId: addResult.docId,
+              label: codeData.label,
+              description: codeData.description,
+              color: codeData.color,
+              textColor: codeData.textColor
+            } 
+          };
+        } else {
+          return { success: false, error: 'Failed to create code' };
+        }
+      }
+
     if (type === 'executeSplit') {
   let totalHighlightsReassigned = 0;
   let totalReflexiveResponsesTransferred = 0;
@@ -513,7 +550,8 @@ export class CodeService {
             totalReflexiveResponsesTransferred,
             totalReflexiveResponsesDeleted: 0, // In splits, reflexive responses are transferred, not deleted
             codeDeleted,
-            perTargetReflexiveReceived
+            perTargetReflexiveReceived,
+            targetCodesInfo: splitData.targetCodesInfo // Pass along target code info if provided
           }, userId);
         } catch (error) {
           console.error("Error recording split history: ", error);

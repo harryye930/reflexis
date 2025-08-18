@@ -30,7 +30,7 @@ export function calculateCodeDisagreement(highlights, users) {
   if (uniqueUserCount <= 1) {
     return {
       agreementPercentage: 100,
-      disagreementLevel: 'Single User',
+      disagreementLevel: 'Single Coder',
       color: 'gray',
       totalHighlights: highlights.length,
       uniqueUsers: uniqueUserCount,

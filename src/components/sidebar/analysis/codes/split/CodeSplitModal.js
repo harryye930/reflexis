@@ -24,6 +24,9 @@ const CodeSplitModal = ({
   const [availableCodes, setAvailableCodes] = useState([]);
   const [highlightReflexiveCounts, setHighlightReflexiveCounts] = useState({});
   const [deleteSourceCode, setDeleteSourceCode] = useState(false);
+  const [newCodes, setNewCodes] = useState([]); // Track new codes to be created
+  const [showCodeForm, setShowCodeForm] = useState(false);
+  const [pendingCodeCreations, setPendingCodeCreations] = useState({}); // Map of temp IDs to code configs
 
   // Reset when modal opens
   useEffect(() => {
@@ -35,6 +38,9 @@ const CodeSplitModal = ({
       setReassignments({});
       setHighlightReflexiveCounts({});
       setDeleteSourceCode(false);
+      setNewCodes([]);
+      setShowCodeForm(false);
+      setPendingCodeCreations({});
     }
   }, [isOpen]);
 
@@ -50,7 +56,10 @@ const CodeSplitModal = ({
       
       if (result.success) {
         setHighlights(result.highlights);
-        setAvailableCodes(allCodes.filter(c => c.id !== code.id));
+        // Initialize available codes with existing codes (excluding the selected one) plus any pending new codes
+        const existingCodes = allCodes.filter(c => c.id !== code.id);
+        const pendingCodes = Object.values(pendingCodeCreations);
+        setAvailableCodes([...existingCodes, ...pendingCodes]);
         
         // Check reflexive count for each highlight
         const reflexiveCounts = {};
@@ -82,17 +91,73 @@ const CodeSplitModal = ({
     }
   };
 
-  const handleHighlightReassignment = (highlightId, newCodeId, transferReflexiveForThisHighlight = false) => {
+  const handleHighlightReassignment = (highlightId, newCodeId, _transferReflexiveForThisHighlight = undefined) => {
+    // Auto-set transferReflexive: if reassigned (not skipped) and highlight has reflexive responses, transfer them.
+    const autoTransfer = highlightReflexiveCounts[highlightId] > 0;
     setReassignments(prev => ({
       ...prev,
       [highlightId]: {
         newCodeId,
-        transferReflexive: transferReflexiveForThisHighlight
+        transferReflexive: autoTransfer
       }
     }));
   };
 
+  const handleCreateNewCode = async (formData) => {
+    // Don't create the actual code yet - just store the configuration
+    const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const pendingCode = {
+      id: tempId,
+      label: formData.label,
+      description: formData.description,
+      color: formData.color,
+      textColor: formData.textColor,
+      userId: currentUser.uid,
+      isPending: true // Mark as pending creation
+    };
+
+    // Add to pending creations
+    setPendingCodeCreations(prev => ({
+      ...prev,
+      [tempId]: pendingCode
+    }));
+
+    // Add to available codes for UI
+    setAvailableCodes(prev => [...prev, pendingCode]);
+    
+    // Automatically assign this new code to the current highlight
+    const currentHighlight = highlights[currentHighlightIndex];
+    if (currentHighlight) {
+      setReassignments(prev => ({
+        ...prev,
+        [currentHighlight.id]: {
+          newCodeId: tempId,
+          transferReflexive: (highlightReflexiveCounts[currentHighlight.id] || 0) > 0
+        }
+      }));
+    }
+    
+    setShowCodeForm(false);
+    onMessage('New code will be created when split is completed');
+    
+    // Automatically proceed to next highlight if there are any more to review
+    handleNextHighlight();
+    
+    return { success: true, code: pendingCode };
+  };
+
+  const handleSkipHighlight = (highlightId) => {
+    setReassignments(prev => {
+      const updated = { ...prev };
+      delete updated[highlightId];
+      return updated;
+    });
+  };
+
   const handleNextHighlight = () => {
+    // Close code form when navigating to next highlight
+    setShowCodeForm(false);
+    
     if (currentHighlightIndex < highlights.length - 1) {
       setCurrentHighlightIndex(prev => prev + 1);
     } else {
@@ -101,6 +166,9 @@ const CodeSplitModal = ({
   };
 
   const handlePreviousHighlight = () => {
+    // Close code form when navigating to previous highlight
+    setShowCodeForm(false);
+    
     if (currentHighlightIndex > 0) {
       setCurrentHighlightIndex(prev => prev - 1);
     }
@@ -118,6 +186,12 @@ const CodeSplitModal = ({
     if (step === 3) {
       setStep(2);
       setCurrentHighlightIndex(highlights.length - 1);
+      // Ensure available codes includes all pending codes when returning to step 2
+      const existingCodes = allCodes.filter(c => c.id !== selectedCode?.id);
+      const pendingCodes = Object.values(pendingCodeCreations);
+      setAvailableCodes([...existingCodes, ...pendingCodes]);
+    } else if (step === 2) {
+      setStep(1);
     } else {
       setStep(step - 1);
     }
@@ -126,21 +200,108 @@ const CodeSplitModal = ({
   const handleCompleteSplit = async () => {
     setLoading(true);
     try {
-      const transferReflexive = Object.values(reassignments).some(assignment => assignment.transferReflexive);
+      // First, create any pending codes
+      const createdCodeMap = {}; // Maps temp IDs to real IDs
       
+      for (const [tempId, codeConfig] of Object.entries(pendingCodeCreations)) {
+        try {
+          const result = await onSplitCode({
+            type: 'createCode',
+            codeData: {
+              label: codeConfig.label,
+              description: codeConfig.description,
+              color: codeConfig.color,
+              textColor: codeConfig.textColor,
+              userId: currentUser.uid
+            }
+          });
+          
+          if (result.success) {
+            createdCodeMap[tempId] = result.code.id;
+          } else {
+            onMessage(`Failed to create code "${codeConfig.label}"`, true);
+            return;
+          }
+        } catch (error) {
+          console.error(`Error creating code "${codeConfig.label}":`, error);
+          onMessage(`Failed to create code "${codeConfig.label}"`, true);
+          return;
+        }
+      }
+
+      // Update reassignments to use real code IDs instead of temp IDs
+      const updatedReassignments = { ...reassignments };
+      const targetCodesInfo = []; // Collect target code information for history
+      
+      for (const [highlightId, assignment] of Object.entries(updatedReassignments)) {
+        if (createdCodeMap[assignment.newCodeId]) {
+          // This was a newly created code
+          const originalTempId = assignment.newCodeId;
+          const realCodeId = createdCodeMap[originalTempId];
+          const codeConfig = pendingCodeCreations[originalTempId];
+          
+          updatedReassignments[highlightId] = {
+            ...assignment,
+            newCodeId: realCodeId
+          };
+          
+          // Add to target codes info for history
+          if (!targetCodesInfo.find(c => c.id === realCodeId)) {
+            targetCodesInfo.push({
+              id: realCodeId,
+              label: codeConfig.label,
+              description: codeConfig.description,
+              color: codeConfig.color,
+              textColor: codeConfig.textColor
+            });
+          }
+        } else {
+          // This is an existing code - get its info for history
+          const existingCode = allCodes.find(c => c.id === assignment.newCodeId);
+          if (existingCode && !targetCodesInfo.find(c => c.id === existingCode.id)) {
+            targetCodesInfo.push({
+              id: existingCode.id,
+              label: existingCode.label,
+              description: existingCode.description,
+              color: existingCode.color,
+              textColor: existingCode.textColor
+            });
+          }
+        }
+      }
+
+      // Ensure transferReflexive is set based on the latest counts for all reassigned highlights
+      for (const [hId, a] of Object.entries(updatedReassignments)) {
+        updatedReassignments[hId] = {
+          ...a,
+          transferReflexive: (highlightReflexiveCounts[hId] || 0) > 0
+        };
+      }
+
       const result = await onSplitCode({
         type: 'executeSplit',
         sourceCode: selectedCode,
-        reassignments,
-        transferReflexive,
-        forceDeleteSourceCode: deleteSourceCode
+        reassignments: updatedReassignments,
+  // transferReflexive is determined per highlight in reassignments
+        forceDeleteSourceCode: deleteSourceCode,
+        targetCodesInfo // Pass target code info for accurate history recording
       });
 
       if (result.success) {
-        const reassignedCount = Object.keys(reassignments).length;
+        const reassignedCount = Object.keys(updatedReassignments).length;
         const transferredReflexiveCount = result.reflexiveResponsesTransferred || 0;
+        const createdCodesCount = Object.keys(createdCodeMap).length;
         
-  let message = `Code split completed. ${reassignedCount} highlight${reassignedCount !== 1 ? 's' : ''} reassigned.`;
+        let message;
+        if (reassignedCount === 0) {
+          message = 'Code split completed. No highlights were reassigned.';
+        } else {
+          message = `Code split completed. ${reassignedCount} highlight${reassignedCount !== 1 ? 's' : ''} reassigned.`;
+        }
+        
+        if (createdCodesCount > 0) {
+          message += ` ${createdCodesCount} new code${createdCodesCount !== 1 ? 's' : ''} created.`;
+        }
         
         if (transferredReflexiveCount > 0) {
           message += ` ${transferredReflexiveCount} reflexive response${transferredReflexiveCount !== 1 ? 's' : ''} transferred.`;
@@ -189,10 +350,24 @@ const CodeSplitModal = ({
             availableCodes={availableCodes}
             highlightReflexiveCounts={highlightReflexiveCounts}
             onHighlightReassignment={handleHighlightReassignment}
+            onSkipHighlight={handleSkipHighlight}
+            onCreateNewCode={() => setShowCodeForm(true)}
+            showCodeForm={showCodeForm}
+            onCreateCodeSubmit={handleCreateNewCode}
+            onCreateCodeCancel={() => {
+              setShowCodeForm(false);
+              // If there's no assignment for current highlight, default to skip
+              const currentHighlight = highlights[currentHighlightIndex];
+              if (currentHighlight && !reassignments[currentHighlight.id]) {
+                // This will automatically set it to skip (no assignment)
+              }
+            }}
+            onMessage={onMessage}
             onNextHighlight={handleNextHighlight}
             onPreviousHighlight={handlePreviousHighlight}
             currentUser={currentUser}
             userProfiles={userProfiles}
+            pendingCodeCreations={pendingCodeCreations}
           />
         );
       case 3:
@@ -202,6 +377,7 @@ const CodeSplitModal = ({
             highlights={highlights}
             reassignments={reassignments}
             availableCodes={availableCodes}
+            pendingCodeCreations={pendingCodeCreations}
           />
         );
       case 4:
@@ -212,6 +388,7 @@ const CodeSplitModal = ({
             reassignments={reassignments}
             deleteSourceCode={deleteSourceCode}
             onDeleteChoice={setDeleteSourceCode}
+            pendingCodeCreations={pendingCodeCreations}
           />
         );
       default:
@@ -272,10 +449,7 @@ const CodeSplitModal = ({
       onNextStep={handleNextStep}
       showNextButton={step === 2}
       nextButtonDisabled={
-        step === 2 && (
-          highlightsLoading ||
-          (highlights.length > 0 && Object.keys(reassignments).length < highlights.length)
-        )
+        step === 2 && highlightsLoading
       }
       showPreviousButton={step > 1}
       loading={loading}
