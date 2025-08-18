@@ -91,12 +91,14 @@ const CodeSplitModal = ({
     }
   };
 
-  const handleHighlightReassignment = (highlightId, newCodeId, transferReflexiveForThisHighlight = false) => {
+  const handleHighlightReassignment = (highlightId, newCodeId, _transferReflexiveForThisHighlight = undefined) => {
+    // Auto-set transferReflexive: if reassigned (not skipped) and highlight has reflexive responses, transfer them.
+    const autoTransfer = highlightReflexiveCounts[highlightId] > 0;
     setReassignments(prev => ({
       ...prev,
       [highlightId]: {
         newCodeId,
-        transferReflexive: transferReflexiveForThisHighlight
+        transferReflexive: autoTransfer
       }
     }));
   };
@@ -130,7 +132,7 @@ const CodeSplitModal = ({
         ...prev,
         [currentHighlight.id]: {
           newCodeId: tempId,
-          transferReflexive: false
+          transferReflexive: (highlightReflexiveCounts[currentHighlight.id] || 0) > 0
         }
       }));
     }
@@ -268,13 +270,19 @@ const CodeSplitModal = ({
         }
       }
 
-      const transferReflexive = Object.values(updatedReassignments).some(assignment => assignment.transferReflexive);
-      
+      // Ensure transferReflexive is set based on the latest counts for all reassigned highlights
+      for (const [hId, a] of Object.entries(updatedReassignments)) {
+        updatedReassignments[hId] = {
+          ...a,
+          transferReflexive: (highlightReflexiveCounts[hId] || 0) > 0
+        };
+      }
+
       const result = await onSplitCode({
         type: 'executeSplit',
         sourceCode: selectedCode,
         reassignments: updatedReassignments,
-        transferReflexive,
+  // transferReflexive is determined per highlight in reassignments
         forceDeleteSourceCode: deleteSourceCode,
         targetCodesInfo // Pass target code info for accurate history recording
       });

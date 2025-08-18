@@ -239,26 +239,14 @@ const SplitStep2_ReviewHighlights = ({
         )}
       </div>
 
-      {/* Option to transfer reflexive responses if this highlight has any */}
-      {assignment?.newCodeId && highlightReflexiveCounts[currentHighlight.id] > 0 && (
+      {/* Informational message about reflexive responses moving automatically when reassigning */}
+      {highlightReflexiveCounts[currentHighlight.id] > 0 && selectedOption !== 'skip' && (
         <div className="mt-4 p-3 bg-indigo-50 rounded-lg">
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={assignment.transferReflexive || false}
-              onChange={(e) => onHighlightReassignment(
-                currentHighlight.id, 
-                assignment.newCodeId, 
-                e.target.checked
-              )}
-              className="rounded"
-            />
-            <span className="text-sm text-indigo-800">
-              Transfer {highlightReflexiveCounts[currentHighlight.id]} reflexive response{highlightReflexiveCounts[currentHighlight.id] !== 1 ? 's' : ''} to the new code
-            </span>
-          </label>
+          <p className="text-sm text-indigo-800">
+            This highlight has {highlightReflexiveCounts[currentHighlight.id]} reflexive response{highlightReflexiveCounts[currentHighlight.id] !== 1 ? 's' : ''}. They will move to {selectedOption === 'create_new' ? 'the new code' : `“${availableCodes.find(c => c.id === selectedOption)?.label || 'the selected code'}”`} along with the highlight.
+          </p>
           <p className="text-xs text-indigo-600 mt-1">
-            The reflexive Q&A responses for this highlight will be moved to &ldquo;{availableCodes.find(c => c.id === assignment.newCodeId)?.label}&rdquo;
+            Change your selection to &quot;Keep with original&quot; to leave reflexive responses with “{selectedCode?.label}”.
           </p>
         </div>
       )}
