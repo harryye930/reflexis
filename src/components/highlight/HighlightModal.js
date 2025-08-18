@@ -11,7 +11,8 @@ const HighlightingModal = ({
   onClose,
   selectedText,
   currentUser,
-  documentId
+  documentId,
+  isDetecting = false
 }) => {
   const [showReflexiveModal, setShowReflexiveModal] = useState(false);
   const [selectedCodeForReflexive, setSelectedCodeForReflexive] = useState(null);
@@ -38,6 +39,7 @@ const HighlightingModal = ({
   }
 
   const handleDirectApply = async (codeId) => {
+    if (isDetecting) return; // prevent duplicate clicks while detecting
     const result = await onCodeSelect(codeId);
     if (result?.success && result?.highlightId) {
       setHighlightId(result.highlightId);
@@ -47,6 +49,7 @@ const HighlightingModal = ({
   };
 
   const handleReflexiveApply = async (code) => {
+    if (isDetecting) return; // prevent while detecting
     // Create the highlight first, before starting reflexive process
     // Skip conceptual drift during reflexive flow to avoid double prompts
     const result = await onCodeSelect(code.id, { skipDrift: true });
@@ -96,11 +99,19 @@ const HighlightingModal = ({
             maxWidth: '400px'
           }}
         >
+          {isDetecting && (
+            <div className="absolute inset-0 bg-white/70 backdrop-blur-sm rounded-xl flex items-center justify-center z-10">
+              <div className="flex items-center gap-2 text-gray-600">
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-300 border-t-transparent"></div>
+                <span className="text-sm">Analyzing code drift…</span>
+              </div>
+            </div>
+          )}
           <div className="flex items-center gap-2 mb-4">
             <Label sx={{ fontSize: 18, color: '#3b82f6' }} />
             <p className="text-sm text-gray-700 font-medium">Apply code to selection:</p>
           </div>
-          <div id="modal-codes-list" className="grid grid-cols-2 gap-3 auto-rows-max">
+          <div id="modal-codes-list" className={`grid grid-cols-2 gap-3 auto-rows-max ${isDetecting ? 'pointer-events-none opacity-60' : ''}`}>
             {allCodes.map(code => (
               <div key={code.id} className="flex justify-center">
                 <CodeButton
@@ -119,6 +130,7 @@ const HighlightingModal = ({
             <button
               onClick={onClose}
               className="px-3 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-md transition-all duration-200"
+              disabled={isDetecting}
             >
               Cancel
             </button>

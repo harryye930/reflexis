@@ -260,6 +260,7 @@ function CollaborativeTextContent() {
           selectedText={selectedText}
           currentUser={currentUser}
           documentId={activeDocumentId}
+          isDetecting={isDetecting}
         />
       )}
 
