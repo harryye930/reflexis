@@ -8,18 +8,30 @@ const openai = new OpenAI({
 const FORCE_DRIFT_FOR_TESTING = false;
 const DISABLED = false;
 
+/**
+ * API endpoint for detecting conceptual drift in qualitative coding
+ * 
+ * Accepts:
+ * - codeName: Name of the code
+ * - codeDefinition: Current definition of the code
+ * - existingExamples: Array of existing passages coded with this code
+ * - newPassage: New text passage to be analyzed for drift
+ * - context: Surrounding context of the new passage for better analysis (required)
+ * 
+ * Returns JSON with drift_detected (boolean), explanation (string), and suggested_definition (string)
+ */
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { codeName, codeDefinition, existingExamples, newPassage } = req.body;
+  const { codeName, codeDefinition, existingExamples, newPassage, context } = req.body;
 
     // Validate required fields
-    if (!codeName || !codeDefinition || !existingExamples || !newPassage) {
+  if (!codeName || !codeDefinition || !existingExamples || !newPassage || !context) {
       return res.status(400).json({ 
-        error: 'Missing required fields: codeName, codeDefinition, existingExamples, newPassage' 
+    error: 'Missing required fields: codeName, codeDefinition, existingExamples, newPassage, context' 
       });
     }
 
@@ -69,29 +81,32 @@ Conceptual drift occurs when a new passage represents a significant expansion or
 2. The new passage represents a genuinely different concept that should be coded separately
 3. The code should be split into multiple more specific codes
 
-Consider both the explicit definition and the implicit patterns in the existing examples. Minor variations are expected, but significant conceptual shifts indicate drift.`;
+Consider both the explicit definition and the implicit interpreted patterns in the existing examples. When provided, use the surrounding context to better understand the conceptual boundaries and situational usage of the coded text. Minor variations are expected and should be tolerated, but significant conceptual shifts indicate drift.`;
 
     // Format existing examples for the prompt
     const examplesText = existingExamples
       .map((example, index) => `${index + 1}. "${example.text}" (from ${example.documentTitle})`)
       .join('\n');
 
-    const userPrompt = `Code name: ${codeName}
+  const userPrompt = `Code name: ${codeName}
 
 Current definition: "${codeDefinition}"
 
 Existing passages coded with "${codeName}":
 ${examplesText}
 
-New passage to be checked: "${newPassage}"
 
-Does the new passage represent a significant expansion or shift in the meaning of the code? If yes, briefly explain the shift and suggest a revised, more inclusive definition.
+NEW PASSAGE (selected portion): "${newPassage}", which is situated within the bigger context "${context}".
+
+Does the new passage represent a significant expansion or shift in the meaning of the code? When evaluating, consider both the specific coded text and its surrounding context to better understand the conceptual boundaries.
+
+If yes, briefly explain the shift and suggest a revised, more inclusive definition.
 
 Respond in JSON format: { "drift_detected": boolean, "explanation": string, "suggested_definition": string }
 
 Where:
 - drift_detected: true if significant conceptual drift is detected
-- explanation: brief explanation of the drift or why no drift was detected, it should be short and straightforward to read.
+- explanation: brief explanation of the drift or why no drift was detected, it should be in bullet point form (with 2-4 points in total, depends on the complexity), short (1-2 sentence per bullet point) and straightforward to read as a researcher just tagged the sentence.
 - suggested_definition: if drift detected, provide a revised definition that encompasses both existing and new usage; if no drift, return null`;
 
     // Call OpenAI API
@@ -115,7 +130,7 @@ Where:
               },
               explanation: {
                 type: 'string',
-                description: 'Brief explanation of the drift or why no drift was detected'
+                description: 'Brief explanation of the drift or why no drift was detected, in bullet point form, start with "•", and separated by new lines'
               },
               suggested_definition: {
                 type: 'string',

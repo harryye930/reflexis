@@ -35,7 +35,8 @@ export const useConceptualDrift = (services, currentUser, disableCodeDriftDetect
       const result = await services.conceptualDrift.detectConceptualDrift({
         codeId: highlightData.codeId,
         newPassage: highlightData.text,
-        documentId: highlightData.documentId
+        documentId: highlightData.documentId,
+        context: highlightData.context
       });
 
       if (result.success) {

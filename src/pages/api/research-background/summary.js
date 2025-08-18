@@ -22,20 +22,20 @@ export default async function handler(req, res) {
 
     const systemPrompt = `You are an assistant that produces concise, semicolon-separated keyword summaries of a researcher's background and positionality for collaborative qualitative analysis tools.`;
 
-    const userPrompt = `Summarize the following research background into a compact list of 1-12 keywords/short phrases separated by semicolons + space (; ). 
+    const userPrompt = `Summarize the following research background filled out by researcher into a compact list of 1-12 keywords/short phrases separated by semicolons + space (; ). 
 Only return the keywords line, no extra words, labels, or quotes. Keep each keyword under 3-5 words. Prioritize items like: discipline, methods, theoretical lenses, domain expertise, populations/contexts, positionality/identity factors, likely biases, analytic style.
 
-Number of keywords should be proportional to the length and complexity of the research background provided, less provided context should result in fewer than usual keywords.
+Number of keywords should be proportional to the length and complexity of the research background user provided, less provided context should result in fewer than usual keywords.
 
 ${userName ? `Name: ${userName}\n` : ''}
-Brief History of Qualitative Data Analysis:
-${parsed.qualitativeHistory || 'Not provided'}
+Question: Brief History of Qualitative Data Analysis?
+User data: ${parsed.qualitativeHistory || 'Not provided'}
 
-How Background May Affect Interpretation:
-${parsed.backgroundExperience || 'Not provided'}
+Question: How Background May Affect Interpretation?
+User data: ${parsed.backgroundExperience || 'Not provided'}
 
-Initial View of the Data:
-${parsed.initialDataView || 'Not provided'}
+Question: Initial View of the Data?
+User data: ${parsed.initialDataView || 'Not provided'}
 `;
 
     const completion = await openai.chat.completions.create({
@@ -44,7 +44,7 @@ ${parsed.initialDataView || 'Not provided'}
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ],
-      reasoning_effort: 'minimal',
+      reasoning_effort: 'low',
       response_format: {
         type: 'json_schema',
         json_schema: {

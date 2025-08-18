@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import MultiStepModal from '../common/MultiStepModal.js';
 import CodeForm from '../sidebar/analysis/codes/CodeForm.js';
+import CodeChip from '../common/CodeChip.js';
 
 const CodeDriftModal = ({ 
   isOpen,
@@ -103,6 +104,43 @@ const CodeDriftModal = ({
       case 1:
         return (
           <div className="space-y-6">
+            {/* Context Section - Show attempted coded text and applied code */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <div className="space-y-3">
+                <h4 className="font-medium text-gray-800 text-sm">Attempted Coding Context</h4>
+                
+                {/* Selected Text */}
+                <div>
+                  <p className="text-xs text-gray-600 mb-1 font-medium">Selected Text:</p>
+                  <div className="bg-white border border-gray-200 rounded p-3 text-sm text-gray-900 leading-relaxed">
+                    &ldquo;{pendingHighlight?.text || 'No text selected'}&rdquo;
+                  </div>
+                </div>
+
+                {/* Applied Code */}
+                <div>
+                  <p className="text-xs text-gray-600 mb-2 font-medium">Attempted to Apply Code:</p>
+                  <div className="flex items-center gap-2">
+                    {currentCode ? (
+                      <CodeChip 
+                        code={currentCode} 
+                        size="sm" 
+                        variant="unified"
+                        showTooltip={true}
+                      />
+                    ) : (
+                      <span className="text-sm text-gray-500 italic">Code not found</span>
+                    )}
+                  </div>
+                  {currentCode?.description && (
+                    <p className="text-xs text-gray-600 mt-1 italic">
+                      &ldquo;{currentCode.description}&rdquo;
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* Drift Detection Alert */}
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
@@ -111,7 +149,7 @@ const CodeDriftModal = ({
                 </svg>
                 <h3 className="font-semibold text-amber-800">Conceptual Drift Detected While Coding</h3>
               </div>
-              <p className="text-sm text-amber-700 mb-3">
+              <p className="text-sm text-amber-700 mb-3" style={{ whiteSpace: 'pre-line' }}>
                 {driftData.explanation}
               </p>
             </div>

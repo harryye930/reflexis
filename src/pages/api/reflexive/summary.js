@@ -20,6 +20,7 @@ export default async function handler(req, res) {
     const justificationResponses = responses.filter(r => r.promptType === 'justification').map(r => r.response);
     const positionalityResponses = responses.filter(r => r.promptType === 'positionality').map(r => r.response);
     const alternativeResponses = responses.filter(r => r.promptType === 'alternative').map(r => r.response);
+    
 
     // Create system prompt for structured analysis
     const systemPrompt = `You are an expert qualitative research analyst specializing in reflexive memo analysis. Your task is to analyze a researcher's reflexive responses across three key dimensions and provide insightful meta-analytical summaries.

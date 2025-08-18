@@ -132,6 +132,12 @@ export const useHighlightManagement = (
       return { success: false, error: 'Text selection mapping failed' };
     }
 
+    // Extract context around the selected text for drift detection
+    const CONTEXT_WINDOW = 100; // Characters of context before and after
+    const contextStart = Math.max(0, sourceStartIndex - CONTEXT_WINDOW);
+    const contextEnd = Math.min(sourceText.length, sourceEndIndex + CONTEXT_WINDOW);
+    const fullContext = sourceText.substring(contextStart, contextEnd);
+
     // Prepare highlight data
     const highlightData = {
       code: code,
@@ -140,7 +146,11 @@ export const useHighlightManagement = (
       endIndex: sourceEndIndex,
       text: sourceText.substring(sourceStartIndex, sourceEndIndex),
       documentId: activeDocumentId,
-      documentTitle: activeDocument.title
+      documentTitle: activeDocument.title,
+      // Add context for drift detection
+      context: fullContext,
+      contextStart: sourceStartIndex - contextStart,
+      contextEnd: sourceEndIndex - contextStart
     };
 
     // Perform conceptual drift detection before applying highlight (unless explicitly skipped)

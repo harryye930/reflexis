@@ -16,7 +16,7 @@ export class ConceptualDriftService {
    * @param {string} params.documentId - Current document ID
    * @returns {Object} Drift detection result
    */
-  async detectConceptualDrift({ codeId, newPassage, documentId }) {
+  async detectConceptualDrift({ codeId, newPassage, documentId, context }) {
     try {
       // Get the code definition using existing CodeService
       const codeResult = await this.codeService.getCode(codeId);
@@ -52,7 +52,8 @@ export class ConceptualDriftService {
         codeName: code.label,
         codeDefinition: code.description,
         existingExamples: examples,
-        newPassage
+        newPassage,
+        context
       });
 
       return driftResult;
@@ -115,7 +116,7 @@ export class ConceptualDriftService {
    * Analyze conceptual drift using LLM
    * @private
    */
-  async _analyzeDriftWithLLM({ codeName, codeDefinition, existingExamples, newPassage }) {
+  async _analyzeDriftWithLLM({ codeName, codeDefinition, existingExamples, newPassage, context }) {
     try {
       const response = await fetch('/api/code-drift/detect', {
         method: 'POST',
@@ -126,7 +127,8 @@ export class ConceptualDriftService {
           codeName,
           codeDefinition,
           existingExamples,
-          newPassage
+          newPassage,
+          context
         }),
       });
 
