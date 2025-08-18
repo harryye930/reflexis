@@ -138,6 +138,9 @@ const CodeSplitModal = ({
     setShowCodeForm(false);
     onMessage('New code will be created when split is completed');
     
+    // Automatically proceed to next highlight if there are any more to review
+    handleNextHighlight();
+    
     return { success: true, code: pendingCode };
   };
 
