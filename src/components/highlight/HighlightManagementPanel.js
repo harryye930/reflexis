@@ -4,6 +4,8 @@ import { getUserDisplayColor, getUserDisplayName, shouldShowAuthorInfo } from '.
 import DiscussionPromptPanel from './DiscussionPromptPanel.js';
 import { useDiscussionPrompt } from '../../hooks/useDiscussionPrompt.js';
 import { useReflexiveCheck } from '../../hooks/useReflexiveCheck.js';
+import { useReflexiveResponses } from '../../hooks/useReflexiveResponses.js';
+import HighlightReflexiveNotes from './HighlightReflexiveNotes.js';
 
 // Individual highlight item component with reflexive check logic
 const HighlightItem = ({ 
@@ -23,11 +25,14 @@ const HighlightItem = ({
   // Check if this highlight is from the current user
   const isCurrentUserHighlight = currentUser && highlight.userId === currentUser.uid;
   
-  // Use reflexive check hook only if it's the current user's highlight
+  // Use reflexive check hook only for the reflexive button logic
   const { hasReflexiveInput, loading: reflexiveLoading } = useReflexiveCheck(
     isCurrentUserHighlight ? highlight.id : null, 
     isCurrentUserHighlight ? currentUser.uid : null
   );
+  
+  // Get all reflexive responses for this highlight (for display)
+  const { allReflexiveResponses } = useReflexiveResponses(highlight.id);
   
   // Use hover utilities for user display
   const userColor = getUserDisplayColor(user, showAuthorInfo);
@@ -151,6 +156,13 @@ const HighlightItem = ({
         <div className="text-sm text-gray-900 leading-relaxed font-medium bg-white rounded px-3 py-2 border border-gray-200 shadow-sm">
           &ldquo;{highlight.text.length > 120 ? `${highlight.text.substring(0, 120)}...` : highlight.text}&rdquo;
         </div>
+        
+        {/* Reflexive Notes - show all reflexive responses for this highlight */}
+        {allReflexiveResponses && allReflexiveResponses.length > 0 && (
+          <HighlightReflexiveNotes
+            reflexiveResponses={allReflexiveResponses}
+          />
+        )}
       </div>
     </div>
   );

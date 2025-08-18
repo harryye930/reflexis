@@ -23,6 +23,7 @@ import {
 } from '../../../../../../constants/reflexivePrompts.js';
 import ReflexiveSummary from './ReflexiveSummary.js';
 import ResearchBackgroundDisplay from '../../../../../common/ResearchBackgroundDisplay.js';
+import ReflexiveResponseCard from '../../../../../common/ReflexiveResponseCard.js';
 
 const ReflexiveStream = ({ 
   responses, 
@@ -201,7 +202,6 @@ const ReflexiveStream = ({
                             className="text-xs text-gray-500"
                           />
                         </div>
-                        <span>{formatTimestamp(group.createdAt)}</span>
                       </div>
                     </div>
 
@@ -257,25 +257,14 @@ const ReflexiveStream = ({
                         const response = group.responses[promptTemplate.type];
                         if (!response) return null; // safety
                         return (
-                          <div key={promptTemplate.type} className="reflexive-response-card response-type-indicator border border-gray-100 rounded-lg p-3">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="text-lg">{promptTemplate.icon}</span>
-                              <span className="text-sm font-medium text-gray-700">
-                                {getShortPromptText(promptTemplate.type)}
-                              </span>
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                ✓
-                              </span>
-                            </div>
-                            <div>
-                              <blockquote className="text-sm text-gray-800 leading-relaxed border-l-2 border-blue-200 pl-3 italic mb-2">
-                                &ldquo;{response.response}&rdquo;
-                              </blockquote>
-                              <div className="text-xs text-gray-500">
-                                {formatTimestamp(response.createdAt)}
-                              </div>
-                            </div>
-                          </div>
+                          <ReflexiveResponseCard
+                            key={promptTemplate.type}
+                            response={response}
+                            promptType={promptTemplate.type}
+                            showTimestamp={true}
+                            showCheckmark={true}
+                            className="border border-gray-100 p-3"
+                          />
                         );
                       });
                     })()}
