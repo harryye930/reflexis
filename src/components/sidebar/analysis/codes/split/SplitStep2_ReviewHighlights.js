@@ -1,5 +1,5 @@
 import React from 'react';
-import { ContentCut, Add, FastForward } from '@mui/icons-material';
+import { ContentCut, Add, GppGood } from '@mui/icons-material';
 import CodeChip from '../../../../common/CodeChip.js';
 import CodeForm from '../CodeForm.js';
 
@@ -181,7 +181,7 @@ const SplitStep2_ReviewHighlights = ({
               )}
             </div>
             <div className="flex items-center gap-2">
-              <FastForward sx={{ fontSize: 16, color: selectedOption === 'skip' ? '#6b7280' : '#9ca3af' }} />
+              <GppGood sx={{ fontSize: 16, color: selectedOption === 'skip' ? '#6b7280' : '#9ca3af' }} />
               <span className={`text-sm font-medium ${selectedOption === 'skip' ? 'text-gray-700' : 'text-gray-600'}`}>
                 Keep with original code {<CodeChip code={selectedCode} size="sm" variant="unified" />}
               </span>
