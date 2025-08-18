@@ -58,10 +58,10 @@ const AdminTab = ({
         onToggleDisableHighlightManagement={onToggleDisableHighlightManagement}
         disableCodeDriftDetection={disableCodeDriftDetection}
         onToggleDisableCodeDriftDetection={onToggleDisableCodeDriftDetection}
-  showCodeDetails={showCodeDetails}
-  onToggleShowCodeDetails={onToggleShowCodeDetails}
-  hideSameCodeHighlights={hideSameCodeHighlights}
-  onToggleHideSameCodeHighlights={onToggleHideSameCodeHighlights}
+        showCodeDetails={showCodeDetails}
+        onToggleShowCodeDetails={onToggleShowCodeDetails}
+        hideSameCodeHighlights={hideSameCodeHighlights}
+        onToggleHideSameCodeHighlights={onToggleHideSameCodeHighlights}
       />
     </div>
   );
