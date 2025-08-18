@@ -299,7 +299,7 @@ export class CodeHistoryService {
       
       // Record merge event for the target/result code
   const mergeDescription = strategy === 'create_new' 
-        ? `New code "${resultConfig.label}" created by merging ${selectedCodes.length} codes: ${selectedCodes.map(c => c.label).join(', ')}`
+        ? `Code "${resultConfig.label}" populated by merging ${selectedCodes.length} codes: ${selectedCodes.map(c => c.label).join(', ')}`
         : `Code "${resultConfig.label}" updated by merging ${selectedCodes.length - 1} codes: ${selectedCodes.filter(c => c.id !== targetCodeId).map(c => c.label).join(', ')}`;
 
       await this.addHistoryEntry({
@@ -376,7 +376,7 @@ export class CodeHistoryService {
   // Record code split
   async recordCodeSplit(splitData, userId) {
     try {
-      const { sourceCode, reassignments, totalHighlightsReassigned, totalReflexiveResponsesTransferred = 0, totalReflexiveResponsesDeleted, codeDeleted } = splitData;
+      const { sourceCode, reassignments, totalHighlightsReassigned, totalReflexiveResponsesTransferred = 0, totalReflexiveResponsesDeleted, codeDeleted, targetCodesInfo } = splitData;
       
       // Validate input data
       if (!sourceCode) {
@@ -387,24 +387,31 @@ export class CodeHistoryService {
         throw new Error('Missing userId for split operation');
       }
 
-      // Get target codes information
-      const targetCodes = [];
-      const uniqueCodeIds = [...new Set(Object.values(reassignments).map(a => a.newCodeId))];
+      // Get target codes information - use provided info if available, otherwise fetch from DB
+      let targetCodes = [];
       
-      for (const codeId of uniqueCodeIds) {
-        try {
-          const codeResult = await this.getCodeById(codeId);
-          if (codeResult.success) {
-            targetCodes.push({
-              id: codeId,
-              label: codeResult.data.label,
-              description: codeResult.data.description,
-              color: codeResult.data.color,
-              textColor: codeResult.data.textColor
-            });
+      if (targetCodesInfo && Array.isArray(targetCodesInfo)) {
+        // Use the provided target codes information
+        targetCodes = targetCodesInfo;
+      } else {
+        // Fallback: fetch target codes from database
+        const uniqueCodeIds = [...new Set(Object.values(reassignments).map(a => a.newCodeId))];
+        
+        for (const codeId of uniqueCodeIds) {
+          try {
+            const codeResult = await this.getCodeById(codeId);
+            if (codeResult.success) {
+              targetCodes.push({
+                id: codeId,
+                label: codeResult.data.label,
+                description: codeResult.data.description,
+                color: codeResult.data.color,
+                textColor: codeResult.data.textColor
+              });
+            }
+          } catch (error) {
+            console.warn(`Could not fetch target code ${codeId}:`, error);
           }
-        } catch (error) {
-          console.warn(`Could not fetch target code ${codeId}:`, error);
         }
       }
 
