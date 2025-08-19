@@ -51,6 +51,12 @@ function CollaborativeTextContent() {
   const [selectedHighlightForReflexive, setSelectedHighlightForReflexive] = useState(null);
   const [selectedCodeForReflexive, setSelectedCodeForReflexive] = useState(null);
   
+  // State for tracking reflexive modal from HighlightModal (coding modal)
+  const [codingModalReflexiveState, setCodingModalReflexiveState] = useState({
+    isOpen: false,
+    highlightId: null
+  });
+  
   // Custom hooks for UI management
   const { message, showMessage } = useMessageHandler();
   
@@ -136,6 +142,14 @@ function CollaborativeTextContent() {
     return result;
   };
 
+  // Handle reflexive modal state changes from HighlightModal (coding modal)
+  const handleCodingModalReflexiveChange = (isOpen, highlightId) => {
+    setCodingModalReflexiveState({
+      isOpen,
+      highlightId
+    });
+  };
+
   // Handle reflexive click for existing highlights
   const handleReflexiveClick = (highlight, code) => {
     setSelectedHighlightForReflexive(highlight);
@@ -208,8 +222,8 @@ function CollaborativeTextContent() {
               showHoverTooltips={showHoverTooltips}
               showAuthorInfo={showAuthorInfo}
               disableHighlightManagement={disableHighlightManagement}
-              showReflexiveModal={showReflexiveModal}
-              reflexiveHighlightId={selectedHighlightForReflexive?.id}
+              showReflexiveModal={showReflexiveModal || codingModalReflexiveState.isOpen}
+              reflexiveHighlightId={selectedHighlightForReflexive?.id || codingModalReflexiveState.highlightId}
             />
           )}
         </div>
@@ -261,6 +275,7 @@ function CollaborativeTextContent() {
           currentUser={currentUser}
           documentId={activeDocumentId}
           isDetecting={isDetecting}
+          onReflexiveModalChange={handleCodingModalReflexiveChange}
         />
       )}
 

@@ -136,7 +136,7 @@ const HighlightedText = ({
     }
     
     setEmphasisHighlightIds(emphasisIds);
-  }, [managementPanel.visible, managementPanel.highlights, showReflexiveModal, reflexiveHighlightId]);
+  }, [managementPanel.visible, managementPanel.highlights, showReflexiveModal, reflexiveHighlightId, highlights]);
 
 
   // Use the custom hook for text segmentation

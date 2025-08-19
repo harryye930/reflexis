@@ -12,7 +12,9 @@ const HighlightingModal = ({
   selectedText,
   currentUser,
   documentId,
-  isDetecting = false
+  isDetecting = false,
+  // Add callback to notify parent about reflexive modal state
+  onReflexiveModalChange
 }) => {
   const [showReflexiveModal, setShowReflexiveModal] = useState(false);
   const [selectedCodeForReflexive, setSelectedCodeForReflexive] = useState(null);
@@ -60,6 +62,11 @@ const HighlightingModal = ({
       setHighlightId(highlightId);
       setSelectedCodeForReflexive(code);
       setShowReflexiveModal(true);
+      
+      // Notify parent about reflexive modal opening for emphasis
+      if (onReflexiveModalChange) {
+        onReflexiveModalChange(true, highlightId);
+      }
     } else {
       // If highlight creation fails, don't start reflexive process
       const errorMsg = result?.error || 'Unknown error creating highlight';
@@ -75,12 +82,24 @@ const HighlightingModal = ({
     // Just close the modal
     setShowReflexiveModal(false);
     setSelectedCodeForReflexive(null);
+    
+    // Notify parent that reflexive modal is closing
+    if (onReflexiveModalChange) {
+      onReflexiveModalChange(false, null);
+    }
+    
     onClose();
   };
 
   const handleReflexiveClose = () => {
     setShowReflexiveModal(false);
     setSelectedCodeForReflexive(null);
+    
+    // Notify parent that reflexive modal is closing
+    if (onReflexiveModalChange) {
+      onReflexiveModalChange(false, null);
+    }
+    
     // Close the entire highlighting modal when reflexive process is cancelled
     onClose();
   };

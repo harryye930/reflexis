@@ -102,8 +102,8 @@ const AdminToggles = ({
         {/* Toggle for hiding same-code highlights */}
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <label className="text-sm text-gray-600">Hide same-code highlights</label>
-            <p className="text-xs text-gray-500">Temporarily hide highlights where all overlapping codings use the same code</p>
+            <label className="text-sm text-gray-600">Show highlights with different codes</label>
+            <p className="text-xs text-gray-500">Only show highlights where multiple researchers applying different codes</p>
           </div>
           <button
             onClick={onToggleHideSameCodeHighlights}
