@@ -1,8 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Label } from '@mui/icons-material';
-import { CODE_COLOR_OPTIONS } from '../../constants/codeColors.js';
 import CodeButton from './HighlightModalCodeButton.js';
-import ReflexiveModal from '../reflexive/ReflexiveModal.js';
 
 const HighlightingModal = ({ 
   modalPosition, 
@@ -13,12 +11,9 @@ const HighlightingModal = ({
   currentUser,
   documentId,
   isDetecting = false,
-  // Add callback to notify parent about reflexive modal state
-  onReflexiveModalChange
+  // Notify parent to open Reflexive modal at top-level with this highlight
+  onStartReflexive
 }) => {
-  const [showReflexiveModal, setShowReflexiveModal] = useState(false);
-  const [selectedCodeForReflexive, setSelectedCodeForReflexive] = useState(null);
-  const [highlightId, setHighlightId] = useState(null);
   const modalRef = useRef(null);
 
   // Click-outside handling for the highlighting modal
@@ -30,11 +25,9 @@ const HighlightingModal = ({
       }
     };
 
-    if (!showReflexiveModal) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [onClose, showReflexiveModal]);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [onClose]);
 
   if (!allCodes || allCodes.length === 0) {
     return null;
@@ -44,7 +37,6 @@ const HighlightingModal = ({
     if (isDetecting) return; // prevent duplicate clicks while detecting
     const result = await onCodeSelect(codeId);
     if (result?.success && result?.highlightId) {
-      setHighlightId(result.highlightId);
       // Close modal after successful direct apply
       onClose();
     }
@@ -57,16 +49,13 @@ const HighlightingModal = ({
     const result = await onCodeSelect(code.id, { skipDrift: true });
     
     if (result?.success) {
-      // Set highlight ID if available, otherwise use a placeholder
+      // Notify parent to open the Reflexive modal at top level with emphasis
       const highlightId = result.highlightId || `temp_${Date.now()}`;
-      setHighlightId(highlightId);
-      setSelectedCodeForReflexive(code);
-      setShowReflexiveModal(true);
-      
-      // Notify parent about reflexive modal opening for emphasis
-      if (onReflexiveModalChange) {
-        onReflexiveModalChange(true, highlightId);
+      if (onStartReflexive) {
+        onStartReflexive({ highlightId, code, selectedText });
       }
+      // Close the coding modal now that reflexive flow is handed to parent
+      onClose();
     } else {
       // If highlight creation fails, don't start reflexive process
       const errorMsg = result?.error || 'Unknown error creating highlight';
@@ -77,37 +66,9 @@ const HighlightingModal = ({
     }
   };
 
-  const handleReflexiveComplete = async (responses) => {
-    // Highlight was already created in handleReflexiveApply
-    // Just close the modal
-    setShowReflexiveModal(false);
-    setSelectedCodeForReflexive(null);
-    
-    // Notify parent that reflexive modal is closing
-    if (onReflexiveModalChange) {
-      onReflexiveModalChange(false, null);
-    }
-    
-    onClose();
-  };
-
-  const handleReflexiveClose = () => {
-    setShowReflexiveModal(false);
-    setSelectedCodeForReflexive(null);
-    
-    // Notify parent that reflexive modal is closing
-    if (onReflexiveModalChange) {
-      onReflexiveModalChange(false, null);
-    }
-    
-    // Close the entire highlighting modal when reflexive process is cancelled
-    onClose();
-  };
-
   return (
     <>
-      {!showReflexiveModal ? (
-        <div
+      <div
           id="coding-modal"
           ref={modalRef}
           className="coding-modal bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl border border-gray-200/50 p-4 transition-all duration-300"
@@ -154,19 +115,7 @@ const HighlightingModal = ({
               Cancel
             </button>
           </div>
-        </div>
-      ) : (
-        <ReflexiveModal
-          modalPosition={modalPosition}
-          selectedCode={selectedCodeForReflexive}
-          selectedText={selectedText}
-          currentUser={currentUser}
-          documentId={documentId}
-          highlightId={highlightId}
-          onComplete={handleReflexiveComplete}
-          onClose={handleReflexiveClose}
-        />
-      )}
+      </div>
     </>
   );
 };

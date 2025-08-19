@@ -51,12 +51,6 @@ function CollaborativeTextContent() {
   const [selectedHighlightForReflexive, setSelectedHighlightForReflexive] = useState(null);
   const [selectedCodeForReflexive, setSelectedCodeForReflexive] = useState(null);
   
-  // State for tracking reflexive modal from HighlightModal (coding modal)
-  const [codingModalReflexiveState, setCodingModalReflexiveState] = useState({
-    isOpen: false,
-    highlightId: null
-  });
-  
   // Custom hooks for UI management
   const { message, showMessage } = useMessageHandler();
   
@@ -142,12 +136,13 @@ function CollaborativeTextContent() {
     return result;
   };
 
-  // Handle reflexive modal state changes from HighlightModal (coding modal)
-  const handleCodingModalReflexiveChange = (isOpen, highlightId) => {
-    setCodingModalReflexiveState({
-      isOpen,
-      highlightId
-    });
+  // Start reflexive flow from coding modal after highlight creation
+  const handleStartReflexiveFromCodingModal = ({ highlightId, code, selectedText }) => {
+    if (!highlightId || !code) return;
+    setSelectedHighlightForReflexive({ id: highlightId, text: selectedText });
+    setSelectedCodeForReflexive(code);
+    setReflexiveModalPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 - 200 });
+    setShowReflexiveModal(true);
   };
 
   // Handle reflexive click for existing highlights
@@ -222,8 +217,8 @@ function CollaborativeTextContent() {
               showHoverTooltips={showHoverTooltips}
               showAuthorInfo={showAuthorInfo}
               disableHighlightManagement={disableHighlightManagement}
-              showReflexiveModal={showReflexiveModal || codingModalReflexiveState.isOpen}
-              reflexiveHighlightId={selectedHighlightForReflexive?.id || codingModalReflexiveState.highlightId}
+              showReflexiveModal={showReflexiveModal}
+              reflexiveHighlightId={selectedHighlightForReflexive?.id}
             />
           )}
         </div>
@@ -265,7 +260,7 @@ function CollaborativeTextContent() {
       </div>
 
       {/* Modals and Overlays */}
-      {showModal && (
+    {showModal && (
         <HighlightingModal
           modalPosition={modalPosition}
           allCodes={allCodes}
@@ -275,7 +270,7 @@ function CollaborativeTextContent() {
           currentUser={currentUser}
           documentId={activeDocumentId}
           isDetecting={isDetecting}
-          onReflexiveModalChange={handleCodingModalReflexiveChange}
+          onStartReflexive={handleStartReflexiveFromCodingModal}
         />
       )}
 
