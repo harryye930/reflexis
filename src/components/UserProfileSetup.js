@@ -102,7 +102,7 @@ const UserProfileSetup = ({ currentUser, appId, onComplete, completeProfile }) =
                 </svg>
               </div>
               <h2 className="text-3xl font-light text-slate-800 mb-3 tracking-wide">
-                Welcome to <span className="font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">ScholarMate</span>
+                <span className="font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Welcome</span>
               </h2>
               <p className="text-slate-600 text-base font-light max-w-md mx-auto leading-relaxed">
                 Set up your research profile with focused sections to begin collaborative analysis
