@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Warning, Search, Person, Autorenew } from '@mui/icons-material';
+import { Warning, Search, Person, Autorenew, NoteAlt } from '@mui/icons-material';
 import { groupResponsesByUserAndHighlight } from '../../../../../../constants/reflexivePrompts.js';
 
 const ReflexiveSummary = ({ 
@@ -10,6 +10,7 @@ const ReflexiveSummary = ({
   loading 
 }) => {
   const [summary, setSummary] = useState(null);
+  const [metadata, setMetadata] = useState(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -40,9 +41,30 @@ const ReflexiveSummary = ({
     }
   };
 
+  // Helper function to get response counts by type
+  const getResponseCounts = () => {
+    const counts = {
+      justification: 0,
+      positionality: 0,
+      alternative: 0,
+      note: 0
+    };
+    
+    responsesForSummary.forEach(response => {
+      if (response.promptType in counts) {
+        counts[response.promptType]++;
+      }
+    });
+    
+    return counts;
+  };
+
+  const responseCounts = getResponseCounts();
+
   // Reset summary when filter changes
   useEffect(() => {
     setSummary(null);
+    setMetadata(null);
     setError(null);
   }, [filterUser]);
 
@@ -75,6 +97,7 @@ const ReflexiveSummary = ({
       
       if (data.success) {
         setSummary(data.summary);
+        setMetadata(data.metadata);
         // Open the summary panel when results are ready
         setIsExpanded(true);
       } else {
@@ -213,38 +236,69 @@ const ReflexiveSummary = ({
 
           {summary && !summaryLoading && (
             <div className="space-y-5">
-              {/* Linguistic Patterns */}
-              <div className="analysis-section">
-                <div className="flex items-center gap-2 mb-3">
-                  <Search sx={{ fontSize: 18 }} />
-                  <h4 className="text-sm font-semibold text-slate-800">Linguistic Patterns</h4>
+              {/* Linguistic Patterns - Only show if there are justification responses */}
+              {summary.linguisticPatterns && responseCounts.justification > 0 && (
+                <div className="analysis-section">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Search sx={{ fontSize: 18 }} />
+                    <h4 className="text-sm font-semibold text-slate-800">Linguistic Patterns</h4>
+                    <span className="text-xs text-slate-500 bg-slate-100/60 px-2 py-0.5 rounded-full">
+                      {responseCounts.justification} response{responseCounts.justification === 1 ? '' : 's'}
+                    </span>
+                  </div>
+                  <div className="bg-gradient-to-br from-blue-50/80 to-blue-100/40 border border-blue-200/60 rounded-lg p-3 shadow-sm">
+                    <p className="text-sm text-slate-700 leading-relaxed">{summary.linguisticPatterns}</p>
+                  </div>
                 </div>
-                <div className="bg-gradient-to-br from-blue-50/80 to-blue-100/40 border border-blue-200/60 rounded-lg p-3 shadow-sm">
-                  <p className="text-sm text-slate-700 leading-relaxed">{summary.linguisticPatterns}</p>
-                </div>
-              </div>
+              )}
 
-              {/* Positionality Narrative */}
-              <div className="analysis-section">
-                <div className="flex items-center gap-2 mb-3">
-                  <Person sx={{ fontSize: 18 }} />
-                  <h4 className="text-sm font-semibold text-slate-800">Positionality Narrative</h4>
+              {/* Positionality Narrative - Only show if there are positionality responses */}
+              {summary.positionalityNarrative && responseCounts.positionality > 0 && (
+                <div className="analysis-section">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Person sx={{ fontSize: 18 }} />
+                    <h4 className="text-sm font-semibold text-slate-800">Positionality Narrative</h4>
+                    <span className="text-xs text-slate-500 bg-slate-100/60 px-2 py-0.5 rounded-full">
+                      {responseCounts.positionality} response{responseCounts.positionality === 1 ? '' : 's'}
+                    </span>
+                  </div>
+                  <div className="bg-gradient-to-br from-purple-50/80 to-purple-100/40 border border-purple-200/60 rounded-lg p-3 shadow-sm">
+                    <p className="text-sm text-slate-700 leading-relaxed">{summary.positionalityNarrative}</p>
+                  </div>
                 </div>
-                <div className="bg-gradient-to-br from-purple-50/80 to-purple-100/40 border border-purple-200/60 rounded-lg p-3 shadow-sm">
-                  <p className="text-sm text-slate-700 leading-relaxed">{summary.positionalityNarrative}</p>
-                </div>
-              </div>
+              )}
 
-              {/* Alternative Thinking Patterns */}
-              <div className="analysis-section">
-                <div className="flex items-center gap-2 mb-3">
-                  <Autorenew sx={{ fontSize: 18 }} />
-                  <h4 className="text-sm font-semibold text-slate-800">Alternative Thinking Patterns</h4>
+              {/* Alternative Thinking Patterns - Only show if there are alternative responses */}
+              {summary.alternativeThinkingPatterns && responseCounts.alternative > 0 && (
+                <div className="analysis-section">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Autorenew sx={{ fontSize: 18 }} />
+                    <h4 className="text-sm font-semibold text-slate-800">Alternative Thinking Patterns</h4>
+                    <span className="text-xs text-slate-500 bg-slate-100/60 px-2 py-0.5 rounded-full">
+                      {responseCounts.alternative} response{responseCounts.alternative === 1 ? '' : 's'}
+                    </span>
+                  </div>
+                  <div className="bg-gradient-to-br from-green-50/80 to-green-100/40 border border-green-200/60 rounded-lg p-3 shadow-sm">
+                    <p className="text-sm text-slate-700 leading-relaxed">{summary.alternativeThinkingPatterns}</p>
+                  </div>
                 </div>
-                <div className="bg-gradient-to-br from-green-50/80 to-green-100/40 border border-green-200/60 rounded-lg p-3 shadow-sm">
-                  <p className="text-sm text-slate-700 leading-relaxed">{summary.alternativeThinkingPatterns}</p>
+              )}
+
+              {/* Notes - Only show if there are note responses */}
+              {summary.notes && responseCounts.note > 0 && (
+                <div className="analysis-section">
+                  <div className="flex items-center gap-2 mb-3">
+                    <NoteAlt sx={{ fontSize: 18 }} />
+                    <h4 className="text-sm font-semibold text-slate-800">Notes</h4>
+                    <span className="text-xs text-slate-500 bg-slate-100/60 px-2 py-0.5 rounded-full">
+                      {responseCounts.note} response{responseCounts.note === 1 ? '' : 's'}
+                    </span>
+                  </div>
+                  <div className="bg-gradient-to-br from-amber-50/80 to-amber-100/40 border border-amber-200/60 rounded-lg p-3 shadow-sm">
+                    <p className="text-sm text-slate-700 leading-relaxed">{summary.notes}</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
 

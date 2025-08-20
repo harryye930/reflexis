@@ -20,21 +20,22 @@ export default async function handler(req, res) {
     const justificationResponses = responses.filter(r => r.promptType === 'justification').map(r => r.response);
     const positionalityResponses = responses.filter(r => r.promptType === 'positionality').map(r => r.response);
     const alternativeResponses = responses.filter(r => r.promptType === 'alternative').map(r => r.response);
+    const notes = responses.filter(r => r.promptType === 'note').map(r => r.response);
     
 
     // Create system prompt for structured analysis
-    const systemPrompt = `You are an expert qualitative research analyst specializing in reflexive memo analysis. Your task is to analyze a researcher's reflexive responses across three key dimensions and provide insightful meta-analytical summaries.
+    const systemPrompt = `You are a reflexive research coach. Your purpose is to act as a mirror, helping researchers see the patterns in their own thinking based on their reflexive notes.
 
-The three dimensions are:
-1. LINGUISTIC PATTERNS (from "What specific language..." responses): Identify recurring patterns in how the researcher anchors their interpretations - what types of language, phrases, or linguistic elements they consistently focus on.
+Your task is not to judge their analysis, but to synthesize their entries into concise observations and thought-provoking questions. The goal is to deepen their self-awareness as an instrument of their research as a team.
 
-2. POSITIONALITY NARRATIVE (from "What personal experiences..." responses): Synthesize a coherent narrative about the researcher's background, experiences, and perspectives that influence their interpretations.
+Analyze the notes across these dimensions:
+1.  **Linguistic Patterns:** How they use language to justify interpretations.
+2.  **Positionality Narrative:** The story they tell about their own background and biases.
+3.  **Alternative Thinking:** The ways they do (or don't) challenge their own conclusions.
 
-3. ALTERNATIVE THINKING PATTERNS (from "Could it be interpreted differently..." responses): Analyze patterns in the types of alternative interpretations the researcher generates, revealing their theoretical habits, analytical strengths, or potential blind spots.
+The tone should be supportive, curious, and collaborative. Address the team instead of individuals and frame your outputs as "Reflective Starting Points."`;
 
-Provide concise but insightful analysis that helps the researcher understand their own analytical patterns and reflexive tendencies.`;
-
-    const userPrompt = `Please analyze the following reflexive responses from a qualitative researcher:
+    const userPrompt = `Please analyze the following reflexive responses from a reflexive qualitative research team:
 
 JUSTIFICATION RESPONSES (What specific language led to coding decisions):
 ${justificationResponses.map((r, i) => `${i + 1}. ${r}`).join('\n')}
@@ -45,20 +46,19 @@ ${positionalityResponses.map((r, i) => `${i + 1}. ${r}`).join('\n')}
 ALTERNATIVE FRAMING RESPONSES (Different possible interpretations):
 ${alternativeResponses.map((r, i) => `${i + 1}. ${r}`).join('\n')}
 
-Please provide a structured analysis with exactly three sections:
-1. Linguistic Patterns
-2. Positionality Narrative  
-3. Alternative Thinking Patterns
+OTHER NOTES:
+${notes.map((r, i) => `${i + 1}. ${r}`).join('\n')}
 
-Each section should be 1-2 sentences that synthesize patterns and provide actionable insights for the researcher's self-awareness. You should address to the researchers that completed the reflections, instead of the individual researcher.`;
+Please generate a set of "Reflective Starting Points." For each category, provide a concise one-sentence finding and a follow-up reflective question to prompt deeper thought. Address the researchers directly as 'you' or 'your team'.`;
 
+// Corresponding change to your response_format object
     const completion = await openai.chat.completions.create({
       model: "gpt-5",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }
       ],
-      reasoning_effort: "low",
+      reasoning_effort: "medium",
       response_format: {
         type: "json_schema",
         json_schema: {
@@ -67,19 +67,23 @@ Each section should be 1-2 sentences that synthesize patterns and provide action
             type: "object",
             properties: {
               linguisticPatterns: {
-                type: "string",
-                description: "Analysis of recurring linguistic patterns the researcher focuses on (1-2 sentences)"
+                type: "string", 
+                description: "A one-sentence observation about language patterns for this particular code."
               },
               positionalityNarrative: {
                 type: "string", 
-                description: "Synthesized narrative of the researcher's background and perspectives (1-2 sentences)"
+                description: "A one-sentence synthesis of the team's positionality on this particular code."
               },
               alternativeThinkingPatterns: {
+                type: "string", 
+                description: "A one-sentence observation on how alternatives are generated."
+              },
+              notes: {
                 type: "string",
-                description: "Analysis of patterns in alternative interpretations and theoretical habits (1-2 sentences)"
+                description: "A one-sentence summary of additional notes and context provided by researchers."
               }
             },
-            required: ["linguisticPatterns", "positionalityNarrative", "alternativeThinkingPatterns"],
+            required: ["linguisticPatterns", "positionalityNarrative", "alternativeThinkingPatterns", "notes"],
             additionalProperties: false
           }
         }
@@ -96,6 +100,7 @@ Each section should be 1-2 sentences that synthesize patterns and provide action
         justificationCount: justificationResponses.length,
         positionalityCount: positionalityResponses.length,
         alternativeCount: alternativeResponses.length,
+        noteCount: notes.length,
         generatedAt: new Date().toISOString()
       }
     });
