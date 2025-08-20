@@ -80,8 +80,10 @@ const CodeItem = ({
                 />
               )}
             </div>
+            {/* Always show code description */}
             <p className="text-xs text-gray-600 leading-relaxed">{code.description}</p>
-            {getAuthorDisplay(code) && (
+            {/* Show other info conditionally */}
+            {showDescriptions && getAuthorDisplay(code) && (
               <p className="text-xs text-gray-500 mt-1">{getAuthorDisplay(code)}</p>
             )}
           </div>
@@ -139,7 +141,8 @@ const CodeItem = ({
                   <span className="text-xs text-gray-400">→</span>
                 )}
               </div>
-              {getAuthorDisplay(code) && (
+              {/* Show author info conditionally */}
+              {showDescriptions && getAuthorDisplay(code) && (
                 <p className="text-xs opacity-60 mt-1">{getAuthorDisplay(code)}</p>
               )}
             </div>
@@ -161,11 +164,10 @@ const CodeItem = ({
             )}
           </div>
           
-          {showDescriptions && (
-            <p className="text-xs opacity-80 leading-relaxed">
-              {code.description}
-            </p>
-          )}
+          {/* Always show code description */}
+          <p className="text-xs opacity-80 leading-relaxed">
+            {code.description}
+          </p>
         </div>
       )}
     </div>

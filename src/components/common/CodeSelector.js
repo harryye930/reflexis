@@ -67,11 +67,11 @@ const CodeSelector = ({
                   <div className="font-medium text-sm mb-1">
                     {code.label}
                   </div>
+                  {/* Always show description */}
+                  <p className="text-xs opacity-80">{code.description}</p>
+                  {/* Show other info conditionally */}
                   {showDescriptions && (
-                    <>
-                      <p className="text-xs opacity-80">{code.description}</p>
-                      <p className="text-xs opacity-60 mt-1">by {getUserName(code.createdBy)}</p>
-                    </>
+                    <p className="text-xs opacity-60 mt-1">by {getUserName(code.createdBy)}</p>
                   )}
                 </div>
               </div>

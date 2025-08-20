@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CodePaletteHeader from './CodePaletteHeader.js';
 import CodeForm from './CodeForm.js';
 import CodeList from './CodeList.js';
@@ -18,12 +18,28 @@ const CodeManagement = ({
   title = "Available Codes",
   onCodeNameClick, // New prop for Living Codebook
   getCodeDisagreement = null, // New prop for disagreement data function
-  showCodeDetails = true // New prop for showing/hiding code details
+  showCodeDetails = true // New prop for showing/hiding code details and management controls
 }) => {
   const [showDescriptions, setShowDescriptions] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showMergeModal, setShowMergeModal] = useState(false);
   const [showSplitModal, setShowSplitModal] = useState(false);
+
+  // Sync showDescriptions (now controls metadata) with showCodeDetails
+  // When showCodeDetails is disabled, automatically hide metadata (author info, disagreement metrics)
+  // When showCodeDetails is enabled, allow user to toggle metadata
+  useEffect(() => {
+    if (!showCodeDetails) {
+      setShowDescriptions(false);
+    }
+  }, [showCodeDetails]);
+
+  const handleToggleDescriptions = () => {
+    // Only allow toggling metadata when showCodeDetails is enabled
+    if (showCodeDetails) {
+      setShowDescriptions(!showDescriptions);
+    }
+  };
 
   const resetForm = () => {
     setShowAddForm(false);
@@ -66,7 +82,7 @@ const CodeManagement = ({
       {showCodeDetails && (
         <CodePaletteHeader
           showDescriptions={showDescriptions}
-          onToggleDescriptions={() => setShowDescriptions(!showDescriptions)}
+          onToggleDescriptions={handleToggleDescriptions}
           showAddForm={showAddForm}
           onToggleAddForm={handleToggleAddForm}
           onToggleMergeModal={handleToggleMergeModal}

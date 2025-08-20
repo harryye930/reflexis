@@ -57,20 +57,20 @@ const DeletedCodeItem = ({
           )}
         </div>
         
-        {showDescriptions && (
-          <p className="text-xs text-gray-500 leading-relaxed mb-1">
-            {deletedCode.description || 'No description available'}
-          </p>
-        )}
+        <p className="text-xs text-gray-500 leading-relaxed mb-1">
+          {deletedCode.description || 'No description available'}
+        </p>
         
-        <div className="text-xs text-gray-400 space-y-1">
-          <p>
-            <span className="font-medium">Deleted:</span> {formatTimestamp(deletedCode.deletedAt)} by {getUserName(deletedCode.deletedBy)}
-          </p>
-          <p>
-            <span className="font-medium">Reason:</span> {deletedCode.deletionReason || 'No reason provided'}
-          </p>
-        </div>
+        {showDescriptions && (
+          <div className="text-xs text-gray-400 space-y-1">
+            <p>
+              <span className="font-medium">Deleted:</span> {formatTimestamp(deletedCode.deletedAt)} by {getUserName(deletedCode.deletedBy)}
+            </p>
+            <p>
+              <span className="font-medium">Reason:</span> {deletedCode.deletionReason || 'No reason provided'}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -18,9 +18,9 @@ const CodePaletteHeader = ({
           <button
             onClick={onToggleDescriptions}
             className="text-xs px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full transition-colors"
-            title={showDescriptions ? 'Hide descriptions' : 'Show descriptions'}
+            title={showDescriptions ? 'Hide metadata (author info, disagreement metrics)' : 'Show metadata (author info, disagreement metrics)'}
           >
-            {showDescriptions ? 'Hide Info' : 'Show Info'}
+            {showDescriptions ? 'Hide Metadata' : 'Show Metadata'}
           </button>
           {currentUser && (
             <div className="flex gap-2">
