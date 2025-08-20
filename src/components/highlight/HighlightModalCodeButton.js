@@ -37,10 +37,13 @@ const CodeButton = ({
           style={{
             background: isHovered 
               ? `linear-gradient(135deg, ${bgColor.replace('bg-', '')}, ${bgColor.replace('bg-', '')}dd)` 
-              : undefined
+              : undefined,
+            wordBreak: 'break-word',
+            hyphens: 'auto',
+            maxWidth: '140px' // Constrain width to prevent overflow
           }}
         >
-          <span className="relative z-10 whitespace-nowrap">{code.label}</span>
+          <span className="relative z-10 text-center leading-tight">{code.label}</span>
         </button>
 
         {/* Action buttons - smoothly appear below */}

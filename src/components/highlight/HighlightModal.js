@@ -91,7 +91,7 @@ const HighlightingModal = ({
             <Label sx={{ fontSize: 18, color: '#3b82f6' }} />
             <p className="text-sm text-gray-700 font-medium">Apply code to selection:</p>
           </div>
-          <div id="modal-codes-list" className={`grid grid-cols-2 gap-3 auto-rows-max ${isDetecting ? 'pointer-events-none opacity-60' : ''}`}>
+          <div id="modal-codes-list" className={`grid grid-cols-2 gap-4 auto-rows-max ${isDetecting ? 'pointer-events-none opacity-60' : ''}`}>
             {allCodes.map(code => (
               <div key={code.id} className="flex justify-center">
                 <CodeButton

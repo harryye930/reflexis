@@ -83,7 +83,13 @@ const CodeChip = ({
       className={chipClassName}
       onClick={handleClick}
       title={showTooltip ? (fallbackDescription || label) : undefined}
-      style={style}
+      style={{
+        ...style,
+        wordBreak: 'break-word',
+        hyphens: 'auto',
+        textAlign: 'center',
+        lineHeight: '1.2'
+      }}
       {...props}
     >
       {label}
