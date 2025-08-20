@@ -48,7 +48,7 @@ const AdminTab = ({
         />
       </div>
       
-  <AdminControls 
+      <AdminControls 
         onMessage={onMessage}
         showHoverTooltips={showHoverTooltips}
         showAuthorInfo={showAuthorInfo}

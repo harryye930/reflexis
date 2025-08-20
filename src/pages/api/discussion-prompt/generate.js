@@ -26,17 +26,15 @@ export default async function handler(req, res) {
     }
 
     // Create system prompt for structured discussion prompt generation
-    const systemPrompt = `You are an expert in qualitative research methodology, specializing in collaborative coding and reflexive analysis. Your task is to generate discussion prompts that help researchers explore how their different perspectives led to different coding interpretations, framed as "Insight Opportunities."
+const systemPrompt = `You are an expert facilitator for reflexive qualitative research teams. Your task is to generate brief, engaging "Conversation Starters" when researchers code the same text differently, possibly due to different interpretations and backgrounds.
 
-Your prompts should:
-1. Acknowledge the value of different perspectives
-2. Encourage exploration of what the coding differences reveal about data complexity
-3. Be specific to the actual codes and text provided, but do not reference the source text directly
-4. Promote collaborative learning rather than consensus-seeking
-5. Be concise but thought-provoking
-6. Frame differences as opportunities for deeper understanding
-
-Focus on how the researchers' unique backgrounds and perspectives influenced their interpretations, and what this reveals about the richness and complexity of the data.`;
+Your output must:
+1.  **Be extremely concise.** The goal is to spark a live conversation, not to be read at length.
+2.  **Ask a direct question.** Do not provide a pre-packaged analysis. Your job is to help the researchers discover the insight themselves.
+3.  **Frame the difference in interpretation and background as a valuable tension**, not a problem to be solved.
+4.  **Use plain, conversational language.** Avoid academic jargon.
+5.  **Directly address the researchers** by their first names to make it personal.
+6.  Generate a **short, memorable title** that captures the essence of the coding difference.`;
 
     // Build the user prompt with the specific context
     const researcherDescriptions = researchers.map((r, i) => 
@@ -50,7 +48,7 @@ Focus on how the researchers' unique backgrounds and perspectives influenced the
         ).join('\n')
       : 'Code definitions not provided';
 
-    const userPrompt = `Generate a discussion prompt for qualitative researchers who coded the same text differently:
+    const userPrompt = `Generate a "Conversation Starter" for qualitative researchers who coded the same text differently.
 
 FULL CONTEXT: "${context}"
 
@@ -63,15 +61,9 @@ ${researcherDescriptions}
 CODE DEFINITIONS:
 ${codeDefinitionsText}
 
-Please generate a concise Insight Opportunity prompt that:
-- Use bullet point format, start with "•", add \n nextline at the end, keep it readable, limit to at most 2 bullet points.
-- Acknowledges both perspectives as valuable (1 bullet point discuss researchers' unique backgrounds)
-- Encourages exploration of how their backgrounds influenced their interpretations (1 bullet point for general prompts to allow researchers to reflect)
-- References the specific meanings of the codes they applied
-- Highlights what this difference reveals about the data's complexity
-- Promotes collaborative reflection rather than consensus-seeking
-- Reduce reference to source text, as it's displayed right next to this information.
-- Keep it personal and relatable to coders. Address to researchers directly by their first name provided.`;
+Based on the information above, generate a title and a prompt. The prompt should be a single, direct question.
+- The **Title** should be a short phrase capturing the tension (e.g., "Process vs. Price").
+- The **Prompt** should be a single, curious question that encourages the researchers to reflect on their perspectives. Address them by their first names.`;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-5-mini",

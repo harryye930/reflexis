@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import MultiStepModal from '../common/MultiStepModal.js';
 import CodeForm from '../sidebar/analysis/codes/CodeForm.js';
 import CodeChip from '../common/CodeChip.js';
+import CodeDriftContext from './CodeDriftContext.js';
 
 const CodeDriftModal = ({ 
   isOpen,
@@ -20,6 +21,7 @@ const CodeDriftModal = ({
   const [step, setStep] = useState(1);
   const [selectedAction, setSelectedAction] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isReasoningExpanded, setIsReasoningExpanded] = useState(false);
 
   // Reset state when modal opens
   React.useEffect(() => {
@@ -27,6 +29,7 @@ const CodeDriftModal = ({
       setStep(1);
       setSelectedAction(null);
       setLoading(false);
+      setIsReasoningExpanded(false);
     }
   }, [isOpen, driftData]);
 
@@ -100,58 +103,51 @@ const CodeDriftModal = ({
   };
 
   const renderStepContent = () => {
-    switch (step) {
-      case 1:
-        return (
-          <div className="space-y-6">
-            {/* Context Section - Show attempted coded text and applied code */}
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <div className="space-y-3">
-                <h4 className="font-medium text-gray-800 text-sm">Attempted Coding Context</h4>
-                
-                {/* Selected Text */}
-                <div>
-                  <p className="text-xs text-gray-600 mb-1 font-medium">Selected Text:</p>
-                  <div className="bg-white border border-gray-200 rounded p-3 text-sm text-gray-900 leading-relaxed">
-                    &ldquo;{pendingHighlight?.text || 'No text selected'}&rdquo;
-                  </div>
-                </div>
+    return (
+      <div className="space-y-6">
+        {/* Context Section - Always shown at the top */}
+        <CodeDriftContext 
+          pendingHighlight={pendingHighlight} 
+          currentCode={currentCode} 
+        />
 
-                {/* Applied Code */}
-                <div>
-                  <p className="text-xs text-gray-600 mb-2 font-medium">Attempted to Apply Code:</p>
-                  <div className="flex items-center gap-2">
-                    {currentCode ? (
-                      <CodeChip 
-                        code={currentCode} 
-                        size="sm" 
-                        variant="unified"
-                        showTooltip={true}
-                      />
-                    ) : (
-                      <span className="text-sm text-gray-500 italic">Code not found</span>
-                    )}
-                  </div>
-                  {currentCode?.description && (
-                    <p className="text-xs text-gray-600 mt-1 italic">
-                      &ldquo;{currentCode.description}&rdquo;
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-
+        {/* Step-specific content */}
+        {step === 1 && (
+          <>
             {/* Drift Detection Alert */}
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-                <h3 className="font-semibold text-amber-800">Conceptual Drift Detected While Coding</h3>
-              </div>
-              <p className="text-sm text-amber-700 mb-3" style={{ whiteSpace: 'pre-line' }}>
-                {driftData.explanation}
-              </p>
+              <button
+                onClick={() => setIsReasoningExpanded(!isReasoningExpanded)}
+                className="w-full flex items-center justify-between gap-2 hover:bg-amber-100/50 rounded-lg p-1 -m-1 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                  <h3 className="font-semibold text-amber-800 text-left">Conceptual Drift Detected While Coding</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-amber-700">
+                    {isReasoningExpanded ? 'Hide reasoning' : 'Show reasoning'}
+                  </span>
+                  <svg 
+                    className={`w-4 h-4 text-amber-600 transition-transform ${isReasoningExpanded ? 'rotate-180' : ''}`} 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </button>
+              
+              {isReasoningExpanded && (
+                <div className="mt-3 pt-3 border-t border-amber-200">
+                  <p className="text-sm text-amber-700" style={{ whiteSpace: 'pre-line' }}>
+                    {driftData.explanation}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Action Options */}
@@ -256,124 +252,115 @@ const CodeDriftModal = ({
                 </div>
               </div>
             </div>
-          </div>
-        );
+          </>
+        )}
 
-      case 2:
-        if (selectedAction === 'refine_definition') {
-          return (
-            <div className="space-y-4">
-              <h4 className="font-medium text-gray-800">Refine Code Definition</h4>
-              
-              {/* Show AI suggestion */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-start gap-2">
-                  <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                  </svg>
-                  <div>
-                    <h5 className="font-medium text-blue-800 mb-1">AI Suggestion</h5>
-                    <p className="text-sm text-blue-700">
-                      {driftData.suggested_definition}
-                    </p>
-                  </div>
+        {step === 2 && selectedAction === 'refine_definition' && (
+          <div className="space-y-4">
+            <h4 className="font-medium text-gray-800">Refine Code Definition</h4>
+            
+            {/* Show AI suggestion */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start gap-2">
+                <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+                <div>
+                  <h5 className="font-medium text-blue-800 mb-1">AI Suggestion</h5>
+                  <p className="text-sm text-blue-700">
+                    {driftData.suggested_definition}
+                  </p>
                 </div>
               </div>
-
-              <CodeForm
-                editingCode={currentCode}
-                onSubmit={async (formData) => {
-                  setLoading(true);
-                  try {
-                    // Always update the full code data (label, description, color, etc.)
-                    const result = await onUpdateCode(currentCode.docId, formData);
-                    if (result.success) {
-                      onMessage('Code updated successfully!');
-                      
-                      // Apply pending highlight after successful code update
-                      if (onApplyPendingHighlight) {
-                        try {
-                          const applyResult = await onApplyPendingHighlight();
-                          onMessage(applyResult.success 
-                            ? 'Code updated and highlight applied successfully!' 
-                            : 'Code updated, but failed to apply highlight', !applyResult.success);
-                        } catch (applyError) {
-                          onMessage('Code updated, but failed to apply highlight', true);
-                        }
-                      }
-                      
-                      onClose();
-                    }
-                    return result;
-                  } catch (error) {
-                    console.error('Error updating code:', error);
-                    return { success: false, error: error.message };
-                  } finally {
-                    setLoading(false);
-                  }
-                }}
-                onCancel={() => {
-                  // Don't close the modal, just reset to step 1
-                  setStep(1);
-                  setSelectedAction(null);
-                }}
-                onMessage={onMessage}
-              />
             </div>
-          );
-        }
 
-        if (selectedAction === 'create_new_code') {
-          return (
-            <div className="space-y-4">
-              <h4 className="font-medium text-gray-800">Create New Code</h4>
-              <CodeForm
-                editingCode={null}
-                onSubmit={async (formData) => {
-                  setLoading(true);
-                  try {
-                    const result = await onSplitCode(formData);
-                    if (result.success) {
-                      onMessage('New code created successfully!');
-                      
-                      // Apply pending highlight if requested
-                      if (result.applyPendingHighlight && onApplyPendingHighlight) {
-                        try {
-                          const applyResult = await onApplyPendingHighlight(result.updatedHighlight);
-                          onMessage(applyResult.success 
-                            ? 'New code created and highlight applied successfully!' 
-                            : 'New code created, but failed to apply highlight', !applyResult.success);
-                        } catch (applyError) {
-                          onMessage('New code created, but failed to apply highlight', true);
-                        }
+            <CodeForm
+              editingCode={currentCode}
+              onSubmit={async (formData) => {
+                setLoading(true);
+                try {
+                  // Always update the full code data (label, description, color, etc.)
+                  const result = await onUpdateCode(currentCode.docId, formData);
+                  if (result.success) {
+                    onMessage('Code updated successfully!');
+                    
+                    // Apply pending highlight after successful code update
+                    if (onApplyPendingHighlight) {
+                      try {
+                        const applyResult = await onApplyPendingHighlight();
+                        onMessage(applyResult.success 
+                          ? 'Code updated and highlight applied successfully!' 
+                          : 'Code updated, but failed to apply highlight', !applyResult.success);
+                      } catch (applyError) {
+                        onMessage('Code updated, but failed to apply highlight', true);
                       }
-                      
-                      onClose();
                     }
-                    return result;
-                  } catch (error) {
-                    console.error('Error creating new code:', error);
-                    return { success: false, error: error.message };
-                  } finally {
-                    setLoading(false);
+                    
+                    onClose();
                   }
-                }}
-                onCancel={() => {
-                  // Don't close the modal, just reset to step 1
-                  setStep(1);
-                  setSelectedAction(null);
-                }}
-                onMessage={onMessage}
-              />
-            </div>
-          );
-        }
+                  return result;
+                } catch (error) {
+                  console.error('Error updating code:', error);
+                  return { success: false, error: error.message };
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              onCancel={() => {
+                // Don't close the modal, just reset to step 1
+                setStep(1);
+                setSelectedAction(null);
+              }}
+              onMessage={onMessage}
+            />
+          </div>
+        )}
 
-        return null;
-
-      default:
-        return null;
-    }
+        {step === 2 && selectedAction === 'create_new_code' && (
+          <div className="space-y-4">
+            <h4 className="font-medium text-gray-800">Create New Code</h4>
+            <CodeForm
+              editingCode={null}
+              onSubmit={async (formData) => {
+                setLoading(true);
+                try {
+                  const result = await onSplitCode(formData);
+                  if (result.success) {
+                    onMessage('New code created successfully!');
+                    
+                    // Apply pending highlight if requested
+                    if (result.applyPendingHighlight && onApplyPendingHighlight) {
+                      try {
+                        const applyResult = await onApplyPendingHighlight(result.updatedHighlight);
+                        onMessage(applyResult.success 
+                          ? 'New code created and highlight applied successfully!' 
+                          : 'New code created, but failed to apply highlight', !applyResult.success);
+                      } catch (applyError) {
+                        onMessage('New code created, but failed to apply highlight', true);
+                      }
+                    }
+                    
+                    onClose();
+                  }
+                  return result;
+                } catch (error) {
+                  console.error('Error creating new code:', error);
+                  return { success: false, error: error.message };
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              onCancel={() => {
+                // Don't close the modal, just reset to step 1
+                setStep(1);
+                setSelectedAction(null);
+              }}
+              onMessage={onMessage}
+            />
+          </div>
+        )}
+      </div>
+    );
   };
 
   const getCustomActions = () => {

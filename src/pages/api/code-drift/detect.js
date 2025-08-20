@@ -74,40 +74,32 @@ export default async function handler(req, res) {
     }
 
     // Create system prompt for conceptual drift detection
-    const systemPrompt = `You are a helpful assistant for qualitative thematic analysis. Your task is to compare a new text passage against an existing code's definition and examples to spot 'conceptual drift'.
+const systemPrompt = `You are a sharp-eyed assistant for reflexive qualitative researchers. Your task is to spot 'conceptual drift' and flag it with a brief, scannable alert.
 
-Conceptual drift occurs when a new passage represents a significant expansion or shift in the meaning of a code beyond its current definition and usage patterns. This can indicate that:
-1. The code definition needs to be refined/expanded to be more inclusive
-2. The new passage represents a genuinely different concept that should be coded separately
-3. The code should be split into multiple more specific codes
+Conceptual drift is when a new passage stretches or shifts a code's meaning beyond its current definition and appliedexamples.
 
-Consider both the explicit definition and the implicit interpreted patterns in the existing examples. When provided, use the surrounding context to better understand the conceptual boundaries and situational usage of the coded text. Minor variations are expected and should be tolerated, but significant conceptual shifts indicate drift.`;
+Your response must be extremely concise. The goal is to provide a quick "heads-up" to the researcher, not a detailed analysis. Use plain language and get straight to the point. When drift is detected, your explanation should clearly and simply contrast the original concept with the new one.`;
 
     // Format existing examples for the prompt
     const examplesText = existingExamples
       .map((example, index) => `${index + 1}. "${example.text}" (from ${example.documentTitle})`)
       .join('\n');
 
-  const userPrompt = `Code name: ${codeName}
+    const userPrompt = `Code name: ${codeName}
 
 Current definition: "${codeDefinition}"
 
 Existing passages coded with "${codeName}":
 ${examplesText}
 
-
 NEW PASSAGE (selected portion): "${newPassage}", which is situated within the bigger context "${context}".
 
-Does the new passage represent a significant expansion or shift in the meaning of the code? When evaluating, consider both the specific coded text and its surrounding context to better understand the conceptual boundaries.
+Does this new passage represent conceptual drift?
 
-If yes, briefly explain the shift and suggest a revised, more inclusive definition.
-
-Respond in JSON format: { "drift_detected": boolean, "explanation": string, "suggested_definition": string }
-
-Where:
-- drift_detected: true if significant conceptual drift is detected
-- explanation: brief explanation of the drift or why no drift was detected, it should be in bullet point form (with 2-4 points in total, depends on the complexity), short (1-2 sentence per bullet point) and straightforward to read as a researcher just tagged the sentence.
-- suggested_definition: if drift detected, provide a revised definition that encompasses both existing and new usage; if no drift, return null`;
+Respond in JSON format.
+- "drift_detected": boolean
+- "explanation": A single, concise sentence contrasting the original focus with the new usage. If no drift, state that the usage is consistent.
+- "suggested_definition": A revised definition if drift is detected, otherwise null.`;
 
     // Call OpenAI API
     const response = await openai.chat.completions.create({
