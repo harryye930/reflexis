@@ -145,7 +145,7 @@ const HighlightingModal = ({
           style={{ 
             left: modalPosition.x, 
             top: modalPosition.y,
-            minWidth: '320px',
+            minWidth: '370px',
             maxWidth: '500px',
             maxHeight: '70vh',
             overflowY: 'auto'
