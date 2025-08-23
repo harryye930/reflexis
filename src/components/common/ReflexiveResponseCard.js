@@ -7,6 +7,7 @@ import { getShortPromptText } from '../../constants/reflexivePrompts.js';
 const ReflexiveResponseCard = ({ 
   response, 
   promptType, 
+  userProfiles,
   showTimestamp = false,
   showCheckmark = false,
   className = ""
@@ -37,6 +38,12 @@ const ReflexiveResponseCard = ({
     return date.toLocaleDateString();
   };
 
+  const getUserName = () => {
+    if (!response.userId || !userProfiles) return 'Anonymous';
+    const user = userProfiles[response.userId];
+    return user?.name || 'Anonymous';
+  };
+
   return (
     <div className={`bg-gray-50 rounded-lg p-2 ${className}`}>
       <div className="flex items-center gap-1 mb-1">
@@ -54,7 +61,9 @@ const ReflexiveResponseCard = ({
       </blockquote>
       {showTimestamp && (
         <div className="text-xs text-gray-500 mt-1">
-          {formatTimestamp(response.createdAt)}
+          <span className="font-medium">{getUserName()}</span>
+          <span className="mx-1">•</span>
+          <span>{formatTimestamp(response.createdAt)}</span>
         </div>
       )}
     </div>

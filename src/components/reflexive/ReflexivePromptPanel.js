@@ -20,6 +20,9 @@ const ReflexivePromptPanel = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [reflexiveService] = useState(() => new ReflexiveService(appId));
   const [isSliding, setIsSliding] = useState(false);
+  
+  // Generate unique session ID for this reflection session
+  const [reflexiveLensId] = useState(() => `reflexive-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
 
   const currentPrompt = prompts[currentPromptIndex];
   const renderPromptIcon = (type) => {
@@ -59,7 +62,8 @@ const ReflexivePromptPanel = ({
       sourceText: selectedText,
       promptType: currentPrompt.type,
       prompt: currentPrompt.prompt(selectedCode.label, selectedText), 
-      response: currentResponse.trim()
+      response: currentResponse.trim(),
+      reflexiveLensId: reflexiveLensId
     };
 
     const result = await reflexiveService.addReflexiveResponse(responseData, currentUser.uid);

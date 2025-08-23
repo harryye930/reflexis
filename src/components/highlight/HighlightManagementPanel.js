@@ -3,14 +3,13 @@ import CodeChip from '../common/CodeChip.js';
 import { getUserDisplayColor, getUserDisplayName, shouldShowAuthorInfo } from '../../lib/utils/hoverUtils';
 import DiscussionPromptPanel from './DiscussionPromptPanel.js';
 import { useDiscussionPrompt } from '../../hooks/useDiscussionPrompt.js';
-import { useReflexiveCheck } from '../../hooks/useReflexiveCheck.js';
 import { useReflexiveResponses } from '../../hooks/useReflexiveResponses.js';
 import HighlightReflexiveNotes from './HighlightReflexiveNotes.js';
 
 // Individual highlight item component with reflexive check logic
 const HighlightItem = ({ 
   highlight, 
-  userProfiles, 
+  userProfiles,
   allCodes, 
   currentUser, 
   showAuthorInfo, 
@@ -25,14 +24,9 @@ const HighlightItem = ({
   // Check if this highlight is from the current user
   const isCurrentUserHighlight = currentUser && highlight.userId === currentUser.uid;
   
-  // Use reflexive check hook only for the reflexive button logic
-  const { hasReflexiveInput, loading: reflexiveLoading } = useReflexiveCheck(
-    isCurrentUserHighlight ? highlight.id : null, 
-    isCurrentUserHighlight ? currentUser.uid : null
-  );
   
   // Get all reflexive responses for this highlight (for display)
-  const { allReflexiveResponses } = useReflexiveResponses(highlight.id);
+  const { allReflexiveResponses, groupedReflexiveResponses } = useReflexiveResponses(highlight.id);
   
   // Use hover utilities for user display
   const userColor = getUserDisplayColor(user, showAuthorInfo);
@@ -48,7 +42,7 @@ const HighlightItem = ({
   };
 
   const handleReflexiveClick = () => {
-    if (onReflexiveClick && !hasReflexiveInput) {
+    if (onReflexiveClick) {
       // Close the management panel immediately for better UX
       onClose();
       // Then trigger the reflexive modal
@@ -74,44 +68,19 @@ const HighlightItem = ({
           
           {/* Action buttons */}
           <div className="flex items-center gap-2">
-            {/* Reflexive button - only show for current user's highlights */}
-            {isCurrentUserHighlight && onReflexiveClick && (
+            {/* Reflexive button - simplified blue button for any authenticated user */}
+            {currentUser && onReflexiveClick && (
               <button
                 onClick={handleReflexiveClick}
-                disabled={hasReflexiveInput || reflexiveLoading}
-                className={`text-xs px-2 py-1.5 rounded-md transition-colors font-medium ${
-                  hasReflexiveInput 
-                    ? 'bg-green-100 text-green-700 cursor-not-allowed opacity-75' 
-                    : reflexiveLoading
-                    ? 'bg-gray-100 text-gray-500 cursor-wait'
-                    : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200 hover:text-indigo-800'
-                }`}
-                title={
-                  reflexiveLoading ? 'Checking reflexive status...' :
-                  hasReflexiveInput ? 'Reflexive responses completed' : 
-                  'Add reflexive reflection'
-                }
+                className="text-xs px-2 py-1.5 rounded-md transition-colors font-medium bg-indigo-100 text-indigo-700 hover:bg-indigo-200 hover:text-indigo-800"
+                title="Reflect on this code"
               >
-                {reflexiveLoading ? (
-                  <div className="flex items-center gap-1">
-                    <div className="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                    <span>...</span>
-                  </div>
-                ) : hasReflexiveInput ? (
-                  <div className="flex items-center gap-1">
-                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    <span>Reflected</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1">
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>Reflect</span>
-                  </div>
-                )}
+                <div className="flex items-center gap-1">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Reflect on Code</span>
+                </div>
               </button>
             )}
             
@@ -161,6 +130,8 @@ const HighlightItem = ({
         {allReflexiveResponses && allReflexiveResponses.length > 0 && (
           <HighlightReflexiveNotes
             reflexiveResponses={allReflexiveResponses}
+            groupedReflexiveResponses={groupedReflexiveResponses}
+            userProfiles={userProfiles}
           />
         )}
       </div>
