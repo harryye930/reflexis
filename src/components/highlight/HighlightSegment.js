@@ -167,8 +167,20 @@ const HighlightSegment = ({
       onMouseLeave={onHighlightLeave}
     >
       {/* Coder indicators - only show when showAuthorInfo is true */}
-      {renderCoderIndicators(segment.highlights, userProfiles, currentUser, showAuthorInfo)}
-      {segment.text}
+      <span
+        data-user-code-indicator="true"
+        className="user-code-indicator"
+        style={{
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
+          pointerEvents: 'none'
+        }}
+      >
+        {renderCoderIndicators(segment.highlights, userProfiles, currentUser, showAuthorInfo)}
+      </span>
+      <span className="highlight-text" style={{ whiteSpace: 'pre-wrap' }}>{segment.text}</span>
     </mark>
   );
 };

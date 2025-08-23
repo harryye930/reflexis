@@ -45,6 +45,77 @@ export const getAbsoluteIndex = (container, node, offset) => {
   return currentIndex + offset;
 };
 
+// Returns true if a node is inside a UI-only element that should not be part of text selection
+const isInsideNonSelectableUI = (node) => {
+  if (!node) return false;
+  const el = node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
+  if (!el) return false;
+  return !!el.closest('[data-user-code-indicator="true"], .user-code-indicator');
+};
+
+// Extract selected text from a range while excluding UI overlays (e.g., user code indicators)
+export const getCleanSelectedText = (range) => {
+  if (!range) return '';
+  const fragment = range.cloneContents();
+  let text = '';
+  const walker = document.createTreeWalker(
+    fragment,
+    NodeFilter.SHOW_TEXT,
+    null,
+    false
+  );
+
+  while (walker.nextNode()) {
+    const textNode = walker.currentNode;
+    // In the cloned fragment, we still need to check if this text belongs to an indicator
+    if (isInsideNonSelectableUI(textNode)) continue;
+    text += textNode.textContent;
+  }
+  return text;
+};
+
+// Get the textContent of a container excluding UI-only elements
+export const getCleanTextFromContainer = (container) => {
+  if (!container) return '';
+  let text = '';
+  const walker = document.createTreeWalker(
+    container,
+    NodeFilter.SHOW_TEXT,
+    null,
+    false
+  );
+
+  while (walker.nextNode()) {
+    const textNode = walker.currentNode;
+    if (isInsideNonSelectableUI(textNode)) continue;
+    text += textNode.textContent;
+  }
+  return text;
+};
+
+// Compute absolute index in container text excluding UI-only elements
+export const getCleanAbsoluteIndex = (container, node, offset) => {
+  let currentIndex = 0;
+  const walker = document.createTreeWalker(
+    container,
+    NodeFilter.SHOW_TEXT,
+    null,
+    false
+  );
+
+  while (walker.nextNode()) {
+    const textNode = walker.currentNode;
+    if (isInsideNonSelectableUI(textNode)) {
+      continue;
+    }
+    if (textNode === node) {
+      return currentIndex + offset;
+    }
+    currentIndex += textNode.textContent.length;
+  }
+  return currentIndex + offset;
+};
+
 // Helper function to compare arrays
 export const arraysEqual = (a, b) => {
   if (a.length !== b.length) return false;

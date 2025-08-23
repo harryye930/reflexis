@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAbsoluteIndex, findTextWithContext } from '../lib/utils/selectionUtils.js';
+import { getAbsoluteIndex, findTextWithContext, getCleanSelectedText, getCleanTextFromContainer, getCleanAbsoluteIndex } from '../lib/utils/selectionUtils.js';
 import { useConceptualDrift } from './useConceptualDrift.js';
 import { FirebaseServiceFactory } from '../services/api/firebase/index.js';
 
@@ -44,7 +44,7 @@ export const useHighlightManagement = (
     // Extract and store selected text
     if (selection && !selection.isCollapsed) {
       const range = selection.getRangeAt(0);
-      const rawText = range.toString();
+      const rawText = getCleanSelectedText(range) || range.toString();
       const cleanText = rawText.replace(/\s+/g, ' ').trim();
       setSelectedText(cleanText);
     } else {
@@ -67,7 +67,7 @@ export const useHighlightManagement = (
     const range = currentSelection.getRangeAt(0);
     
     // Get the selected text using a robust approach that mimics browser copy behavior
-    const rawSelectedText = range.toString();
+  const rawSelectedText = getCleanSelectedText(range) || range.toString();
     
     if (!rawSelectedText || rawSelectedText.trim() === '') {
       return { success: false, error: 'No text selected' };
@@ -86,11 +86,11 @@ export const useHighlightManagement = (
     const sourceText = activeDocument.content;
     
     // Get container text for context building
-    const containerText = textContainer.textContent || '';
+  const containerText = getCleanTextFromContainer(textContainer);
     
     // Get DOM-based indices for fallback, but we'll primarily rely on text search
-    const rawStartIndex = getAbsoluteIndex(textContainer, range.startContainer, range.startOffset);
-    const rawEndIndex = getAbsoluteIndex(textContainer, range.endContainer, range.endOffset);
+  const rawStartIndex = getCleanAbsoluteIndex(textContainer, range.startContainer, range.startOffset);
+  const rawEndIndex = getCleanAbsoluteIndex(textContainer, range.endContainer, range.endOffset);
     const startIndex = Math.min(rawStartIndex, rawEndIndex);
     const endIndex = Math.max(rawStartIndex, rawEndIndex);
 
@@ -106,7 +106,7 @@ export const useHighlightManagement = (
     }
     
     // Try context-aware search first
-    let sourceStartIndex = findTextWithContext(sourceText, selectedTextClean, contextBefore, contextAfter);
+  let sourceStartIndex = findTextWithContext(sourceText, selectedTextClean, contextBefore, contextAfter);
     let sourceEndIndex = sourceStartIndex !== -1 ? sourceStartIndex + selectedTextClean.length : -1;
     
     // If context search fails, try simpler approaches

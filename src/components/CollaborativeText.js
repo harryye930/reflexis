@@ -122,6 +122,7 @@ function CollaborativeTextContent() {
       showMessage('Highlight added!');
     } else {
       showMessage('Failed to add highlight.', true);
+      console.error('Add highlight error:', "code:", code, "selected text:", selectedText, "result:", result);
     }
     return result;
   };
