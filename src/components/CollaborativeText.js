@@ -269,6 +269,7 @@ function CollaborativeTextContent() {
           selectedText={selectedText}
           currentUser={currentUser}
           documentId={activeDocumentId}
+          onAddCode={addCode}
           isDetecting={isDetecting}
           onStartReflexive={handleStartReflexiveFromCodingModal}
         />
