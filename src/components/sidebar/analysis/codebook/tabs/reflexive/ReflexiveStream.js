@@ -16,11 +16,11 @@
 import React, { useState, useEffect } from 'react';
 import { People, ChatBubbleOutline } from '@mui/icons-material';
 import { 
-  groupResponsesByUserAndHighlight, 
   getShortPromptText, 
   getPromptByType,
   PROMPT_SEQUENCE 
 } from '../../../../../../constants/reflexivePrompts.js';
+import { groupResponsesByReflexiveLensId } from '../../../../../../hooks/useReflexiveResponses.js';
 import ReflexiveSummary from './ReflexiveSummary.js';
 import ResearchBackgroundDisplay from '../../../../../common/ResearchBackgroundDisplay.js';
 import ReflexiveResponseCard from '../../../../../common/ReflexiveResponseCard.js';
@@ -35,14 +35,14 @@ const ReflexiveStream = ({
   const [filterUser, setFilterUser] = useState('all');
   const [expandedGroups, setExpandedGroups] = useState(new Set());
 
-  // Group responses by user and highlight
-  const groupedResponses = groupResponsesByUserAndHighlight(responses);
+  // Group responses by session (reflexiveLensId)
+  const groupedResponses = groupResponsesByReflexiveLensId(responses);
   
   // Expand all groups by default when responses change
   useEffect(() => {
-    const groups = groupResponsesByUserAndHighlight(responses);
+    const groups = groupResponsesByReflexiveLensId(responses);
     if (groups.length > 0) {
-      const allGroupKeys = groups.map(group => `${group.userId}-${group.highlightId}`);
+      const allGroupKeys = groups.map(group => group.reflexiveLensId);
       setExpandedGroups(new Set(allGroupKeys));
     }
   }, [responses]); // Re-run when responses change
@@ -138,7 +138,7 @@ const ReflexiveStream = ({
         </div>
       </div>
 
-      {/* Reflexive Stream - Grouped by User and Highlight */}
+  {/* Reflexive Stream - Grouped by Session (Reflexive Lens) */}
       <div className="space-y-4">
         {sortedGroups.length === 0 ? (
           <div className="text-center py-12 bg-gradient-to-br from-slate-50 to-gray-50 border border-gray-200/60 rounded-lg">
@@ -159,7 +159,7 @@ const ReflexiveStream = ({
           </div>
         ) : (
           sortedGroups.map((group, index) => {
-            const groupKey = `${group.userId}-${group.highlightId}`;
+            const groupKey = group.reflexiveLensId || `${group.userId}-${group.highlightId}`;
             const isExpanded = expandedGroups.has(groupKey);
             const responseCount = Object.keys(group.responses).length;
             const hasAllResponses = responseCount === PROMPT_SEQUENCE.length;
@@ -263,6 +263,7 @@ const ReflexiveStream = ({
                             promptType={promptTemplate.type}
                             showTimestamp={true}
                             showCheckmark={true}
+                            hideUserName={true}
                             className="border border-gray-100 p-3"
                           />
                         );

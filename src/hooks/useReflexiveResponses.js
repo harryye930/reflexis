@@ -3,7 +3,7 @@ import { ReflexiveService } from '../services/api/firebase/reflexiveService.js';
 import { appId } from '../constants/appId.js';
 
 // Helper function to group responses by reflexive lens ID (session)
-const groupResponsesByReflexiveLensId = (responses) => {
+export const groupResponsesByReflexiveLensId = (responses) => {
   const groups = {};
   
   responses.forEach(response => {

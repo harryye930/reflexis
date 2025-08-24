@@ -10,6 +10,7 @@ const ReflexiveResponseCard = ({
   userProfiles,
   showTimestamp = false,
   showCheckmark = false,
+  hideUserName = false,
   className = ""
 }) => {
   const formatTimestamp = (timestamp) => {
@@ -61,8 +62,12 @@ const ReflexiveResponseCard = ({
       </blockquote>
       {showTimestamp && (
         <div className="text-xs text-gray-500 mt-1">
-          <span className="font-medium">{getUserName()}</span>
-          <span className="mx-1">•</span>
+          {!hideUserName && (
+            <>
+              <span className="font-medium">{getUserName()}</span>
+              <span className="mx-1">•</span>
+            </>
+          )}
           <span>{formatTimestamp(response.createdAt)}</span>
         </div>
       )}
