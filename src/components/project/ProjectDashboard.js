@@ -11,6 +11,8 @@ const ProjectDashboard = ({ currentUser, userProfile, onOpenProject, onSignOut }
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [busyAction, setBusyAction] = useState('');
+  const [editingProjectId, setEditingProjectId] = useState(null);
+  const [editingProjectName, setEditingProjectName] = useState('');
 
   useEffect(() => {
     if (!currentUser) return undefined;
@@ -104,6 +106,56 @@ const ProjectDashboard = ({ currentUser, userProfile, onOpenProject, onSignOut }
     setBusyAction('');
   };
 
+  const handleStartEditProjectName = (project) => {
+    clearFeedback();
+    setEditingProjectId(project.id);
+    setEditingProjectName(project.name);
+  };
+
+  const handleCancelEditProjectName = () => {
+    setEditingProjectId(null);
+    setEditingProjectName('');
+  };
+
+  const handleRenameProject = async (event, project) => {
+    event.preventDefault();
+    clearFeedback();
+
+    const trimmedName = editingProjectName.trim();
+    if (!trimmedName) {
+      setError('Project name is required.');
+      return;
+    }
+
+    if (trimmedName === project.name) {
+      handleCancelEditProjectName();
+      return;
+    }
+
+    setBusyAction(`rename-${project.id}`);
+    const result = await projectService.renameProject(project.id, currentUser.uid, trimmedName);
+
+    if (result.success) {
+      upsertProject({
+        ...project,
+        name: trimmedName
+      });
+      setLastGeneratedKey((currentKey) => {
+        if (!currentKey || currentKey.projectName !== project.name) return currentKey;
+        return {
+          ...currentKey,
+          projectName: trimmedName
+        };
+      });
+      setMessage('Project name updated.');
+      handleCancelEditProjectName();
+    } else {
+      setError(result.error?.message || 'Failed to update project name.');
+    }
+
+    setBusyAction('');
+  };
+
   const handleRegenerateKey = async (project) => {
     clearFeedback();
 
@@ -179,7 +231,7 @@ const ProjectDashboard = ({ currentUser, userProfile, onOpenProject, onSignOut }
           <div>
             <h1 className="text-xl font-semibold text-slate-900">Reflexis Projects</h1>
             <p className="text-sm text-slate-600">
-              {userProfile?.name || currentUser.email}
+              Hi, {userProfile?.name || currentUser.email}
             </p>
           </div>
           <button
@@ -272,19 +324,54 @@ const ProjectDashboard = ({ currentUser, userProfile, onOpenProject, onSignOut }
           <div className="grid gap-4">
             {projects.map((project) => {
               const isOwner = project.membership?.role === 'owner';
+              const isEditingName = editingProjectId === project.id;
 
               return (
                 <article key={project.id} className="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
                   <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h3 className="font-semibold text-slate-900">{project.name}</h3>
-                      <p className="text-xs text-slate-500 mt-1">
-                        Role: {isOwner ? 'Owner' : 'Member'}
-                      </p>
-                    </div>
+                    {isEditingName ? (
+                      <form onSubmit={(event) => handleRenameProject(event, project)} className="flex-1 min-w-0">
+                        <label htmlFor={`edit-project-name-${project.id}`} className="sr-only">
+                          Project Name
+                        </label>
+                        <input
+                          id={`edit-project-name-${project.id}`}
+                          value={editingProjectName}
+                          onChange={(event) => setEditingProjectName(event.target.value)}
+                          className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                          maxLength={80}
+                          autoFocus
+                        />
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <button
+                            type="submit"
+                            disabled={busyAction === `rename-${project.id}`}
+                            className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-300"
+                          >
+                            {busyAction === `rename-${project.id}` ? 'Saving...' : 'Save'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleCancelEditProjectName}
+                            disabled={busyAction === `rename-${project.id}`}
+                            className="px-3 py-1.5 text-xs font-medium text-slate-700 border border-slate-300 rounded-md hover:bg-slate-100 disabled:opacity-50"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-slate-900 break-words">{project.name}</h3>
+                        <p className="text-xs text-slate-500 mt-1">
+                          Role: {isOwner ? 'Owner' : 'Member'}
+                        </p>
+                      </div>
+                    )}
                     <button
                       type="button"
                       onClick={() => onOpenProject(project)}
+                      disabled={isEditingName}
                       className="px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
                     >
                       Open
@@ -300,6 +387,14 @@ const ProjectDashboard = ({ currentUser, userProfile, onOpenProject, onSignOut }
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleStartEditProjectName(project)}
+                          disabled={busyAction === `rename-${project.id}`}
+                          className="px-3 py-1.5 text-xs font-medium text-slate-700 border border-slate-300 rounded-md hover:bg-slate-100 disabled:opacity-50"
+                        >
+                          Edit Name
+                        </button>
                         <button
                           type="button"
                           onClick={() => handleRegenerateKey(project)}

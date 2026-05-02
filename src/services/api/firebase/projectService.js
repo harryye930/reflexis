@@ -246,6 +246,39 @@ export class ProjectService {
     }
   }
 
+  async renameProject(projectId, userId, name) {
+    try {
+      const trimmedName = name.trim();
+      const projectRef = doc(db, 'projects', projectId);
+      const settingsRef = doc(projectRef, 'settings', 'invite');
+      const settingsSnapshot = await getDoc(settingsRef);
+      const joinKeyHash = settingsSnapshot.exists() ? settingsSnapshot.data().joinKeyHash : null;
+
+      const batch = writeBatch(db);
+      batch.update(projectRef, {
+        name: trimmedName,
+        updatedAt: new Date()
+      });
+      batch.update(doc(db, 'users', userId, 'projects', projectId), {
+        name: trimmedName,
+        updatedAt: new Date()
+      });
+
+      if (joinKeyHash) {
+        batch.update(doc(db, 'project_join_keys', joinKeyHash), {
+          projectName: trimmedName
+        });
+      }
+
+      await batch.commit();
+
+      return { success: true, project: { id: projectId, name: trimmedName } };
+    } catch (error) {
+      console.error('Error renaming project:', error);
+      return { success: false, error };
+    }
+  }
+
   async regenerateJoinKey(projectId, userId) {
     try {
       const settingsRef = doc(db, 'projects', projectId, 'settings', 'invite');
