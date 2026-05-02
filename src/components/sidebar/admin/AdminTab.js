@@ -4,6 +4,7 @@ import AdminControls from './AdminControls.js';
 import ResearcherProfile from './ResearcherProfile.js';
 
 const AdminTab = ({ 
+  projectId,
   userProfiles,
   currentUser,
   showAuthorInfo,
@@ -34,6 +35,7 @@ const AdminTab = ({
       
       {/* Researcher Profile Section */}
       <ResearcherProfile 
+        projectId={projectId}
         currentUser={currentUser}
         currentUserProfile={currentUserProfile}
         onMessage={onMessage}

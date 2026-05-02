@@ -11,6 +11,7 @@ const ReflexiveModal = ({
   onComplete,
   onClose,
   currentUser,
+  projectId,
   documentId,
   highlightId
 }) => {
@@ -151,6 +152,7 @@ const ReflexiveModal = ({
             selectedCode={selectedCode}
             selectedText={selectedText}
             currentUser={currentUser}
+            projectId={projectId}
             documentId={documentId}
             highlightId={highlightId}
             onComplete={handleComplete}

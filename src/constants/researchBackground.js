@@ -27,6 +27,8 @@ export const RESEARCH_BACKGROUND_SECTIONS = {
     required: true
   },
   
+  // Filled in the project admin panel after the researcher has reviewed
+  // documents — asking this at signup made no sense (no data yet).
   INITIAL_DATA_VIEW: {
     id: 'initialDataView',
     title: 'Your Initial View of the Data',
@@ -34,7 +36,7 @@ export const RESEARCH_BACKGROUND_SECTIONS = {
     label: 'Your Initial View of the Data',
     displayLabel: 'Initial View of the Data:',
     headerMarkdown: '## Initial View of the Data',
-    placeholder: 'e.g., Data seems to show patterns around emotional responses, notice themes of resilience...',
+    placeholder: 'e.g., notice repeated mentions of trust and time pressure; feel cautious about my own clinical lens...',
     validationMessage: 'Please share your initial view of the data',
     maxLength: 300,
     required: true
@@ -48,17 +50,20 @@ export const RESEARCH_BACKGROUND_SECTION_ORDER = [
   RESEARCH_BACKGROUND_SECTIONS.INITIAL_DATA_VIEW
 ];
 
-// Helper functions for working with research background data
-export const formatResearchBackgroundForStorage = (qualitativeHistory, backgroundExperience, initialDataView) => {
+// Helper functions for working with research background data.
+// initialDataView may be an empty string (e.g. at signup, before any data
+// has been reviewed). The header is preserved either way so the parser
+// stays stable and the field can be filled later from the admin panel.
+export const formatResearchBackgroundForStorage = (qualitativeHistory, backgroundExperience, initialDataView = '') => {
   return [
     RESEARCH_BACKGROUND_SECTIONS.QUALITATIVE_HISTORY.headerMarkdown,
-    qualitativeHistory.trim(),
+    (qualitativeHistory || '').trim(),
     '',
     RESEARCH_BACKGROUND_SECTIONS.BACKGROUND_EXPERIENCE.headerMarkdown,
-    backgroundExperience.trim(),
+    (backgroundExperience || '').trim(),
     '',
     RESEARCH_BACKGROUND_SECTIONS.INITIAL_DATA_VIEW.headerMarkdown,
-    initialDataView.trim()
+    (initialDataView || '').trim()
   ].join('\n');
 };
 

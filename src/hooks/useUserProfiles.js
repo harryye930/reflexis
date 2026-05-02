@@ -1,13 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { UserService } from '../services/api/firebase/userService.js';
 
-export const useUserProfiles = (appId, currentUser) => {
+export const useUserProfiles = (projectId, currentUser) => {
   const [userProfiles, setUserProfiles] = useState({});
   const [userProfilesLoaded, setUserProfilesLoaded] = useState(false);
-  const [userService] = useState(() => new UserService(appId));
+  const userService = useMemo(() => (
+    projectId ? new UserService(projectId) : null
+  ), [projectId]);
 
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser || !projectId || !userService) {
+      setUserProfiles({});
+      setUserProfilesLoaded(false);
+      return;
+    }
 
     const unsubscribe = userService.onUsersSnapshot((profiles) => {
       setUserProfiles(profiles);
@@ -15,7 +21,7 @@ export const useUserProfiles = (appId, currentUser) => {
     });
 
     return () => unsubscribe();
-  }, [appId, currentUser, userService]);
+  }, [projectId, currentUser, userService]);
 
   return { userProfiles, userProfilesLoaded };
 };

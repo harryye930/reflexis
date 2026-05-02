@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { authFetch } from '../lib/authFetch.js';
 
 export const useDiscussionPrompt = () => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -89,7 +90,7 @@ export const useDiscussionPrompt = () => {
         description: r.codeDescription || 'No description provided'
       }));
 
-      const response = await fetch('/api/discussion-prompt/generate', {
+      const response = await authFetch('/api/discussion-prompt/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

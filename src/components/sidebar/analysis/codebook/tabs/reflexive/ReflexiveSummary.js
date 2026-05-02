@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Warning, Search, Person, Autorenew, NoteAlt } from '@mui/icons-material';
 import { groupResponsesByUserAndHighlight } from '../../../../../../constants/reflexivePrompts.js';
+import { authFetch } from '../../../../../../lib/authFetch.js';
 
 const ReflexiveSummary = ({ 
   responses, 
@@ -78,7 +79,7 @@ const ReflexiveSummary = ({
     setError(null);
 
     try {
-      const response = await fetch('/api/reflexive/summary', {
+      const response = await authFetch('/api/reflexive/summary', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

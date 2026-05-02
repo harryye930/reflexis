@@ -1,67 +1,193 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // This rule allows any authenticated user to read from the "public" path.
-    match /artifacts/{appId}/public/{document=**} {
-      allow read: if request.auth != null;
+    function signedIn() {
+      return request.auth != null;
     }
 
-    // This rule handles highlights specifically.
-    match /artifacts/{appId}/public/data/highlights/{highlightId} {
-        // Any authenticated user can create, update, or delete any highlight.
-        allow create, update, delete: if request.auth != null;
+    function projectPath(projectId) {
+      return /databases/$(database)/documents/projects/$(projectId);
     }
 
-    // This rule handles codes management.
-    match /artifacts/{appId}/public/data/codes/{codeId} {
-        // Any authenticated user can read codes.
-        allow read: if request.auth != null;
-
-        // Any authenticated user can create a code.
-        allow create: if request.auth != null;
-
-        // Any authenticated user can update or delete any code.
-        allow update, delete: if request.auth != null;
+    function memberPath(projectId, userId) {
+      return /databases/$(database)/documents/projects/$(projectId)/members/$(userId);
     }
 
-    // This rule handles documents management.
-    match /artifacts/{appId}/public/data/documents/{documentId} {
-        // Any authenticated user can read documents.
-        allow read: if request.auth != null;
-
-        // Any authenticated user can create a document.
-        allow create: if request.auth != null;
-
-        // Any authenticated user can update or delete any document.
-        allow update, delete: if request.auth != null;
+    function joinKeyPath(joinKeyHash) {
+      return /databases/$(database)/documents/project_join_keys/$(joinKeyHash);
     }
 
-    // This rule handles reflexive responses.
-    match /artifacts/{appId}/public/data/reflexive_responses/{responseId} {
-        // Any authenticated user can create, update, delete, or read reflexive responses.
-        allow read, create, update, delete: if request.auth != null;
+    function isProjectMember(projectId) {
+      return signedIn() && exists(memberPath(projectId, request.auth.uid));
     }
 
-    // This rule handles code history.
-    match /artifacts/{appId}/public/data/code_history/{historyId} {
-        // Any authenticated user can read code history.
-        allow read: if request.auth != null;
-
-        // Any authenticated user can create code history entries.
-        allow create: if request.auth != null;
-
-        // Code history entries are immutable once created (no updates or deletes).
-        allow update, delete: if false;
+    function isProjectOwner(projectId) {
+      return isProjectMember(projectId)
+        && get(memberPath(projectId, request.auth.uid)).data.role == 'owner';
     }
 
-    // This rule handles user profiles.
-    match /artifacts/{appId}/public/data/users/{userId} {
-       // Any authenticated user can see who else is in the session.
-       allow read: if request.auth != null;
+    function isOwnResource() {
+      return signedIn() && resource.data.userId == request.auth.uid;
+    }
 
-       // A user can only create or update their own profile.
-       allow write: if request.auth.uid == userId;
+    function isCreator() {
+      return signedIn() && resource.data.createdBy == request.auth.uid;
+    }
+
+    function keepsIdentityFields(userId, projectId) {
+      return request.resource.data.userId == userId
+        && request.resource.data.projectId == projectId
+        && request.resource.data.role == resource.data.role;
+    }
+
+    match /users/{userId} {
+      allow read, create, update: if signedIn() && request.auth.uid == userId;
+      allow delete: if false;
+
+      match /projects/{projectId} {
+        allow read: if signedIn() && request.auth.uid == userId;
+
+        allow create, update: if signedIn()
+          && request.auth.uid == userId
+          && request.resource.data.projectId == projectId
+          && request.resource.data.role in ['owner', 'member']
+          && (
+            (
+              request.resource.data.role == 'owner'
+              && getAfter(projectPath(projectId)).data.ownerId == userId
+            )
+            || existsAfter(memberPath(projectId, userId))
+          );
+
+        allow delete: if signedIn()
+          && (
+            request.auth.uid == userId
+            || isProjectOwner(projectId)
+          );
+      }
+    }
+
+    match /project_join_keys/{joinKeyHash} {
+      allow get: if signedIn();
+      allow list: if false;
+
+      allow create: if signedIn()
+        && request.resource.data.projectId is string
+        && getAfter(projectPath(request.resource.data.projectId)).data.ownerId == request.auth.uid;
+
+      allow update: if signedIn()
+        && resource.data.projectId == request.resource.data.projectId
+        && isProjectOwner(resource.data.projectId);
+
+      allow delete: if signedIn() && isProjectOwner(resource.data.projectId);
+    }
+
+    match /projects/{projectId} {
+      allow read: if isProjectMember(projectId);
+
+      allow create: if signedIn()
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.createdBy == request.auth.uid;
+
+      allow update, delete: if isProjectOwner(projectId);
+
+      match /members/{userId} {
+        allow read: if signedIn()
+          && (request.auth.uid == userId || isProjectMember(projectId));
+
+        allow create: if signedIn()
+          && request.auth.uid == userId
+          && request.resource.data.userId == userId
+          && request.resource.data.projectId == projectId
+          && request.resource.data.role in ['owner', 'member']
+          && (
+            (
+              request.resource.data.role == 'owner'
+              && getAfter(projectPath(projectId)).data.ownerId == userId
+            )
+            || (
+              request.resource.data.role == 'member'
+              && request.resource.data.joinKeyHash is string
+              && exists(joinKeyPath(request.resource.data.joinKeyHash))
+              && get(joinKeyPath(request.resource.data.joinKeyHash)).data.projectId == projectId
+            )
+          );
+
+        allow update: if isProjectOwner(projectId)
+          || (
+            signedIn()
+            && request.auth.uid == userId
+            && keepsIdentityFields(userId, projectId)
+          );
+
+        allow delete: if isProjectOwner(projectId);
+      }
+
+      match /member_secrets/{userId} {
+        allow read: if signedIn()
+          && (request.auth.uid == userId || isProjectOwner(projectId));
+
+        allow create: if signedIn()
+          && request.auth.uid == userId
+          && request.resource.data.userId == userId
+          && request.resource.data.projectId == projectId
+          && request.resource.data.joinKeyHash is string
+          && exists(joinKeyPath(request.resource.data.joinKeyHash))
+          && get(joinKeyPath(request.resource.data.joinKeyHash)).data.projectId == projectId;
+
+        allow update: if false;
+        allow delete: if signedIn()
+          && (request.auth.uid == userId || isProjectOwner(projectId));
+      }
+
+      match /settings/{settingId} {
+        allow read, update, delete: if isProjectOwner(projectId);
+
+        allow create: if isProjectOwner(projectId)
+          || (
+            signedIn()
+            && settingId == 'invite'
+            && getAfter(projectPath(projectId)).data.ownerId == request.auth.uid
+          );
+      }
+
+      match /documents/{documentId} {
+        allow read: if isProjectMember(projectId);
+        allow create: if isProjectMember(projectId)
+          && (request.resource.data.createdBy == request.auth.uid || request.resource.data.createdBy == 'system');
+        allow update: if isProjectOwner(projectId) || isCreator();
+        allow delete: if isProjectOwner(projectId) || isCreator();
+      }
+
+      match /codes/{codeId} {
+        allow read: if isProjectMember(projectId);
+        allow create: if isProjectMember(projectId)
+          && request.resource.data.createdBy == request.auth.uid;
+        allow update: if isProjectMember(projectId);
+        allow delete: if isProjectOwner(projectId) || isCreator();
+      }
+
+      match /highlights/{highlightId} {
+        allow read: if isProjectMember(projectId);
+        allow create: if isProjectMember(projectId)
+          && request.resource.data.userId == request.auth.uid;
+        allow update, delete: if isProjectOwner(projectId) || isOwnResource();
+      }
+
+      match /reflexive_responses/{responseId} {
+        allow read: if isProjectMember(projectId);
+        allow create: if isProjectMember(projectId)
+          && request.resource.data.userId == request.auth.uid;
+        allow update, delete: if isProjectOwner(projectId) || isOwnResource();
+      }
+
+      match /code_history/{historyId} {
+        allow read: if isProjectMember(projectId);
+        allow create: if isProjectMember(projectId)
+          && request.resource.data.userId == request.auth.uid;
+        allow update: if false;
+        allow delete: if isProjectOwner(projectId);
+      }
     }
   }
 }

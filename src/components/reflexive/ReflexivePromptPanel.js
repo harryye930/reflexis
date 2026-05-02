@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { PROMPT_SEQUENCE } from '../../constants/reflexivePrompts.js';
 import { Search, Person, Autorenew, NoteAlt } from '@mui/icons-material';
 import { ReflexiveService } from '../../services/api/firebase/reflexiveService.js';
-import { appId } from '../../constants/appId.js';
 
 const ReflexivePromptPanel = ({ 
   selectedCode, 
   selectedText, 
   currentUser,
+  projectId,
   documentId,
   highlightId,
   onComplete,
@@ -18,7 +18,7 @@ const ReflexivePromptPanel = ({
   const [responses, setResponses] = useState({});
   const [currentResponse, setCurrentResponse] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [reflexiveService] = useState(() => new ReflexiveService(appId));
+  const [reflexiveService] = useState(() => new ReflexiveService(projectId));
   const [isSliding, setIsSliding] = useState(false);
   
   // Generate unique session ID for this reflection session

@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { parseResearchBackgroundFromStorage } from '../../../constants/researchBackground';
+import { requireFirebaseAuth } from '../../../lib/api/requireFirebaseAuth.js';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -9,6 +10,8 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
+  if (!(await requireFirebaseAuth(req, res))) return;
 
   try {
     const { researchBackground, userName } = req.body || {};

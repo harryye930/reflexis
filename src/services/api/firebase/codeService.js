@@ -3,14 +3,14 @@ import { db } from '../../../lib/firebase.js';
 import { CodeHistoryService } from './codeHistoryService.js';
 
 export class CodeService {
-  constructor(appId) {
-    this.appId = appId;
-    this.historyService = new CodeHistoryService(appId);
+  constructor(projectId) {
+    this.projectId = projectId;
+    this.historyService = new CodeHistoryService(projectId);
   }
 
   // Listen to codes collection
   onCodesSnapshot(callback) {
-    const codesCollection = collection(db, `artifacts/${this.appId}/public/data/codes`);
+    const codesCollection = collection(db, `projects/${this.projectId}/codes`);
     
     return onSnapshot(codesCollection, (snapshot) => {
       const codes = snapshot.docs.map(doc => ({ 
@@ -22,10 +22,50 @@ export class CodeService {
     });
   }
 
+  async ensureDefaultCodes(defaultCodes, userId) {
+    try {
+      const codesCollection = collection(db, `projects/${this.projectId}/codes`);
+      const snapshot = await getDocs(query(codesCollection));
+      const existingIds = new Set();
+
+      snapshot.docs.forEach((codeDoc) => {
+        const codeData = codeDoc.data();
+        existingIds.add(codeDoc.id);
+        if (codeData.id) existingIds.add(codeData.id);
+      });
+
+      const missingDefaults = defaultCodes.filter((defaultCode) => (
+        !existingIds.has(defaultCode.docId) && !existingIds.has(defaultCode.id)
+      ));
+
+      if (missingDefaults.length === 0) {
+        return { success: true, createdCount: 0 };
+      }
+
+      const batch = writeBatch(db);
+      missingDefaults.forEach((defaultCode) => {
+        const { docId, ...codeData } = defaultCode;
+        const codeDocRef = doc(db, `projects/${this.projectId}/codes`, docId);
+
+        batch.set(codeDocRef, {
+          ...codeData,
+          createdBy: userId,
+          createdAt: new Date()
+        });
+      });
+
+      await batch.commit();
+      return { success: true, createdCount: missingDefaults.length };
+    } catch (error) {
+      console.error('Error ensuring default codes:', error);
+      return { success: false, error };
+    }
+  }
+
   // Add a new code
   async addCode(codeData, userId, skipHistory = false) {
     try {
-      const codesCollection = collection(db, `artifacts/${this.appId}/public/data/codes`);
+      const codesCollection = collection(db, `projects/${this.projectId}/codes`);
       const docRef = await addDoc(codesCollection, {
         ...codeData,
         createdBy: userId,
@@ -53,7 +93,7 @@ export class CodeService {
         return { success: false, error: 'Code not found for update' };
       }
       
-      const codeDocRef = doc(db, `artifacts/${this.appId}/public/data/codes`, docId);
+      const codeDocRef = doc(db, `projects/${this.projectId}/codes`, docId);
       await updateDoc(codeDocRef, {
         ...updateData,
         updatedBy: userId,
@@ -76,7 +116,7 @@ export class CodeService {
   async deleteCode(docId, userId = 'system', deletionReason = 'User deleted', skipHistory = false) {
     try {
       // Get code data for history tracking
-      const codeDocRef = doc(db, `artifacts/${this.appId}/public/data/codes`, docId);
+      const codeDocRef = doc(db, `projects/${this.projectId}/codes`, docId);
       const codeSnap = await getDoc(codeDocRef);
       
       if (codeSnap.exists()) {
@@ -109,7 +149,7 @@ export class CodeService {
   async getCode(codeId) {
     try {
       // Use the same logic as onCodesSnapshot: search by logical ID field first
-      const codesCollection = collection(db, `artifacts/${this.appId}/public/data/codes`);
+      const codesCollection = collection(db, `projects/${this.projectId}/codes`);
       const codeQuery = query(codesCollection, where('id', '==', codeId));
       const querySnapshot = await getDocs(codeQuery);
       
@@ -230,7 +270,7 @@ export class CodeService {
       
       try {
         // Get all highlights for source codes
-        const highlightsCollection = collection(db, `artifacts/${this.appId}/public/data/highlights`);
+        const highlightsCollection = collection(db, `projects/${this.projectId}/highlights`);
         
         for (const sourceCode of selectedCodes) {
           if (sourceCode.id === targetCodeId) continue; // Skip target code
@@ -265,7 +305,7 @@ export class CodeService {
       
       // Step 2b: Transfer reflexive responses from source codes to target code
       try {
-        const reflexiveCollection = collection(db, `artifacts/${this.appId}/public/data/reflexive_responses`);
+        const reflexiveCollection = collection(db, `projects/${this.projectId}/reflexive_responses`);
         
         for (const sourceCode of selectedCodes) {
           if (sourceCode.id === targetCodeId) continue; // Skip target code
@@ -370,7 +410,7 @@ export class CodeService {
     try {
       if (type === 'getHighlights') {
         // Get all highlights for this code across all documents
-        const highlightsCollection = collection(db, `artifacts/${this.appId}/public/data/highlights`);
+        const highlightsCollection = collection(db, `projects/${this.projectId}/highlights`);
         const highlightsQuery = query(highlightsCollection, where('code', '==', codeId));
         
         const snapshot = await getDocs(highlightsQuery);
@@ -382,7 +422,7 @@ export class CodeService {
         
         // Enhance highlights with context information
         const { HighlightService } = await import('./highlightService.js');
-        const highlightService = new HighlightService(this.appId);
+        const highlightService = new HighlightService(this.projectId);
         const highlightsWithContext = await highlightService.addContextToHighlights(highlights);
         
         return { success: true, highlights: highlightsWithContext };
@@ -391,7 +431,7 @@ export class CodeService {
       if (type === 'getReflexiveCount') {
         // Get count of reflexive responses for a specific highlight and code
         const { highlightId, codeId } = splitData;
-        const reflexiveCollection = collection(db, `artifacts/${this.appId}/public/data/reflexive_responses`);
+        const reflexiveCollection = collection(db, `projects/${this.projectId}/reflexive_responses`);
         const reflexiveQuery = query(
           reflexiveCollection,
           where('highlightId', '==', highlightId),
@@ -405,7 +445,7 @@ export class CodeService {
       if (type === 'checkReflexiveResponses') {
         // Check which highlights have reflexive responses that could be transferred
         const highlightsWithReflexive = [];
-        const reflexiveCollection = collection(db, `artifacts/${this.appId}/public/data/reflexive_responses`);
+        const reflexiveCollection = collection(db, `projects/${this.projectId}/reflexive_responses`);
         
         for (const [highlightId, assignment] of Object.entries(reassignments)) {
           const reflexiveQuery = query(
@@ -471,7 +511,7 @@ export class CodeService {
 
         // Step 1: Reassign highlights to new codes
         if (reassignments && Object.keys(reassignments).length > 0) {
-          const highlightsCollection = collection(db, `artifacts/${this.appId}/public/data/highlights`);
+          const highlightsCollection = collection(db, `projects/${this.projectId}/highlights`);
           
           for (const [highlightId, assignment] of Object.entries(reassignments)) {
             const { newCodeId, transferReflexive } = assignment;
@@ -487,7 +527,7 @@ export class CodeService {
             // Transfer reflexive responses if user chose to transfer for this specific highlight
             if (transferReflexive) {
               try {
-                const reflexiveCollection = collection(db, `artifacts/${this.appId}/public/data/reflexive_responses`);
+                const reflexiveCollection = collection(db, `projects/${this.projectId}/reflexive_responses`);
                 const reflexiveQuery = query(
                   reflexiveCollection,
                   where('highlightId', '==', highlightId),
@@ -521,7 +561,7 @@ export class CodeService {
         let codeDeleted = false;
         let shouldDeleteCode = false;
         const remainingHighlightsQuery = query(
-          collection(db, `artifacts/${this.appId}/public/data/highlights`),
+          collection(db, `projects/${this.projectId}/highlights`),
           where('code', '==', sourceCode.id)
         );
         const remainingSnapshot = await getDocs(remainingHighlightsQuery);

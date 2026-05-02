@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { appId } from '../constants/appId.js';
-import { useAuth } from '../hooks/useAuth.js';
 import { useDocuments } from '../hooks/useDocuments.js';
 import { useHighlights } from '../hooks/useHighlights.js';
 import { useUserProfiles } from '../hooks/useUserProfiles.js';
@@ -11,7 +9,6 @@ import { useHighlightManagement } from '../hooks/useHighlightManagement.js';
 import { useMessageHandler } from '../hooks/useMessageHandler.js';
 import { useNavigateToHighlight } from '../hooks/useNavigateToHighlight.js';
 import { useHoverPreferences } from '../hooks/useHoverPreferences.js';
-import { ReflexiveService } from '../services/api/firebase/reflexiveService.js';
 import { filterUniquelyCodedHighlights } from '../lib/utils/highlightFilterUtils.js';
 
 // Components
@@ -19,19 +16,21 @@ import HighlightedText from './highlight/HighlightedText.js';
 import HighlightingModal from './highlight/HighlightModal.js';
 import ReflexiveModal from './reflexive/ReflexiveModal.js';
 import MessageBox from './common/MessageBox.js';
-import UserProfileSetup from './UserProfileSetup.js';
 import DocumentBrowser from './document/DocumentBrowser.js';
 import Sidebar from './sidebar/Sidebar.js';
 import DocumentHeader from './document/DocumentHeader.js';
 import CodeDriftModal from './code-drift/CodeDriftModal.js';
+import ReflectiveQuoteTicker from './common/ReflectiveQuoteTicker.js';
 
-function CollaborativeTextContent() {
+function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSignOut }) {
+  const projectId = project?.id;
+  const isOwner = project?.membership?.role === 'owner';
+  const loading = !currentUser || !projectId;
   // Custom hooks for data management
-  const { currentUser, loading, needsProfileSetup, completeProfile } = useAuth(appId);
-  const { documents, activeDocument, activeDocumentId, documentsLoaded, addDocument, updateDocument, deleteDocument, switchActiveDocument } = useDocuments(appId, currentUser);
-  const { highlights, addHighlight, deleteHighlight } = useHighlights(appId, currentUser, activeDocumentId);
-  const { userProfiles, userProfilesLoaded } = useUserProfiles(appId, currentUser);
-  const { allCodes, deletedCodes, addCode, updateCode, deleteCode, mergeCodes, splitCode } = useCodes(appId, currentUser);
+  const { documents, activeDocument, activeDocumentId, documentsLoaded, addDocument, updateDocument, deleteDocument, switchActiveDocument } = useDocuments(projectId, currentUser, isOwner);
+  const { highlights, addHighlight, deleteHighlight } = useHighlights(projectId, currentUser, activeDocumentId);
+  const { userProfiles, userProfilesLoaded } = useUserProfiles(projectId, currentUser);
+  const { allCodes, deletedCodes, addCode, updateCode, deleteCode, mergeCodes, splitCode } = useCodes(projectId, currentUser);
   
   // Disagreement analysis hook
   const { 
@@ -40,10 +39,7 @@ function CollaborativeTextContent() {
     getCodesByDisagreement, 
     getDisagreementSummary, 
     loading: disagreementLoading 
-  } = useCodeDisagreement(appId, allCodes, userProfiles, currentUser);
-  
-  // Services
-  const reflexiveService = new ReflexiveService(appId);
+  } = useCodeDisagreement(projectId, allCodes, userProfiles, currentUser);
   
   // Reflexive modal state
   const [showReflexiveModal, setShowReflexiveModal] = useState(false);
@@ -68,7 +64,7 @@ function CollaborativeTextContent() {
   toggleShowCodeDetails,
   hideSameCodeHighlights,
   toggleHideSameCodeHighlights
-  } = useHoverPreferences(appId);
+  } = useHoverPreferences(projectId);
   
   // Highlight management hook - uses original highlights for management operations
   const {
@@ -100,18 +96,18 @@ function CollaborativeTextContent() {
     highlights,
     addHighlight, 
     deleteHighlight,
-    appId, // Add appId parameter
+    projectId,
     disableCodeDriftDetection // Add disableCodeDriftDetection parameter
   );
 
-  useUserActivity(appId, currentUser);
+  useUserActivity(currentUser);
 
   // Navigation hook
   const handleNavigateToHighlight = useNavigateToHighlight(
-    appId, 
-    activeDocumentId, 
+    projectId,
+    activeDocumentId,
     highlights,
-    switchActiveDocument, 
+    switchActiveDocument,
     showMessage
   );
 
@@ -181,7 +177,30 @@ function CollaborativeTextContent() {
   const filteredHighlights = filterUniquelyCodedHighlights(highlights, hideSameCodeHighlights);
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen pt-12">
+      <header className="fixed top-0 left-0 right-0 h-12 bg-white border-b border-gray-200 z-50 flex items-center px-4 gap-4">
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <button
+            type="button"
+            onClick={onBackToProjects}
+            className="px-3 py-1.5 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+          >
+            Projects
+          </button>
+          <div>
+            <div className="text-sm font-semibold text-gray-900">{project?.name}</div>
+            <div className="text-xs text-gray-500">Collaborative analysis</div>
+          </div>
+        </div>
+        <ReflectiveQuoteTicker seedKey={projectId || ''} />
+        <button
+          type="button"
+          onClick={onSignOut}
+          className="px-3 py-1.5 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 flex-shrink-0"
+        >
+          Sign Out
+        </button>
+      </header>
       {/* Document Browser - Left Panel */}
       <div className="w-80 flex-shrink-0">
         <DocumentBrowser
@@ -189,8 +208,10 @@ function CollaborativeTextContent() {
           activeDocument={activeDocument}
           onDocumentSwitch={switchActiveDocument}
           onAddDocument={addDocument}
+          onDeleteDocument={deleteDocument}
           onMessage={showMessage}
           currentUser={currentUser}
+          isOwner={isOwner}
         />
       </div>
 
@@ -201,12 +222,24 @@ function CollaborativeTextContent() {
 
           {loading && (
             <div id="loading-text" className="text-center p-8">
-              <p className="text-gray-500">Connecting to the collaborative session...</p>
+            <p className="text-gray-500">Connecting to the collaborative session...</p>
             </div>
           )}
 
-          {!loading && documentsLoaded && (
+          {!loading && documentsLoaded && !activeDocument && (
+            <div className="text-center p-12 border border-dashed border-slate-300 rounded-lg bg-white">
+              <p className="text-slate-700 font-medium">No document selected</p>
+              <p className="text-sm text-slate-500 mt-2">
+                {isOwner
+                  ? 'Add a transcript or other text to the corpus on the left to begin analysis.'
+                  : 'Wait for an admin to add a document to this project, or add one yourself.'}
+              </p>
+            </div>
+          )}
+
+          {!loading && documentsLoaded && activeDocument && (
             <HighlightedText
+              projectId={projectId}
               highlights={filteredHighlights}
               userProfiles={userProfiles}
               currentUser={currentUser}
@@ -228,6 +261,7 @@ function CollaborativeTextContent() {
       {/* Analysis Tools Sidebar - Right Panel */}
       <div className="w-80 xl:w-96 flex-shrink-0">
         <Sidebar
+          projectId={projectId}
           currentUser={currentUser}
           currentUserProfile={currentUserProfile}
           userProfiles={userProfiles}
@@ -269,6 +303,7 @@ function CollaborativeTextContent() {
           onClose={closeModal}
           selectedText={selectedText}
           currentUser={currentUser}
+          projectId={projectId}
           documentId={activeDocumentId}
           onAddCode={addCode}
           isDetecting={isDetecting}
@@ -285,6 +320,7 @@ function CollaborativeTextContent() {
           onComplete={handleReflexiveComplete}
           onClose={handleReflexiveClose}
           currentUser={currentUser}
+          projectId={projectId}
           documentId={activeDocumentId}
           highlightId={selectedHighlightForReflexive.id}
         />
@@ -309,21 +345,12 @@ function CollaborativeTextContent() {
         />
       )}
 
-      {needsProfileSetup && currentUser && (
-        <UserProfileSetup
-          currentUser={currentUser}
-          appId={appId}
-          completeProfile={completeProfile}
-          onComplete={() => {/* Profile completion is handled by the hook */}}
-        />
-      )}
-
       {/* Message System */}
       <MessageBox message={message} />
     </div>
   );
 }
 
-export default function CollaborativeText() {
-  return <CollaborativeTextContent />;
+export default function CollaborativeText(props) {
+  return <CollaborativeTextContent {...props} />;
 }

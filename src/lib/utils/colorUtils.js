@@ -26,11 +26,11 @@ export const userColors = [
   "#b04021",
 ];
 
-// Function to get an available color, prioritizing unused ones
-export const getAvailableColor = async (appId) => {
+// Function to get an available color within a project, prioritizing unused ones
+export const getAvailableColor = async (projectId) => {
   try {
-    // Get all existing users to see which colors are already in use
-    const usersCollection = collection(db, `artifacts/${appId}/public/data/users`);
+    // Get all existing project members to see which colors are already in use
+    const usersCollection = collection(db, `projects/${projectId}/members`);
     const usersSnapshot = await getDocs(usersCollection);
     
     const usedColors = new Set();

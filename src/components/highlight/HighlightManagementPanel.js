@@ -8,6 +8,7 @@ import HighlightReflexiveNotes from './HighlightReflexiveNotes.js';
 
 // Individual highlight item component with reflexive check logic
 const HighlightItem = ({ 
+  projectId,
   highlight, 
   userProfiles,
   allCodes, 
@@ -26,7 +27,7 @@ const HighlightItem = ({
   
   
   // Get all reflexive responses for this highlight (for display)
-  const { allReflexiveResponses, groupedReflexiveResponses } = useReflexiveResponses(highlight.id);
+  const { allReflexiveResponses, groupedReflexiveResponses } = useReflexiveResponses(projectId, highlight.id);
   
   // Use hover utilities for user display
   const userColor = getUserDisplayColor(user, showAuthorInfo);
@@ -140,6 +141,7 @@ const HighlightItem = ({
 };
 
 const HighlightManagementPanel = ({ 
+  projectId,
   highlights, 
   userProfiles, 
   allCodes, 
@@ -287,8 +289,9 @@ const HighlightManagementPanel = ({
         <div className="space-y-3 max-h-72 overflow-y-auto">
           {sortedHighlights.map((highlight, index) => (
             <HighlightItem
-              key={highlight.id}
-              highlight={highlight}
+            key={highlight.id}
+            projectId={projectId}
+            highlight={highlight}
               userProfiles={userProfiles}
               allCodes={allCodes}
               currentUser={currentUser}

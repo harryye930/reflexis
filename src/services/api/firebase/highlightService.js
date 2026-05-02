@@ -3,14 +3,14 @@ import { db } from '../../../lib/firebase.js';
 import { CodeService } from './codeService.js';
 
 export class HighlightService {
-  constructor(appId) {
-    this.appId = appId;
-    this.codeService = new CodeService(appId);
+  constructor(projectId) {
+    this.projectId = projectId;
+    this.codeService = new CodeService(projectId);
   }
 
   // Listen to highlights for a specific document
   onHighlightsSnapshot(documentId, callback) {
-    const highlightsCollection = collection(db, `artifacts/${this.appId}/public/data/highlights`);
+    const highlightsCollection = collection(db, `projects/${this.projectId}/highlights`);
     const highlightsQuery = query(highlightsCollection, where('documentId', '==', documentId));
     
     return onSnapshot(highlightsQuery, (snapshot) => {
@@ -22,7 +22,7 @@ export class HighlightService {
   // Add a new highlight
   async addHighlight(highlightData, userId) {
     try {
-      const highlightsCollection = collection(db, `artifacts/${this.appId}/public/data/highlights`);
+      const highlightsCollection = collection(db, `projects/${this.projectId}/highlights`);
       const docRef = await addDoc(highlightsCollection, {
         ...highlightData,
         userId,
@@ -62,7 +62,7 @@ export class HighlightService {
   // Delete a highlight
   async deleteHighlight(highlightId) {
     try {
-      await deleteDoc(doc(db, `artifacts/${this.appId}/public/data/highlights`, highlightId));
+      await deleteDoc(doc(db, `projects/${this.projectId}/highlights`, highlightId));
       return { success: true };
     } catch (error) {
       console.error("Error deleting highlight: ", error);
@@ -73,7 +73,7 @@ export class HighlightService {
   // Get highlights for a specific document
   async getHighlights(documentId) {
     try {
-      const highlightsCollection = collection(db, `artifacts/${this.appId}/public/data/highlights`);
+      const highlightsCollection = collection(db, `projects/${this.projectId}/highlights`);
       const highlightsQuery = query(highlightsCollection, where('documentId', '==', documentId));
       
       const snapshot = await new Promise((resolve) => {
@@ -92,7 +92,7 @@ export class HighlightService {
   // Update a highlight
   async updateHighlight(highlightId, updateData) {
     try {
-      const highlightDocRef = doc(db, `artifacts/${this.appId}/public/data/highlights`, highlightId);
+      const highlightDocRef = doc(db, `projects/${this.projectId}/highlights`, highlightId);
       await setDoc(highlightDocRef, {
         ...updateData,
         updatedAt: new Date()
@@ -116,7 +116,7 @@ export class HighlightService {
     });
 
     // Fetch all unique documents
-    const documentsCollection = collection(db, `artifacts/${this.appId}/public/data/documents`);
+    const documentsCollection = collection(db, `projects/${this.projectId}/documents`);
     const fetchPromises = Array.from(documentsToFetch).map(async (documentId) => {
       try {
         const docRef = doc(documentsCollection, documentId);

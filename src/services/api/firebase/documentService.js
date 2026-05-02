@@ -1,14 +1,14 @@
-import { collection, onSnapshot, addDoc, doc, setDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, doc, setDoc, deleteDoc, query, orderBy, getDoc } from 'firebase/firestore';
 import { db } from '../../../lib/firebase.js';
 
 export class DocumentService {
-  constructor(appId) {
-    this.appId = appId;
+  constructor(projectId) {
+    this.projectId = projectId;
   }
 
   // Listen to documents collection
   onDocumentsSnapshot(callback) {
-    const documentsCollection = collection(db, `artifacts/${this.appId}/public/data/documents`);
+    const documentsCollection = collection(db, `projects/${this.projectId}/documents`);
     const documentsQuery = query(documentsCollection, orderBy('createdAt', 'asc'));
     
     return onSnapshot(documentsQuery, (snapshot) => {
@@ -25,7 +25,7 @@ export class DocumentService {
   // Add a new document
   async addDocument(documentData, userId) {
     try {
-      const documentsCollection = collection(db, `artifacts/${this.appId}/public/data/documents`);
+      const documentsCollection = collection(db, `projects/${this.projectId}/documents`);
       const docRef = await addDoc(documentsCollection, {
         ...documentData,
         isDefault: false,
@@ -43,7 +43,7 @@ export class DocumentService {
   // Update an existing document
   async updateDocument(documentId, updateData, userId) {
     try {
-      const docRef = doc(db, `artifacts/${this.appId}/public/data/documents`, documentId);
+      const docRef = doc(db, `projects/${this.projectId}/documents`, documentId);
       await setDoc(docRef, {
         ...updateData,
         updatedAt: new Date(),
@@ -60,7 +60,7 @@ export class DocumentService {
   // Delete a document
   async deleteDocument(documentId) {
     try {
-      await deleteDoc(doc(db, `artifacts/${this.appId}/public/data/documents`, documentId));
+      await deleteDoc(doc(db, `projects/${this.projectId}/documents`, documentId));
       return { success: true };
     } catch (error) {
       console.error("Error deleting document: ", error);
@@ -71,7 +71,7 @@ export class DocumentService {
   // Ensure default documents exist in the database
   async ensureDefaultDocuments(defaultDocuments, userId) {
     try {
-      const documentsCollection = collection(db, `artifacts/${this.appId}/public/data/documents`);
+      const documentsCollection = collection(db, `projects/${this.projectId}/documents`);
       
       // Get existing documents to check which defaults are missing
       const existingDocsQuery = query(documentsCollection);
@@ -86,7 +86,7 @@ export class DocumentService {
       // Add missing default documents
       if (missingDefaults.length > 0) {
         const addPromises = missingDefaults.map(async (defaultDoc) => {
-          const docRef = doc(db, `artifacts/${this.appId}/public/data/documents`, defaultDoc.id);
+          const docRef = doc(db, `projects/${this.projectId}/documents`, defaultDoc.id);
           await setDoc(docRef, {
             title: defaultDoc.title,
             description: defaultDoc.description,
@@ -110,7 +110,7 @@ export class DocumentService {
   // Get a single document by ID
   async getDocument(documentId) {
     try {
-      const docRef = doc(db, `artifacts/${this.appId}/public/data/documents`, documentId);
+      const docRef = doc(db, `projects/${this.projectId}/documents`, documentId);
       const docSnap = await getDoc(docRef);
       
       if (docSnap.exists()) {
@@ -123,4 +123,4 @@ export class DocumentService {
       return { success: false, error };
     }
   }
-} 
+}

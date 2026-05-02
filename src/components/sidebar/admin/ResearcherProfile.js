@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AuthService } from '../../../services/api/firebase/authService.js';
-import { appId } from '../../../constants/appId.js';
+import { ProjectService } from '../../../services/api/firebase/projectService.js';
 import { 
   RESEARCH_BACKGROUND_SECTIONS,
   parseResearchBackgroundFromStorage,
@@ -9,7 +9,7 @@ import {
 } from '../../../constants/researchBackground.js';
 import ResearchBackgroundDisplay from '../../common/ResearchBackgroundDisplay.js';
 
-const ResearcherProfile = ({ currentUser, currentUserProfile, onMessage }) => {
+const ResearcherProfile = ({ projectId, currentUser, currentUserProfile, onMessage }) => {
   const [isEditing, setIsEditing] = useState(false);
   // Separate background components for editing
   const [editQualitativeHistory, setEditQualitativeHistory] = useState('');
@@ -18,7 +18,8 @@ const ResearcherProfile = ({ currentUser, currentUserProfile, onMessage }) => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
-  const [authService] = useState(() => new AuthService(appId));
+  const [authService] = useState(() => new AuthService());
+  const [projectService] = useState(() => new ProjectService());
 
     // Function to parse existing research background into separate sections
   const parseResearchBackground = (researchBackground) => {
@@ -84,12 +85,20 @@ const ResearcherProfile = ({ currentUser, currentUserProfile, onMessage }) => {
 
       console.log('Updating user profile...', currentUser.uid, mergedResearchBackground);
       const result = await authService.updateUserDocument(currentUser.uid, {
+        name: currentUserProfile.name,
         researchBackground: mergedResearchBackground,
+        profileCompleted: true,
         lastSeen: new Date()
       });
 
       console.log('Update result:', result);
       if (result.success) {
+        await projectService.updateMemberProfile(projectId, currentUser.uid, {
+          name: currentUserProfile.name,
+          researchBackground: mergedResearchBackground,
+          reducedResearchBackground: result.reducedResearchBackground,
+          profileCompleted: true
+        });
         setIsEditing(false);
         setEditQualitativeHistory('');
         setEditBackgroundExperience('');
@@ -229,12 +238,16 @@ const ResearcherProfile = ({ currentUser, currentUserProfile, onMessage }) => {
                 )}
               </div>
 
-              {/* Initial View of Data */}
+              {/* Initial View of Data — only meaningful once the researcher
+                  has actually reviewed documents in this project. */}
               <div>
                 <label htmlFor="editInitialDataView" className="block text-xs font-medium text-gray-700 mb-1">
                   {RESEARCH_BACKGROUND_SECTIONS.INITIAL_DATA_VIEW.label}
                   <span className="text-red-500 ml-1">*</span>
                 </label>
+                <p className="text-[11px] text-gray-500 mb-1">
+                  Fill this in once you&rsquo;ve read through the project&rsquo;s documents. It anchors what you noticed before coding began.
+                </p>
                 <div className="relative">
                   <textarea
                     id="editInitialDataView"

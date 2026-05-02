@@ -1,11 +1,12 @@
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../../lib/firebase.js';
+import { authFetch } from '../../../lib/authFetch.js';
 import { CodeService } from './codeService.js';
 
 export class ConceptualDriftService {
-  constructor(appId) {
-    this.appId = appId;
-    this.codeService = new CodeService(appId);
+  constructor(projectId) {
+    this.projectId = projectId;
+    this.codeService = new CodeService(projectId);
   }
 
   /**
@@ -70,7 +71,7 @@ export class ConceptualDriftService {
    */
   async _getRepresentativeExamples(codeId, currentDocumentId, maxExamples = 5) {
     try {
-      const highlightsCollection = collection(db, `artifacts/${this.appId}/public/data/highlights`);
+      const highlightsCollection = collection(db, `projects/${this.projectId}/highlights`);
       const highlightsQuery = query(highlightsCollection, where('code', '==', codeId));
       const querySnapshot = await getDocs(highlightsQuery);
       
@@ -118,7 +119,7 @@ export class ConceptualDriftService {
    */
   async _analyzeDriftWithLLM({ codeName, codeDefinition, existingExamples, newPassage, context }) {
     try {
-      const response = await fetch('/api/code-drift/detect', {
+      const response = await authFetch('/api/code-drift/detect', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,3 +1,5 @@
+import { authFetch } from '../../../lib/authFetch.js';
+
 // Service for generating research background keyword summaries
 export class ResearchBackgroundSummaryService {
   /**
@@ -12,7 +14,7 @@ export class ResearchBackgroundSummaryService {
         return { success: false, error: 'Valid research background is required' };
       }
 
-      const response = await fetch('/api/research-background/summary', {
+      const response = await authFetch('/api/research-background/summary', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

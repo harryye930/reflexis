@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { appId } from '../../../../constants/appId.js';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { ReflexiveService } from '../../../../services/api/firebase/reflexiveService.js';
 import { CodeService } from '../../../../services/api/firebase/codeService.js';
 import LivingCodebookHeader from './LivingCodebookHeader.js';
@@ -8,11 +7,8 @@ import ReflexiveStream from './tabs/reflexive/ReflexiveStream.js';
 import CodeHistory from './tabs/history/CodeHistory.js';
 import DisagreementTab from './tabs/disagreement/DisagreementTab.js';
 
-// Create service instances outside component to avoid re-instantiation
-const reflexiveService = new ReflexiveService(appId);
-const codeService = new CodeService(appId);
-
 const LivingCodebook = ({ 
+  projectId,
   code,
   currentUser,
   userProfiles,
@@ -27,6 +23,12 @@ const LivingCodebook = ({
   getCodeDisagreement = null, // New prop for disagreement data
   showCodeDetails = true // New prop for showing/hiding code details
 }) => {
+  const reflexiveService = useMemo(() => (
+    projectId ? new ReflexiveService(projectId) : null
+  ), [projectId]);
+  const codeService = useMemo(() => (
+    projectId ? new CodeService(projectId) : null
+  ), [projectId]);
   const [activeTab, setActiveTab] = useState('reflexive');
   const [reflexiveResponses, setReflexiveResponses] = useState([]);
   const [codeHistory, setCodeHistory] = useState([]);
@@ -133,7 +135,7 @@ const LivingCodebook = ({
 
   // Load reflexive responses for this code
   useEffect(() => {
-    if (!code) return;
+    if (!code || !reflexiveService) return;
 
     setLoading(true);
     try {
@@ -150,11 +152,11 @@ const LivingCodebook = ({
       setReflexiveResponses([]);
       setLoading(false);
     }
-  }, [code]);
+  }, [code, reflexiveService]);
 
   // Load code history for this code
   useEffect(() => {
-    if (!code) {
+    if (!code || !codeService) {
       setCodeHistory([]);
       setHistoryLoading(false);
       return;
@@ -173,7 +175,7 @@ const LivingCodebook = ({
       setCodeHistory([]);
       setHistoryLoading(false);
     }
-  }, [code]);
+  }, [code, codeService]);
 
   // Different tabs for regular codes vs deleted codes
   const tabs = code?.isDeleted 
@@ -253,7 +255,8 @@ const LivingCodebook = ({
       {/* Code Applications - only for active codes and when code details are enabled */}
       {!code?.isDeleted && showCodeDetails && (
         <CodeApplications 
-          code={{ ...code, appId }} 
+          projectId={projectId}
+          code={code}
           userProfiles={userProfiles}
           onNavigateToHighlight={onNavigateToHighlight}
         />

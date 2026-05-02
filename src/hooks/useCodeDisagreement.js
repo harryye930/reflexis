@@ -5,19 +5,19 @@ import { calculateCodeDisagreement } from '../lib/utils/disagreementUtils.js';
 
 /**
  * Hook to manage code disagreement calculations with real-time updates
- * @param {string} appId - The application ID  
+ * @param {string} projectId - The active project ID
  * @param {Array} allCodes - Array of all codes
  * @param {Object} userProfiles - User profiles object
  * @returns {Object} Disagreement data and utilities
  */
-export const useCodeDisagreement = (appId, allCodes, userProfiles, currentUser) => {
+export const useCodeDisagreement = (projectId, allCodes, userProfiles, currentUser) => {
   const [allHighlights, setAllHighlights] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Listen to all highlights across all documents for real-time updates
   useEffect(() => {
-    // Wait for both appId and currentUser to be available
-    if (!appId || !currentUser) {
+    // Wait for both projectId and currentUser to be available
+    if (!projectId || !currentUser) {
       setAllHighlights([]);
       setLoading(false);
       return;
@@ -26,7 +26,7 @@ export const useCodeDisagreement = (appId, allCodes, userProfiles, currentUser) 
     setLoading(true);
     
     // Query all highlights across all documents
-    const highlightsCollection = collection(db, `artifacts/${appId}/public/data/highlights`);
+    const highlightsCollection = collection(db, `projects/${projectId}/highlights`);
     
     const unsubscribe = onSnapshot(highlightsCollection, (snapshot) => {
       const highlightsData = snapshot.docs.map(doc => ({ 
@@ -42,7 +42,7 @@ export const useCodeDisagreement = (appId, allCodes, userProfiles, currentUser) 
     });
 
     return () => unsubscribe();
-  }, [appId, currentUser]);
+  }, [projectId, currentUser]);
 
   // Calculate disagreement metrics for all codes
   const codeDisagreementData = useMemo(() => {

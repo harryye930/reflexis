@@ -4,6 +4,7 @@ import AnalysisTab from './analysis/AnalysisTab.js';
 import AdminTab from './admin/AdminTab.js';
 
 const Sidebar = ({ 
+  projectId,
   currentUser, 
   currentUserProfile, 
   userProfiles, 
@@ -100,6 +101,7 @@ const Sidebar = ({
       case 'analysis':
         return (
           <AnalysisTab
+            projectId={projectId}
             currentUser={currentUser}
             currentUserProfile={currentUserProfile}
             userProfiles={userProfiles}
@@ -127,6 +129,7 @@ const Sidebar = ({
       case 'admin':
         return (
           <AdminTab
+            projectId={projectId}
             userProfiles={userProfiles}
             currentUser={currentUser}
             showAuthorInfo={showAuthorInfo}

@@ -2,14 +2,14 @@ import { collection, onSnapshot, addDoc, query, where, orderBy, getDocs, updateD
 import { db } from '../../../lib/firebase.js';
 
 export class CodeHistoryService {
-  constructor(appId) {
-    this.appId = appId;
+  constructor(projectId) {
+    this.projectId = projectId;
   }
 
   // Listen to code history for a specific code
   onCodeHistorySnapshot(codeId, callback) {
     try {
-      const historyCollection = collection(db, `artifacts/${this.appId}/public/data/code_history`);
+      const historyCollection = collection(db, `projects/${this.projectId}/code_history`);
       const historyQuery = query(
         historyCollection,
         where('codeId', '==', codeId),
@@ -41,7 +41,7 @@ export class CodeHistoryService {
   // Listen to all code history entries (across all codes)
   onAllHistorySnapshot(callback) {
     try {
-      const historyCollection = collection(db, `artifacts/${this.appId}/public/data/code_history`);
+      const historyCollection = collection(db, `projects/${this.projectId}/code_history`);
       const historyQuery = query(
         historyCollection,
         orderBy('timestamp', 'asc')
@@ -72,7 +72,7 @@ export class CodeHistoryService {
   // Get all code history entries (across all codes)
   async getAllHistory() {
     try {
-      const historyCollection = collection(db, `artifacts/${this.appId}/public/data/code_history`);
+      const historyCollection = collection(db, `projects/${this.projectId}/code_history`);
       const historyQuery = query(historyCollection, orderBy('timestamp', 'asc'));
       const snapshot = await getDocs(historyQuery);
       const historyData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
@@ -95,7 +95,7 @@ export class CodeHistoryService {
         throw new Error('Missing codeId in history data');
       }
       
-      const historyCollection = collection(db, `artifacts/${this.appId}/public/data/code_history`);
+      const historyCollection = collection(db, `projects/${this.projectId}/code_history`);
       await addDoc(historyCollection, {
         ...historyData,
         timestamp: new Date()
@@ -228,7 +228,7 @@ export class CodeHistoryService {
   // Get code history for a specific code
   async getCodeHistory(codeId) {
     try {
-      const historyCollection = collection(db, `artifacts/${this.appId}/public/data/code_history`);
+      const historyCollection = collection(db, `projects/${this.projectId}/code_history`);
       const historyQuery = query(
         historyCollection,
         where('codeId', '==', codeId),
@@ -249,7 +249,7 @@ export class CodeHistoryService {
   async getCodeUsageStats(codeId) {
     try {
       // Get all application entries for this code
-      const historyCollection = collection(db, `artifacts/${this.appId}/public/data/code_history`);
+      const historyCollection = collection(db, `projects/${this.projectId}/code_history`);
       const usageQuery = query(
         historyCollection,
         where('codeId', '==', codeId),
@@ -481,7 +481,7 @@ export class CodeHistoryService {
   // Helper method to get code by ID (needed for split recording)
   async getCodeById(codeId) {
     try {
-      const codesCollection = collection(db, `artifacts/${this.appId}/public/data/codes`);
+      const codesCollection = collection(db, `projects/${this.projectId}/codes`);
       const q = query(codesCollection, where('id', '==', codeId));
       const snapshot = await getDocs(q);
       

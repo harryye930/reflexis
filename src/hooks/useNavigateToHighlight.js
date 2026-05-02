@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { HighlightService } from '../services/api/firebase/highlightService.js';
 
-export const useNavigateToHighlight = (appId, activeDocumentId, highlights, switchActiveDocument, showMessage) => {
+export const useNavigateToHighlight = (projectId, activeDocumentId, highlights, switchActiveDocument, showMessage) => {
   const handleNavigateToHighlight = useCallback(async (documentId, highlightId) => {
     try {
       // First, switch to the correct document if not already active
@@ -20,7 +20,7 @@ export const useNavigateToHighlight = (appId, activeDocumentId, highlights, swit
         const maxAttempts = needsDocumentSwitch ? 8 : 3; // Fewer attempts if no document switch needed
         
         // Create a temporary highlight service to fetch fresh data
-        const tempHighlightService = new HighlightService(appId);
+        const tempHighlightService = new HighlightService(projectId);
         
         // Poll for the highlight to be available
         while (attempts < maxAttempts && !targetHighlight) {
@@ -150,7 +150,7 @@ export const useNavigateToHighlight = (appId, activeDocumentId, highlights, swit
       console.error('Error navigating to highlight:', error);
       showMessage('Error navigating to highlight', true);
     }
-  }, [appId, activeDocumentId, highlights, switchActiveDocument, showMessage]);
+  }, [projectId, activeDocumentId, highlights, switchActiveDocument, showMessage]);
 
   return handleNavigateToHighlight;
 };
