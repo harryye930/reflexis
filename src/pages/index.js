@@ -28,7 +28,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Collaborative Qualitative Analysis Tool</title>
+        <title>Reflexis -- Collaborative Qualitative Analysis Tool</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       {loading && (
