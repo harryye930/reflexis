@@ -225,6 +225,7 @@ const LivingCodebook = ({
       case 'history':
         return (
           <CodeHistory 
+            projectId={projectId}
             code={code} 
             userProfiles={userProfiles} 
             history={codeHistory}

@@ -3,6 +3,12 @@ import Link from 'next/link';
 import { BarChart, Warning, Delete, History, GpsFixed, Edit, Label, EmojiEvents, MergeType, CallSplit } from '@mui/icons-material';
 import CodeChip from '../../../../../common/CodeChip.js';
 
+const getCodeHistoryGraphHref = (projectId) => (
+  projectId
+    ? { pathname: '/code-history-graph', query: { projectId } }
+    : '/code-history-graph'
+);
+
 // Error Boundary Component
 class CodeHistoryErrorBoundary extends React.Component {
   constructor(props) {
@@ -20,6 +26,8 @@ class CodeHistoryErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
+      const graphHref = getCodeHistoryGraphHref(this.props.projectId);
+
       return (
         <div className="p-6">
           <div className="mb-6">
@@ -28,7 +36,7 @@ class CodeHistoryErrorBoundary extends React.Component {
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Code History</h3>
               </div>
               <Link
-                href="/code-history-graph"
+                href={graphHref}
                 className="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 ml-4"
               >
                 <BarChart sx={{ fontSize: 16, marginRight: 1 }} />
@@ -59,7 +67,9 @@ class CodeHistoryErrorBoundary extends React.Component {
   }
 }
 
-const CodeHistory = ({ code, userProfiles, history = [], loading = false }) => {
+const CodeHistory = ({ projectId, code, userProfiles, history = [], loading = false }) => {
+  const graphHref = getCodeHistoryGraphHref(projectId);
+
   // Remove internal state management since data is now passed as props
   // const [history, setHistory] = useState([]);
   // const [loading, setLoading] = useState(true);
@@ -650,7 +660,7 @@ const CodeHistory = ({ code, userProfiles, history = [], loading = false }) => {
               </p>
             </div>
             <Link
-              href="/code-history-graph"
+              href={graphHref}
               className="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 ml-4"
             >
               <BarChart sx={{ fontSize: 16, marginRight: 1 }} />
@@ -679,7 +689,7 @@ const CodeHistory = ({ code, userProfiles, history = [], loading = false }) => {
             </p>
           </div>
           <Link
-            href="/code-history-graph"
+            href={graphHref}
             className="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 ml-4"
           >
             <BarChart sx={{ fontSize: 16, marginRight: 1 }} />
@@ -810,7 +820,7 @@ const CodeHistory = ({ code, userProfiles, history = [], loading = false }) => {
 
 export default function CodeHistoryWrapper(props) {
   return (
-    <CodeHistoryErrorBoundary>
+    <CodeHistoryErrorBoundary projectId={props.projectId}>
       <CodeHistory {...props} />
     </CodeHistoryErrorBoundary>
   );

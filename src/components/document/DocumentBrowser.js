@@ -174,10 +174,10 @@ const DocumentBrowser = ({
               return (
                 <div
                   key={document.id}
-                  className={`relative group mb-2 rounded-lg transition-all duration-200 hover:shadow-sm ${
+                  className={`relative group mb-2 rounded-lg border-l-4 border-y border-r transition-colors duration-150 ${
                     isActive
-                      ? 'bg-blue-100 border-l-4 border-blue-500 shadow-sm'
-                      : 'bg-white hover:bg-gray-50 border border-gray-200'
+                      ? 'bg-blue-100 border-l-blue-500 border-y-blue-100 border-r-blue-100'
+                      : 'bg-white border-l-transparent border-y-gray-200 border-r-gray-200 hover:bg-gray-50'
                   }`}
                 >
                   <button
