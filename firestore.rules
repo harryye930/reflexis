@@ -164,7 +164,7 @@ service cloud.firestore {
         allow create: if isProjectMemberNowOrAfter(projectId)
           && (request.resource.data.createdBy == request.auth.uid || request.resource.data.createdBy == 'system');
         allow update: if isProjectOwner(projectId) || isCreator();
-        allow delete: if isProjectOwner(projectId) || isCreator();
+        allow delete: if isProjectOwner(projectId);
       }
 
       match /codes/{codeId} {
