@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useDocuments } from '../hooks/useDocuments.js';
 import { useHighlights } from '../hooks/useHighlights.js';
 import { useUserProfiles } from '../hooks/useUserProfiles.js';
@@ -10,6 +10,8 @@ import { useMessageHandler } from '../hooks/useMessageHandler.js';
 import { useNavigateToHighlight } from '../hooks/useNavigateToHighlight.js';
 import { useHoverPreferences } from '../hooks/useHoverPreferences.js';
 import { filterUniquelyCodedHighlights } from '../lib/utils/highlightFilterUtils.js';
+import { parseResearchBackgroundFromStorage } from '../constants/researchBackground.js';
+import { ProjectService } from '../services/api/firebase/projectService.js';
 
 // Components
 import HighlightedText from './highlight/HighlightedText.js';
@@ -22,10 +24,52 @@ import DocumentHeader from './document/DocumentHeader.js';
 import CodeDriftModal from './code-drift/CodeDriftModal.js';
 import ReflectiveQuoteTicker from './common/ReflectiveQuoteTicker.js';
 
+const getProjectInitialDataView = (profile) => {
+  if (!profile) return '';
+
+  if (typeof profile.initialDataView === 'string' && profile.initialDataView.trim()) {
+    return profile.initialDataView.trim();
+  }
+
+  return parseResearchBackgroundFromStorage(profile.researchBackground || '').initialDataView.trim();
+};
+
+const InitialDataViewReminder = ({ onUpdateView, onDismiss, dismissing }) => (
+  <div className="mb-5 rounded-md border border-slate-200 bg-slate-50 px-4 py-3">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div>
+        <p className="text-sm font-medium text-slate-800">Add your first view when you&rsquo;re ready.</p>
+        <p className="mt-1 text-sm leading-6 text-slate-600">
+          After you&rsquo;ve had some time with this project&rsquo;s documents, note what you&rsquo;re noticing.
+          This stays with this project, so it can be different from your other work.
+        </p>
+      </div>
+      <div className="flex flex-shrink-0 items-center gap-2">
+        <button
+          type="button"
+          onClick={onDismiss}
+          disabled={dismissing}
+          className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-800 disabled:opacity-50"
+        >
+          Later
+        </button>
+        <button
+          type="button"
+          onClick={onUpdateView}
+          className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100"
+        >
+          Update view
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
 function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSignOut }) {
   const projectId = project?.id;
   const isOwner = project?.membership?.role === 'owner';
   const loading = !currentUser || !projectId;
+  const projectService = useMemo(() => new ProjectService(), []);
   // Custom hooks for data management
   const { documents, activeDocument, activeDocumentId, documentsLoaded, addDocument, updateDocument, deleteDocument, switchActiveDocument } = useDocuments(projectId, currentUser, isOwner);
   const { highlights, addHighlight, deleteHighlight } = useHighlights(projectId, currentUser, activeDocumentId);
@@ -46,6 +90,10 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
   const [reflexiveModalPosition, setReflexiveModalPosition] = useState({ x: 0, y: 0 });
   const [selectedHighlightForReflexive, setSelectedHighlightForReflexive] = useState(null);
   const [selectedCodeForReflexive, setSelectedCodeForReflexive] = useState(null);
+  const [sidebarActiveTab, setSidebarActiveTab] = useState('analysis');
+  const [profileEditRequestId, setProfileEditRequestId] = useState(0);
+  const [reminderHiddenForSession, setReminderHiddenForSession] = useState(false);
+  const [dismissingInitialViewReminder, setDismissingInitialViewReminder] = useState(false);
   
   // Custom hooks for UI management
   const { message, showMessage } = useMessageHandler();
@@ -172,9 +220,43 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
   };
 
   const currentUserProfile = currentUser && userProfiles[currentUser.uid];
+  const currentInitialDataView = getProjectInitialDataView(currentUserProfile);
+  const shouldShowInitialDataViewReminder = Boolean(
+    currentUserProfile
+    && !currentInitialDataView
+    && !currentUserProfile.initialDataViewReminderDismissedAt
+    && !reminderHiddenForSession
+  );
 
   // Filter highlights based on uniquely coded text setting
   const filteredHighlights = filterUniquelyCodedHighlights(highlights, hideSameCodeHighlights);
+
+  useEffect(() => {
+    setSidebarActiveTab('analysis');
+    setProfileEditRequestId(0);
+    setReminderHiddenForSession(false);
+    setDismissingInitialViewReminder(false);
+  }, [projectId]);
+
+  const handleOpenProjectProfile = () => {
+    setSidebarActiveTab('admin');
+    setProfileEditRequestId(Date.now());
+    setReminderHiddenForSession(true);
+  };
+
+  const handleDismissInitialDataViewReminder = async () => {
+    if (!projectId || !currentUser?.uid) return;
+
+    setDismissingInitialViewReminder(true);
+    const result = await projectService.dismissInitialDataViewReminder(projectId, currentUser.uid);
+    setDismissingInitialViewReminder(false);
+
+    if (result.success) {
+      setReminderHiddenForSession(true);
+    } else {
+      showMessage('Could not save that reminder preference.', true);
+    }
+  };
 
   return (
     <div className="flex h-screen pt-12">
@@ -219,6 +301,14 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
       <main className="flex-1 p-8 overflow-y-auto">
         <div className="max-w-4xl mx-auto">
           <DocumentHeader activeDocument={activeDocument} />
+
+          {shouldShowInitialDataViewReminder && (
+            <InitialDataViewReminder
+              onUpdateView={handleOpenProjectProfile}
+              onDismiss={handleDismissInitialDataViewReminder}
+              dismissing={dismissingInitialViewReminder}
+            />
+          )}
 
           {loading && (
             <div id="loading-text" className="text-center p-8">
@@ -291,6 +381,9 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
           onToggleHideSameCodeHighlights={toggleHideSameCodeHighlights}
           onNavigateToHighlight={handleNavigateToHighlight}
           getCodeDisagreement={getCodeDisagreement}
+          activeTab={sidebarActiveTab}
+          onActiveTabChange={setSidebarActiveTab}
+          profileEditRequestId={profileEditRequestId}
         />
       </div>
 

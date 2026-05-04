@@ -36,9 +36,14 @@ const Sidebar = ({
   // Navigation props
   onNavigateToHighlight,
   // Disagreement analysis props
-  getCodeDisagreement
+  getCodeDisagreement,
+  activeTab: controlledActiveTab,
+  onActiveTabChange,
+  profileEditRequestId
 }) => {
-  const [activeTab, setActiveTab] = useState('analysis');
+  const [internalActiveTab, setInternalActiveTab] = useState('analysis');
+  const activeTab = controlledActiveTab || internalActiveTab;
+  const setActiveTab = onActiveTabChange || setInternalActiveTab;
   const [livingCodebookState, setLivingCodebookState] = useState({
     isActive: false,
     selectedCode: null
@@ -145,6 +150,7 @@ const Sidebar = ({
             onToggleShowCodeDetails={onToggleShowCodeDetails}
             hideSameCodeHighlights={hideSameCodeHighlights}
             onToggleHideSameCodeHighlights={onToggleHideSameCodeHighlights}
+            profileEditRequestId={profileEditRequestId}
           />
         );
       

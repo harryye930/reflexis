@@ -39,7 +39,7 @@ export const RESEARCH_BACKGROUND_SECTIONS = {
     placeholder: 'e.g., notice repeated mentions of trust and time pressure; feel cautious about my own clinical lens...',
     validationMessage: 'Please share your initial view of the data',
     maxLength: 300,
-    required: true
+    required: false
   }
 };
 
@@ -105,7 +105,7 @@ export const validateResearchBackgroundSection = (sectionId, value) => {
   const section = RESEARCH_BACKGROUND_SECTIONS[sectionId.toUpperCase()];
   if (!section) return null;
 
-  if (!value.trim()) {
+  if (section.required && !value.trim()) {
     return section.validationMessage;
   }
   

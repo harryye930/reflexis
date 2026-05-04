@@ -13,6 +13,11 @@ import { db } from '../../../lib/firebase.js';
 import { userColors } from '../../../lib/utils/colorUtils.js';
 import { defaultCodes } from '../../../constants/defaultCodes.js';
 import { defaultDocuments } from '../../../constants/defaultDocuments.js';
+import {
+  formatResearchBackgroundForStorage,
+  parseResearchBackgroundFromStorage
+} from '../../../constants/researchBackground.js';
+import { ResearchBackgroundSummaryService } from './researchBackgroundSummaryService.js';
 
 const PROJECT_DATA_COLLECTIONS = [
   'documents',
@@ -20,6 +25,11 @@ const PROJECT_DATA_COLLECTIONS = [
   'highlights',
   'reflexive_responses',
   'code_history'
+];
+
+const PROJECT_METADATA_COLLECTIONS = [
+  'member_secrets',
+  'settings'
 ];
 
 const bytesToBase64Url = (bytes) => {
@@ -36,17 +46,39 @@ const bytesToHex = (bytes) => Array.from(bytes)
 
 const pickColor = () => userColors[Math.floor(Math.random() * userColors.length)];
 
-const buildMemberProfile = (user, userProfile, role) => ({
-  userId: user.uid,
-  role,
-  color: pickColor(),
-  name: userProfile?.name || user.displayName || user.email || 'Researcher',
-  email: user.email || userProfile?.email || null,
-  researchBackground: userProfile?.researchBackground || null,
-  reducedResearchBackground: userProfile?.reducedResearchBackground || null,
-  profileCompleted: !!userProfile?.profileCompleted,
-  joinedAt: new Date()
-});
+const buildProjectResearchBackground = (researchBackground, initialDataView = '') => {
+  if (!researchBackground) return null;
+
+  const parsed = parseResearchBackgroundFromStorage(researchBackground);
+  return formatResearchBackgroundForStorage(
+    parsed.qualitativeHistory,
+    parsed.backgroundExperience,
+    initialDataView
+  );
+};
+
+const hasStoredInitialDataView = (researchBackground) => (
+  Boolean(parseResearchBackgroundFromStorage(researchBackground || '').initialDataView.trim())
+);
+
+const buildMemberProfile = (user, userProfile, role) => {
+  const initialDataView = '';
+
+  return {
+    userId: user.uid,
+    role,
+    color: pickColor(),
+    name: userProfile?.name || user.displayName || user.email || 'Researcher',
+    email: user.email || userProfile?.email || null,
+    researchBackground: buildProjectResearchBackground(userProfile?.researchBackground, initialDataView),
+    reducedResearchBackground: hasStoredInitialDataView(userProfile?.researchBackground)
+      ? null
+      : userProfile?.reducedResearchBackground || null,
+    initialDataView,
+    profileCompleted: !!userProfile?.profileCompleted,
+    joinedAt: new Date()
+  };
+};
 
 const addDefaultProjectContentToBatch = (batch, projectId, userId) => {
   defaultDocuments.forEach((defaultDocument) => {
@@ -91,31 +123,52 @@ export class ProjectService {
 
     return onSnapshot(
       userProjectsQuery,
+      { includeMetadataChanges: true },
       async (snapshot) => {
+        if (snapshot.metadata.hasPendingWrites) return;
+
         const projects = await Promise.all(snapshot.docs.map(async (userProjectDoc) => {
           const projectId = userProjectDoc.id;
-          const projectRef = doc(db, 'projects', projectId);
-
-          const projectSnapshot = await getDoc(projectRef);
-          if (!projectSnapshot.exists()) return null;
-
-          const membershipSnapshot = await getDoc(doc(projectRef, 'members', userId));
-          if (!membershipSnapshot.exists()) return null;
-
-          const membership = membershipSnapshot.data();
-          let inviteSettings = null;
-
-          if (membership.role === 'owner') {
-            const inviteSnapshot = await getDoc(doc(projectRef, 'settings', 'invite'));
-            inviteSettings = inviteSnapshot.exists() ? inviteSnapshot.data() : null;
-          }
-
-          return {
+          const userProjectData = userProjectDoc.data() || {};
+          const fallbackProject = {
             id: projectId,
-            ...projectSnapshot.data(),
-            membership,
-            joinKey: inviteSettings?.joinKey || null
+            name: userProjectData.name || 'Untitled project',
+            ownerId: userProjectData.role === 'owner' ? userId : null,
+            membership: {
+              userId,
+              role: userProjectData.role || 'member',
+              name: userProjectData.name || null
+            },
+            joinKey: null
           };
+
+          try {
+            const projectRef = doc(db, 'projects', projectId);
+
+            const projectSnapshot = await getDoc(projectRef);
+            if (!projectSnapshot.exists()) return null;
+
+            const membershipSnapshot = await getDoc(doc(projectRef, 'members', userId));
+            if (!membershipSnapshot.exists()) return null;
+
+            const membership = membershipSnapshot.data();
+            let inviteSettings = null;
+
+            if (membership.role === 'owner') {
+              const inviteSnapshot = await getDoc(doc(projectRef, 'settings', 'invite'));
+              inviteSettings = inviteSnapshot.exists() ? inviteSnapshot.data() : null;
+            }
+
+            return {
+              id: projectId,
+              ...projectSnapshot.data(),
+              membership,
+              joinKey: inviteSettings?.joinKey || null
+            };
+          } catch (error) {
+            console.warn('Using fallback project data after read error:', projectId, error);
+            return fallbackProject;
+          }
         }));
 
         callback(projects.filter(Boolean));
@@ -165,23 +218,14 @@ export class ProjectService {
         createdBy: user.uid,
         createdAt: new Date()
       });
+      addDefaultProjectContentToBatch(batch, projectRef.id, user.uid);
 
       await batch.commit();
 
-      let defaultContentError = null;
-      try {
-        const defaultContentBatch = writeBatch(db);
-        addDefaultProjectContentToBatch(defaultContentBatch, projectRef.id, user.uid);
-        await defaultContentBatch.commit();
-      } catch (error) {
-        console.error('Error creating default project content:', error);
-        defaultContentError = error;
-      }
-
       return {
         success: true,
-        defaultContentCreated: !defaultContentError,
-        defaultContentError,
+        defaultContentCreated: true,
+        defaultContentError: null,
         project: {
           id: projectRef.id,
           name: trimmedName,
@@ -274,12 +318,46 @@ export class ProjectService {
 
       if (profileData.reducedResearchBackground !== undefined) {
         updates.reducedResearchBackground = profileData.reducedResearchBackground || null;
+      } else if (profileData.researchBackground) {
+        const summaryResult = await ResearchBackgroundSummaryService.generateSummary(
+          profileData.researchBackground,
+          profileData.name
+        );
+
+        if (summaryResult.success) {
+          updates.reducedResearchBackground = summaryResult.keywords;
+        } else {
+          console.warn('Failed to generate project member research background:', summaryResult.error);
+        }
+      }
+
+      if (profileData.initialDataView !== undefined) {
+        const initialDataView = (profileData.initialDataView || '').trim();
+        updates.initialDataView = initialDataView;
+        updates.initialDataViewUpdatedAt = new Date();
+
+        if (initialDataView) {
+          updates.initialDataViewReminderDismissedAt = new Date();
+        }
       }
 
       await updateDoc(doc(db, 'projects', projectId, 'members', userId), updates);
       return { success: true };
     } catch (error) {
       console.error('Error updating project member profile:', error);
+      return { success: false, error };
+    }
+  }
+
+  async dismissInitialDataViewReminder(projectId, userId) {
+    try {
+      await updateDoc(doc(db, 'projects', projectId, 'members', userId), {
+        initialDataViewReminderDismissedAt: new Date()
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error dismissing initial data view reminder:', error);
       return { success: false, error };
     }
   }
@@ -354,15 +432,15 @@ export class ProjectService {
 
   async deleteCollectionDocuments(collectionRef) {
     const snapshot = await getDocs(collectionRef);
-    return this.deleteDocumentSnapshots(snapshot.docs);
+    return this.deleteDocumentRefs(snapshot.docs.map(documentSnapshot => documentSnapshot.ref));
   }
 
-  async deleteDocumentSnapshots(documentSnapshots) {
+  async deleteDocumentRefs(documentRefs) {
     let batch = writeBatch(db);
     let operationCount = 0;
 
-    for (const documentSnapshot of documentSnapshots) {
-      batch.delete(documentSnapshot.ref);
+    for (const documentRef of documentRefs) {
+      batch.delete(documentRef);
       operationCount += 1;
 
       if (operationCount === 450) {
@@ -376,18 +454,24 @@ export class ProjectService {
       await batch.commit();
     }
 
-    return documentSnapshots.length;
+    return documentRefs.length;
+  }
+
+  async deleteCollectionGroup(projectId, collectionNames) {
+    let deletedCount = 0;
+
+    for (const collectionName of collectionNames) {
+      deletedCount += await this.deleteCollectionDocuments(
+        collection(db, 'projects', projectId, collectionName)
+      );
+    }
+
+    return deletedCount;
   }
 
   async resetProjectData(projectId) {
     try {
-      let deletedCount = 0;
-
-      for (const collectionName of PROJECT_DATA_COLLECTIONS) {
-        deletedCount += await this.deleteCollectionDocuments(
-          collection(db, 'projects', projectId, collectionName)
-        );
-      }
+      const deletedCount = await this.deleteCollectionGroup(projectId, PROJECT_DATA_COLLECTIONS);
 
       return { success: true, deletedCount };
     } catch (error) {
@@ -396,34 +480,43 @@ export class ProjectService {
     }
   }
 
-  async deleteProject(projectId) {
+  async deleteProject(projectId, userId) {
     try {
-      await this.resetProjectData(projectId);
+      const projectRef = doc(db, 'projects', projectId);
 
-      const settingsRef = doc(db, 'projects', projectId, 'settings', 'invite');
+      const settingsRef = doc(projectRef, 'settings', 'invite');
       const settingsSnapshot = await getDoc(settingsRef);
       const joinKeyHash = settingsSnapshot.exists() ? settingsSnapshot.data().joinKeyHash : null;
 
+      const membersSnapshot = await getDocs(collection(projectRef, 'members'));
+      const lastMemberDocs = userId
+        ? membersSnapshot.docs.filter(memberDoc => memberDoc.id === userId)
+        : membersSnapshot.docs.filter(memberDoc => memberDoc.data().role === 'owner');
+      const lastMemberIds = new Set(lastMemberDocs.map(memberDoc => memberDoc.id));
+      const otherMemberDocs = membersSnapshot.docs.filter(memberDoc => !lastMemberIds.has(memberDoc.id));
+
+      await this.deleteCollectionGroup(projectId, PROJECT_DATA_COLLECTIONS);
       if (joinKeyHash) {
-        await deleteDoc(doc(db, 'project_join_keys', joinKeyHash));
+        const joinKeyRef = doc(db, 'project_join_keys', joinKeyHash);
+        const joinKeySnapshot = await getDoc(joinKeyRef);
+        if (joinKeySnapshot.exists()) {
+          await deleteDoc(joinKeyRef);
+        }
       }
+      await this.deleteCollectionGroup(projectId, PROJECT_METADATA_COLLECTIONS);
 
-      await this.deleteCollectionDocuments(collection(db, 'projects', projectId, 'member_secrets'));
-      await this.deleteCollectionDocuments(collection(db, 'projects', projectId, 'settings'));
+      await this.deleteDocumentRefs(
+        otherMemberDocs.map(memberDoc => doc(db, 'users', memberDoc.id, 'projects', projectId))
+      );
+      await this.deleteDocumentRefs(otherMemberDocs.map(memberDoc => memberDoc.ref));
 
-      const membersSnapshot = await getDocs(collection(db, 'projects', projectId, 'members'));
-      const ownerMemberDoc = membersSnapshot.docs.find(memberDoc => memberDoc.data().role === 'owner');
-      const ownerMemberDocs = ownerMemberDoc ? [ownerMemberDoc] : [];
-      const nonOwnerMemberDocs = membersSnapshot.docs.filter(memberDoc => !ownerMemberDocs.includes(memberDoc));
-
-      const userProjectDocs = membersSnapshot.docs.map(memberDoc => ({
-        ref: doc(db, 'users', memberDoc.id, 'projects', projectId)
-      }));
-
-      await this.deleteDocumentSnapshots(userProjectDocs);
-      await this.deleteDocumentSnapshots(nonOwnerMemberDocs);
-      await deleteDoc(doc(db, 'projects', projectId));
-      await this.deleteDocumentSnapshots(ownerMemberDocs);
+      const finalBatch = writeBatch(db);
+      finalBatch.delete(projectRef);
+      lastMemberDocs.forEach(memberDoc => {
+        finalBatch.delete(memberDoc.ref);
+        finalBatch.delete(doc(db, 'users', memberDoc.id, 'projects', projectId));
+      });
+      await finalBatch.commit();
 
       return { success: true };
     } catch (error) {

@@ -23,7 +23,10 @@ export class UserService {
             color: data.color,
             role: data.role || 'member',
             researchBackground: data.researchBackground || null,
-            reducedResearchBackground: data.reducedResearchBackground || null
+            reducedResearchBackground: data.reducedResearchBackground || null,
+            initialDataView: data.initialDataView || '',
+            initialDataViewReminderDismissedAt: data.initialDataViewReminderDismissedAt || null,
+            profileCompleted: !!data.profileCompleted
           };
         }
       });
@@ -53,7 +56,10 @@ export class UserService {
             color: data.color,
             role: data.role || 'member',
             researchBackground: data.researchBackground || null,
-            reducedResearchBackground: data.reducedResearchBackground || null
+            reducedResearchBackground: data.reducedResearchBackground || null,
+            initialDataView: data.initialDataView || '',
+            initialDataViewReminderDismissedAt: data.initialDataViewReminderDismissedAt || null,
+            profileCompleted: !!data.profileCompleted
           };
         }
       });

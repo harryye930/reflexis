@@ -217,7 +217,7 @@ const ProjectDashboard = ({ currentUser, userProfile, onOpenProject, onSignOut }
     if (!confirmed) return;
 
     setBusyAction(`delete-${project.id}`);
-    const result = await projectService.deleteProject(project.id);
+    const result = await projectService.deleteProject(project.id, currentUser.uid);
 
     if (result.success) {
       setMessage('Project deleted.');

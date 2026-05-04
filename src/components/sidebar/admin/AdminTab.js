@@ -19,7 +19,8 @@ const AdminTab = ({
   showCodeDetails,
   onToggleShowCodeDetails,
   hideSameCodeHighlights,
-  onToggleHideSameCodeHighlights
+  onToggleHideSameCodeHighlights,
+  profileEditRequestId
 }) => {
   // Get current user profile from userProfiles
   const currentUserProfile = currentUser ? userProfiles[currentUser.uid] : null;
@@ -39,6 +40,7 @@ const AdminTab = ({
         currentUser={currentUser}
         currentUserProfile={currentUserProfile}
         onMessage={onMessage}
+        editRequestId={profileEditRequestId}
       />
       
       {/* Collaborators Section */}

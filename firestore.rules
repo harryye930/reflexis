@@ -21,6 +21,14 @@ service cloud.firestore {
       return signedIn() && exists(memberPath(projectId, request.auth.uid));
     }
 
+    function isProjectMemberAfter(projectId) {
+      return signedIn() && existsAfter(memberPath(projectId, request.auth.uid));
+    }
+
+    function isProjectMemberNowOrAfter(projectId) {
+      return isProjectMember(projectId) || isProjectMemberAfter(projectId);
+    }
+
     function isProjectOwner(projectId) {
       return isProjectMember(projectId)
         && get(memberPath(projectId, request.auth.uid)).data.role == 'owner';
@@ -153,7 +161,7 @@ service cloud.firestore {
 
       match /documents/{documentId} {
         allow read: if isProjectMember(projectId);
-        allow create: if isProjectMember(projectId)
+        allow create: if isProjectMemberNowOrAfter(projectId)
           && (request.resource.data.createdBy == request.auth.uid || request.resource.data.createdBy == 'system');
         allow update: if isProjectOwner(projectId) || isCreator();
         allow delete: if isProjectOwner(projectId) || isCreator();
@@ -161,7 +169,7 @@ service cloud.firestore {
 
       match /codes/{codeId} {
         allow read: if isProjectMember(projectId);
-        allow create: if isProjectMember(projectId)
+        allow create: if isProjectMemberNowOrAfter(projectId)
           && request.resource.data.createdBy == request.auth.uid;
         allow update: if isProjectMember(projectId);
         allow delete: if isProjectOwner(projectId) || isCreator();
