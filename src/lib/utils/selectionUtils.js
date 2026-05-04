@@ -118,74 +118,81 @@ export const getCleanAbsoluteIndex = (container, node, offset) => {
 
 // Helper function to compare arrays
 export const arraysEqual = (a, b) => {
+  if (!Array.isArray(a) || !Array.isArray(b)) return false;
   if (a.length !== b.length) return false;
   return a.every((val, index) => val === b[index]);
 };
 
-// Helper function to find text using context-aware search
+// Find `targetText` inside `sourceText`, disambiguated by what should
+// appear immediately before and after it. Used as the primary mapping from
+// a live DOM selection back to the canonical source string.
+//
+// We score each occurrence by how many characters of the expected
+// before/after context line up *adjacent* to the match, instead of doing
+// bag-of-words on a fixed-size window. Proximity matters: in qualitative
+// data the same phrase can appear many times, and only the immediate
+// neighbouring text reliably identifies which one the user pointed at.
+//
+// Whitespace at the boundary is ignored on both sides so that a selection
+// ending at a word boundary still scores, regardless of whether the caller
+// passed in trailing whitespace.
 export const findTextWithContext = (sourceText, targetText, beforeContext = '', afterContext = '') => {
   const normalizedTarget = targetText.replace(/\s+/g, ' ').trim();
   const normalizedBefore = beforeContext.replace(/\s+/g, ' ').trim();
   const normalizedAfter = afterContext.replace(/\s+/g, ' ').trim();
   const normalizedSource = sourceText.replace(/\s+/g, ' ');
-  
+
   if (!normalizedTarget) return -1;
-  
-  // Find all occurrences of the target text in the normalized source
+
+  // Collect every occurrence; the +1 step deliberately allows overlapping
+  // matches like 'aaaa' inside 'aaaaaa'.
   const occurrences = [];
   let searchStart = 0;
   let foundIndex = -1;
-  
   while ((foundIndex = normalizedSource.indexOf(normalizedTarget, searchStart)) !== -1) {
     occurrences.push(foundIndex);
     searchStart = foundIndex + 1;
   }
-  
+
   if (occurrences.length === 0) return -1;
   if (occurrences.length === 1) return occurrences[0];
-  
-  // If we have multiple occurrences, use context to find the best match
-  let bestMatch = -1;
+
+  // Pull a few extra chars beyond the context length so a leading or
+  // trailing space doesn't starve the prefix/suffix comparison.
+  const SLACK = 8;
+  const trimStart = (s) => s.replace(/^\s+/, '');
+  const trimEnd = (s) => s.replace(/\s+$/, '');
+
+  let bestMatch = occurrences[0];
   let bestScore = -1;
-  
+
   for (const index of occurrences) {
     let score = 0;
-    
-    // Check before context
+
     if (normalizedBefore) {
-      const contextWindow = 100; // Larger window for better matching
-      const beforeStart = Math.max(0, index - contextWindow);
-      const actualBefore = normalizedSource.substring(beforeStart, index).replace(/\s+/g, ' ').trim();
-      
-      // Use partial matching - if any part of the context appears, give it points
-      const beforeWords = normalizedBefore.split(' ').filter(w => w.length > 2);
-      for (const word of beforeWords) {
-        if (actualBefore.includes(word)) {
-          score += 1;
-        }
-      }
+      const windowStart = Math.max(0, index - normalizedBefore.length - SLACK);
+      const a = trimEnd(normalizedSource.substring(windowStart, index));
+      const b = trimEnd(normalizedBefore);
+      let i = 0;
+      while (i < a.length && i < b.length && a[a.length - 1 - i] === b[b.length - 1 - i]) i++;
+      score += i;
     }
-    
-    // Check after context
+
     if (normalizedAfter) {
-      const contextWindow = 100;
-      const afterEnd = Math.min(normalizedSource.length, index + normalizedTarget.length + contextWindow);
-      const actualAfter = normalizedSource.substring(index + normalizedTarget.length, afterEnd).replace(/\s+/g, ' ').trim();
-      
-      const afterWords = normalizedAfter.split(' ').filter(w => w.length > 2);
-      for (const word of afterWords) {
-        if (actualAfter.includes(word)) {
-          score += 1;
-        }
-      }
+      const start = index + normalizedTarget.length;
+      const end = Math.min(normalizedSource.length, start + normalizedAfter.length + SLACK);
+      const a = trimStart(normalizedSource.substring(start, end));
+      const b = trimStart(normalizedAfter);
+      let i = 0;
+      while (i < a.length && i < b.length && a[i] === b[i]) i++;
+      score += i;
     }
-    
+
     if (score > bestScore) {
       bestScore = score;
       bestMatch = index;
     }
   }
-  
-  // If no context matched well, return the first occurrence
-  return bestScore > 0 ? bestMatch : occurrences[0];
+
+  return bestMatch;
 };

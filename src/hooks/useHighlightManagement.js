@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getAbsoluteIndex, findTextWithContext, getCleanSelectedText, getCleanTextFromContainer, getCleanAbsoluteIndex } from '../lib/utils/selectionUtils.js';
 import { useConceptualDrift } from './useConceptualDrift.js';
 import { FirebaseServiceFactory } from '../services/api/firebase/index.js';
@@ -10,7 +10,7 @@ export const useHighlightManagement = (
   highlights, 
   addHighlight, 
   deleteHighlight,
-  appId = 'default', // Add appId parameter for conceptual drift service
+  projectId = null,
   disableCodeDriftDetection = false // Add parameter to disable conceptual drift detection
 ) => {
   const [currentSelection, setCurrentSelection] = useState(null);
@@ -19,7 +19,9 @@ export const useHighlightManagement = (
   const [selectedText, setSelectedText] = useState('');
 
   // Create service factory for conceptual drift
-  const [services] = useState(() => new FirebaseServiceFactory(appId));
+  const services = useMemo(() => (
+    projectId ? new FirebaseServiceFactory(projectId) : null
+  ), [projectId]);
 
   // Initialize conceptual drift detection
   const {

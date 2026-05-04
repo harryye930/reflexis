@@ -4,6 +4,7 @@ import {
   RESEARCH_BACKGROUND_SECTION_ORDER,
   parseResearchBackgroundFromStorage
 } from '../../constants/researchBackground.js';
+import { authFetch } from '../../lib/authFetch.js';
 
 /**
  * ResearchBackgroundDisplay component
@@ -53,7 +54,7 @@ const ResearchBackgroundDisplay = ({
       try {
         setIsLoadingSummary(true);
         setSummaryError(null);
-        const res = await fetch('/api/research-background/summary', {
+        const res = await authFetch('/api/research-background/summary', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ researchBackground, userName }),

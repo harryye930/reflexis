@@ -52,7 +52,7 @@ const CodeChip = ({
     simple: 'border border-gray-100 transition-colors',
     minimal: '',
     event: 'inline-flex items-center',
-    button: 'hover:scale-105 transition-transform'
+    button: 'transition-colors'
   };
 
   // Build the complete className
@@ -62,7 +62,7 @@ const CodeChip = ({
     variantClasses[variant],
     bgColor,
     textColor,
-    onClick && !disabled ? 'cursor-pointer hover:scale-105' : '',
+    onClick && !disabled ? 'cursor-pointer' : '',
     disabled ? 'opacity-60 cursor-not-allowed' : '',
     isTransitioning ? 'code-connection-pulse' : '',
     className

@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import { ReflexiveService } from '../services/api/firebase/reflexiveService.js';
-import { appId } from '../constants/appId.js';
 
 // Helper function to group responses by reflexive lens ID (session)
 export const groupResponsesByReflexiveLensId = (responses) => {
@@ -50,10 +49,12 @@ export const groupResponsesByReflexiveLensId = (responses) => {
  * @param {string} highlightId - The highlight ID to get responses for
  * @returns {Object} - { allReflexiveResponses, groupedReflexiveResponses, loading }
  */
-export const useReflexiveResponses = (highlightId) => {
+export const useReflexiveResponses = (projectId, highlightId) => {
   const [allReflexiveResponses, setAllReflexiveResponses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [reflexiveService] = useState(() => new ReflexiveService(appId));
+  const reflexiveService = useMemo(() => (
+    projectId ? new ReflexiveService(projectId) : null
+  ), [projectId]);
 
   // Group responses by reflexive lens ID
   const groupedReflexiveResponses = useMemo(() => {
@@ -61,7 +62,7 @@ export const useReflexiveResponses = (highlightId) => {
   }, [allReflexiveResponses]);
 
   useEffect(() => {
-    if (!highlightId) {
+    if (!projectId || !highlightId || !reflexiveService) {
       setLoading(false);
       setAllReflexiveResponses([]);
       return;
@@ -83,7 +84,7 @@ export const useReflexiveResponses = (highlightId) => {
         unsubscribe();
       }
     };
-  }, [highlightId, reflexiveService]);
+  }, [projectId, highlightId, reflexiveService]);
 
   return {
     allReflexiveResponses,

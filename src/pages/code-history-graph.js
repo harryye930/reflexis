@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback, useContext, createContext } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { appId } from '../constants/appId.js';
+import { useRouter } from 'next/router';
 import { FirebaseServiceFactory } from '../services/api/firebase/index.js';
 import 'reactflow/dist/style.css';
 import { applyNodeChanges, applyEdgeChanges } from 'reactflow';
@@ -307,6 +307,8 @@ function buildGraph(historyEntries, codesMap) {
 }
 
 export default function CodeHistoryGraphPage() {
+  const router = useRouter();
+  const projectId = typeof router.query.projectId === 'string' ? router.query.projectId : '';
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -315,16 +317,38 @@ export default function CodeHistoryGraphPage() {
   const [edges, setEdges] = useState([]);
 
   useEffect(() => {
-    const factory = new FirebaseServiceFactory(appId);
+    if (!router.isReady) return undefined;
+
+    if (!projectId) {
+      setHistory([]);
+      setCodesMap(new Map());
+      setNodes([]);
+      setEdges([]);
+      setError('Open the history graph from a project so it can load that project history.');
+      setLoading(false);
+      return undefined;
+    }
+
+    setLoading(true);
+    setError(null);
+    setHistory([]);
+    setCodesMap(new Map());
+
+    const factory = new FirebaseServiceFactory(projectId);
     let unsub, unsubCodes;
+    let cancelled = false;
 
     (async () => {
       try {
         const res = await factory.getAllHistory();
-        if (res.success) setHistory(res.data);
-        unsub = factory.onAllHistorySnapshot(setHistory);
+        if (!res.success) throw res.error;
+        if (!cancelled) setHistory(res.data);
+        unsub = factory.onAllHistorySnapshot((historyData) => {
+          if (!cancelled) setHistory(historyData);
+        });
 
         unsubCodes = factory.codes.onCodesSnapshot((codes) => {
+          if (cancelled) return;
           const m = new Map();
           codes.forEach((c) => {
             m.set(c.id, { 
@@ -338,17 +362,18 @@ export default function CodeHistoryGraphPage() {
         });
       } catch (e) {
         console.error(e);
-        setError('Failed to load code history');
+        if (!cancelled) setError('Failed to load code history');
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
 
     return () => {
+      cancelled = true;
       unsub?.();
       unsubCodes?.();
     };
-  }, []);
+  }, [router.isReady, projectId]);
 
   const graph = useMemo(() => buildGraph(history, codesMap), [history, codesMap]);
 

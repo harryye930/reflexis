@@ -1,14 +1,14 @@
-import { collection, onSnapshot, addDoc, deleteDoc, doc, query, where, orderBy, updateDoc } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, deleteDoc, doc, query, where, orderBy, updateDoc, getDocs } from 'firebase/firestore';
 import { db } from '../../../lib/firebase.js';
 
 export class ReflexiveService {
-  constructor(appId) {
-    this.appId = appId;
+  constructor(projectId) {
+    this.projectId = projectId;
   }
 
   // Listen to reflexive responses for a specific highlight
   onReflexiveResponsesSnapshot(highlightId, callback) {
-    const responsesCollection = collection(db, `artifacts/${this.appId}/public/data/reflexive_responses`);
+    const responsesCollection = collection(db, `projects/${this.projectId}/reflexive_responses`);
     const responsesQuery = query(
       responsesCollection, 
       where('highlightId', '==', highlightId),
@@ -25,7 +25,7 @@ export class ReflexiveService {
   async addReflexiveResponse(responseData, userId) {
     try {
       console.log('ReflexiveService: Adding reflexive response:', responseData);
-      const responsesCollection = collection(db, `artifacts/${this.appId}/public/data/reflexive_responses`);
+      const responsesCollection = collection(db, `projects/${this.projectId}/reflexive_responses`);
       const docRef = await addDoc(responsesCollection, {
         ...responseData,
         userId,
@@ -43,7 +43,7 @@ export class ReflexiveService {
   // Update an existing reflexive response
   async updateReflexiveResponse(responseId, updates, userId) {
     try {
-      const responseRef = doc(db, `artifacts/${this.appId}/public/data/reflexive_responses`, responseId);
+      const responseRef = doc(db, `projects/${this.projectId}/reflexive_responses`, responseId);
       await updateDoc(responseRef, {
         ...updates,
         updatedAt: new Date()
@@ -58,7 +58,7 @@ export class ReflexiveService {
   // Delete a reflexive response
   async deleteReflexiveResponse(responseId) {
     try {
-      await deleteDoc(doc(db, `artifacts/${this.appId}/public/data/reflexive_responses`, responseId));
+      await deleteDoc(doc(db, `projects/${this.projectId}/reflexive_responses`, responseId));
       return { success: true };
     } catch (error) {
       console.error("Error deleting reflexive response: ", error);
@@ -69,17 +69,15 @@ export class ReflexiveService {
   // Get all reflexive responses for a document (for analysis)
   async getDocumentReflexiveResponses(documentId) {
     try {
-      const responsesCollection = collection(db, `artifacts/${this.appId}/public/data/reflexive_responses`);
+      const responsesCollection = collection(db, `projects/${this.projectId}/reflexive_responses`);
       const responsesQuery = query(
-        responsesCollection, 
+        responsesCollection,
         where('documentId', '==', documentId),
         orderBy('createdAt', 'desc')
       );
-      
-      return onSnapshot(responsesQuery, (snapshot) => {
-        const responsesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        return responsesData;
-      });
+
+      const snapshot = await getDocs(responsesQuery);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
       console.error("Error getting document reflexive responses: ", error);
       return { success: false, error };
@@ -89,17 +87,15 @@ export class ReflexiveService {
   // Get reflexive responses by user (for personal reflection)
   async getUserReflexiveResponses(userId) {
     try {
-      const responsesCollection = collection(db, `artifacts/${this.appId}/public/data/reflexive_responses`);
+      const responsesCollection = collection(db, `projects/${this.projectId}/reflexive_responses`);
       const responsesQuery = query(
-        responsesCollection, 
+        responsesCollection,
         where('userId', '==', userId),
         orderBy('createdAt', 'desc')
       );
-      
-      return onSnapshot(responsesQuery, (snapshot) => {
-        const responsesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        return responsesData;
-      });
+
+      const snapshot = await getDocs(responsesQuery);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
       console.error("Error getting user reflexive responses: ", error);
       return { success: false, error };
@@ -109,7 +105,7 @@ export class ReflexiveService {
   // Get reflexive responses by code (for Living Codebook)
   onReflexiveResponsesByCodeSnapshot(codeId, callback) {
     console.log('ReflexiveService: Querying responses for codeId:', codeId);
-    const responsesCollection = collection(db, `artifacts/${this.appId}/public/data/reflexive_responses`);
+    const responsesCollection = collection(db, `projects/${this.projectId}/reflexive_responses`);
     const responsesQuery = query(
       responsesCollection, 
       where('codeId', '==', codeId),

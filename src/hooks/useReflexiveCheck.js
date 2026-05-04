@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { ReflexiveService } from '../services/api/firebase/reflexiveService.js';
-import { appId } from '../constants/appId.js';
 
 /**
  * Hook to check if reflexive responses exist for a specific highlight and user
@@ -8,14 +7,16 @@ import { appId } from '../constants/appId.js';
  * @param {string} userId - The user ID to check
  * @returns {Object} - { hasReflexiveInput, loading, reflexiveResponses }
  */
-export const useReflexiveCheck = (highlightId, userId) => {
+export const useReflexiveCheck = (projectId, highlightId, userId) => {
   const [hasReflexiveInput, setHasReflexiveInput] = useState(false);
   const [loading, setLoading] = useState(true);
   const [reflexiveResponses, setReflexiveResponses] = useState([]);
-  const [reflexiveService] = useState(() => new ReflexiveService(appId));
+  const reflexiveService = useMemo(() => (
+    projectId ? new ReflexiveService(projectId) : null
+  ), [projectId]);
 
   useEffect(() => {
-    if (!highlightId || !userId) {
+    if (!projectId || !highlightId || !userId || !reflexiveService) {
       setLoading(false);
       setHasReflexiveInput(false);
       setReflexiveResponses([]);
@@ -41,7 +42,7 @@ export const useReflexiveCheck = (highlightId, userId) => {
         unsubscribe();
       }
     };
-  }, [highlightId, userId, reflexiveService]);
+  }, [projectId, highlightId, userId, reflexiveService]);
 
   return {
     hasReflexiveInput,

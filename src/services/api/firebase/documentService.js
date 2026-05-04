@@ -1,14 +1,14 @@
-import { collection, onSnapshot, addDoc, doc, setDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, doc, setDoc, deleteDoc, query, orderBy, getDoc, where, getCountFromServer } from 'firebase/firestore';
 import { db } from '../../../lib/firebase.js';
 
 export class DocumentService {
-  constructor(appId) {
-    this.appId = appId;
+  constructor(projectId) {
+    this.projectId = projectId;
   }
 
   // Listen to documents collection
   onDocumentsSnapshot(callback) {
-    const documentsCollection = collection(db, `artifacts/${this.appId}/public/data/documents`);
+    const documentsCollection = collection(db, `projects/${this.projectId}/documents`);
     const documentsQuery = query(documentsCollection, orderBy('createdAt', 'asc'));
     
     return onSnapshot(documentsQuery, (snapshot) => {
@@ -25,7 +25,7 @@ export class DocumentService {
   // Add a new document
   async addDocument(documentData, userId) {
     try {
-      const documentsCollection = collection(db, `artifacts/${this.appId}/public/data/documents`);
+      const documentsCollection = collection(db, `projects/${this.projectId}/documents`);
       const docRef = await addDoc(documentsCollection, {
         ...documentData,
         isDefault: false,
@@ -43,7 +43,7 @@ export class DocumentService {
   // Update an existing document
   async updateDocument(documentId, updateData, userId) {
     try {
-      const docRef = doc(db, `artifacts/${this.appId}/public/data/documents`, documentId);
+      const docRef = doc(db, `projects/${this.projectId}/documents`, documentId);
       await setDoc(docRef, {
         ...updateData,
         updatedAt: new Date(),
@@ -60,7 +60,20 @@ export class DocumentService {
   // Delete a document
   async deleteDocument(documentId) {
     try {
-      await deleteDoc(doc(db, `artifacts/${this.appId}/public/data/documents`, documentId));
+      const blockers = await this.getDocumentDeletionBlockers(documentId);
+      if (!blockers.success) return blockers;
+
+      const { annotationCount, noteCount } = blockers;
+      if (annotationCount > 0 || noteCount > 0) {
+        return {
+          success: false,
+          blocked: true,
+          blockers: { annotationCount, noteCount },
+          error: `Delete blocked. Remove all annotations and reflexive notes from this document before deleting it. This document still has ${annotationCount} annotation${annotationCount === 1 ? '' : 's'} and ${noteCount} note${noteCount === 1 ? '' : 's'}.`
+        };
+      }
+
+      await deleteDoc(doc(db, `projects/${this.projectId}/documents`, documentId));
       return { success: true };
     } catch (error) {
       console.error("Error deleting document: ", error);
@@ -68,41 +81,24 @@ export class DocumentService {
     }
   }
 
-  // Ensure default documents exist in the database
-  async ensureDefaultDocuments(defaultDocuments, userId) {
+  // Documents must be empty of annotations and notes before deletion.
+  async getDocumentDeletionBlockers(documentId) {
     try {
-      const documentsCollection = collection(db, `artifacts/${this.appId}/public/data/documents`);
-      
-      // Get existing documents to check which defaults are missing
-      const existingDocsQuery = query(documentsCollection);
-      const snapshot = await new Promise((resolve) => {
-        const unsubscribe = onSnapshot(existingDocsQuery, resolve, { includeMetadataChanges: true });
-        setTimeout(() => unsubscribe(), 1000); // Timeout after 1 second
-      });
-      
-      const existingIds = new Set(snapshot.docs.map(doc => doc.id));
-      const missingDefaults = defaultDocuments.filter(doc => !existingIds.has(doc.id));
-      
-      // Add missing default documents
-      if (missingDefaults.length > 0) {
-        const addPromises = missingDefaults.map(async (defaultDoc) => {
-          const docRef = doc(db, `artifacts/${this.appId}/public/data/documents`, defaultDoc.id);
-          await setDoc(docRef, {
-            title: defaultDoc.title,
-            description: defaultDoc.description,
-            content: defaultDoc.content,
-            isDefault: true,
-            createdAt: defaultDoc.createdAt,
-            createdBy: 'system'
-          });
-        });
-        
-        await Promise.all(addPromises);
-      }
-      
-      return { success: true };
+      const highlightsCollection = collection(db, `projects/${this.projectId}/highlights`);
+      const responsesCollection = collection(db, `projects/${this.projectId}/reflexive_responses`);
+
+      const [highlightCountSnapshot, responseCountSnapshot] = await Promise.all([
+        getCountFromServer(query(highlightsCollection, where('documentId', '==', documentId))),
+        getCountFromServer(query(responsesCollection, where('documentId', '==', documentId)))
+      ]);
+
+      return {
+        success: true,
+        annotationCount: highlightCountSnapshot.data().count,
+        noteCount: responseCountSnapshot.data().count
+      };
     } catch (error) {
-      console.error('Error ensuring default documents:', error);
+      console.error("Error checking document deletion blockers: ", error);
       return { success: false, error };
     }
   }
@@ -110,7 +106,7 @@ export class DocumentService {
   // Get a single document by ID
   async getDocument(documentId) {
     try {
-      const docRef = doc(db, `artifacts/${this.appId}/public/data/documents`, documentId);
+      const docRef = doc(db, `projects/${this.projectId}/documents`, documentId);
       const docSnap = await getDoc(docRef);
       
       if (docSnap.exists()) {
@@ -123,4 +119,4 @@ export class DocumentService {
       return { success: false, error };
     }
   }
-} 
+}

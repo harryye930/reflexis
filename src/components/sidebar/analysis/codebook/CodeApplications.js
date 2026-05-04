@@ -3,13 +3,13 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../../../lib/firebase.js';
 import { getUserDisplayName } from '../../../../lib/utils/hoverUtils.js';
 
-const CodeApplications = ({ code, userProfiles, onNavigateToHighlight }) => {
+const CodeApplications = ({ projectId, code, userProfiles, onNavigateToHighlight }) => {
   const [highlights, setHighlights] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!code?.id) {
+    if (!projectId || !code?.id) {
       setHighlights([]);
       setLoading(false);
       return;
@@ -19,7 +19,7 @@ const CodeApplications = ({ code, userProfiles, onNavigateToHighlight }) => {
     setError(null);
 
     // Listen to highlights for this specific code
-    const highlightsCollection = collection(db, `artifacts/${code.appId || 'default'}/public/data/highlights`);
+    const highlightsCollection = collection(db, `projects/${projectId}/highlights`);
     const highlightsQuery = query(highlightsCollection, where('code', '==', code.id));
     
     const unsubscribe = onSnapshot(highlightsQuery, 
@@ -53,7 +53,7 @@ const CodeApplications = ({ code, userProfiles, onNavigateToHighlight }) => {
     );
 
     return () => unsubscribe();
-  }, [code?.id, code?.appId]);
+  }, [projectId, code?.id]);
 
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return 'Unknown time';

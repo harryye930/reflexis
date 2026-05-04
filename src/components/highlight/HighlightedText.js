@@ -5,8 +5,9 @@ import HighlightManagementPanel from './HighlightManagementPanel.js';
 import HighlightSegment from './HighlightSegment.js';
 import { useTextSegmentation } from '../../hooks/useTextSegmentation.js';
 
-const HighlightedText = ({ 
-  highlights, 
+const HighlightedText = ({
+  projectId,
+  highlights,
   userProfiles, 
   currentUser, 
   onTextSelection, 
@@ -188,6 +189,7 @@ const HighlightedText = ({
 
       {/* Highlight management panel for complex interactions */}
       <HighlightManagementPanel
+        projectId={projectId}
         highlights={managementPanel.highlights}
         userProfiles={userProfiles}
         allCodes={allCodes}

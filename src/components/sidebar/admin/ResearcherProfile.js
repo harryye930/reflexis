@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AuthService } from '../../../services/api/firebase/authService.js';
-import { appId } from '../../../constants/appId.js';
+import { ProjectService } from '../../../services/api/firebase/projectService.js';
 import { 
   RESEARCH_BACKGROUND_SECTIONS,
   parseResearchBackgroundFromStorage,
@@ -9,7 +9,7 @@ import {
 } from '../../../constants/researchBackground.js';
 import ResearchBackgroundDisplay from '../../common/ResearchBackgroundDisplay.js';
 
-const ResearcherProfile = ({ currentUser, currentUserProfile, onMessage }) => {
+const ResearcherProfile = ({ projectId, currentUser, currentUserProfile, onMessage, editRequestId }) => {
   const [isEditing, setIsEditing] = useState(false);
   // Separate background components for editing
   const [editQualitativeHistory, setEditQualitativeHistory] = useState('');
@@ -17,23 +17,24 @@ const ResearcherProfile = ({ currentUser, currentUserProfile, onMessage }) => {
   const [editInitialDataView, setEditInitialDataView] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [lastHandledEditRequestId, setLastHandledEditRequestId] = useState(0);
 
-  const [authService] = useState(() => new AuthService(appId));
-
-    // Function to parse existing research background into separate sections
-  const parseResearchBackground = (researchBackground) => {
-    return parseResearchBackgroundFromStorage(researchBackground);
-  };
+  const [authService] = useState(() => new AuthService());
+  const [projectService] = useState(() => new ProjectService());
 
   // Display handled by ResearchBackgroundDisplay component
 
-  const handleEditClick = () => {
-    const parsed = parseResearchBackground(currentUserProfile?.researchBackground || '');
+  const openEditor = () => {
+    const parsed = parseResearchBackgroundFromStorage(currentUserProfile?.researchBackground || '');
     setEditQualitativeHistory(parsed.qualitativeHistory);
     setEditBackgroundExperience(parsed.backgroundExperience);
-    setEditInitialDataView(parsed.initialDataView);
+    setEditInitialDataView(currentUserProfile?.initialDataView || parsed.initialDataView);
     setIsEditing(true);
     setErrors({});
+  };
+
+  const handleEditClick = () => {
+    openEditor();
   };
 
   const handleCancelEdit = () => {
@@ -43,6 +44,22 @@ const ResearcherProfile = ({ currentUser, currentUserProfile, onMessage }) => {
     setEditInitialDataView('');
     setErrors({});
   };
+
+  useEffect(() => {
+    if (!editRequestId || editRequestId === lastHandledEditRequestId || !currentUserProfile) return;
+
+    const parsed = parseResearchBackgroundFromStorage(currentUserProfile.researchBackground || '');
+    setEditQualitativeHistory(parsed.qualitativeHistory);
+    setEditBackgroundExperience(parsed.backgroundExperience);
+    setEditInitialDataView(currentUserProfile.initialDataView || parsed.initialDataView);
+    setIsEditing(true);
+    setErrors({});
+    setLastHandledEditRequestId(editRequestId);
+  }, [
+    editRequestId,
+    lastHandledEditRequestId,
+    currentUserProfile
+  ]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -75,21 +92,36 @@ const ResearcherProfile = ({ currentUser, currentUserProfile, onMessage }) => {
     setLoading(true);
     
     try {
-      // Use the helper function from constants to format research background
-      const mergedResearchBackground = formatResearchBackgroundForStorage(
+      const accountResearchBackground = formatResearchBackgroundForStorage(
+        editQualitativeHistory,
+        editBackgroundExperience,
+        ''
+      );
+      const projectResearchBackground = formatResearchBackgroundForStorage(
         editQualitativeHistory,
         editBackgroundExperience,
         editInitialDataView
       );
 
-      console.log('Updating user profile...', currentUser.uid, mergedResearchBackground);
       const result = await authService.updateUserDocument(currentUser.uid, {
-        researchBackground: mergedResearchBackground,
+        name: currentUserProfile.name,
+        researchBackground: accountResearchBackground,
+        profileCompleted: true,
         lastSeen: new Date()
       });
 
-      console.log('Update result:', result);
       if (result.success) {
+        const memberResult = await projectService.updateMemberProfile(projectId, currentUser.uid, {
+          name: currentUserProfile.name,
+          researchBackground: projectResearchBackground,
+          initialDataView: editInitialDataView.trim(),
+          profileCompleted: true
+        });
+
+        if (!memberResult.success) {
+          throw new Error(memberResult.error || 'Failed to update project profile');
+        }
+
         setIsEditing(false);
         setEditQualitativeHistory('');
         setEditBackgroundExperience('');
@@ -229,12 +261,15 @@ const ResearcherProfile = ({ currentUser, currentUserProfile, onMessage }) => {
                 )}
               </div>
 
-              {/* Initial View of Data */}
+              {/* Initial View of Data — only meaningful once the researcher
+                  has actually reviewed documents in this project. */}
               <div>
                 <label htmlFor="editInitialDataView" className="block text-xs font-medium text-gray-700 mb-1">
                   {RESEARCH_BACKGROUND_SECTIONS.INITIAL_DATA_VIEW.label}
-                  <span className="text-red-500 ml-1">*</span>
                 </label>
+                <p className="text-[11px] text-gray-500 mb-1">
+                  Add this when you&rsquo;ve had time with this project&rsquo;s documents. It can be different for every project.
+                </p>
                 <div className="relative">
                   <textarea
                     id="editInitialDataView"

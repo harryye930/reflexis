@@ -4,6 +4,7 @@ import AnalysisTab from './analysis/AnalysisTab.js';
 import AdminTab from './admin/AdminTab.js';
 
 const Sidebar = ({ 
+  projectId,
   currentUser, 
   currentUserProfile, 
   userProfiles, 
@@ -35,9 +36,14 @@ const Sidebar = ({
   // Navigation props
   onNavigateToHighlight,
   // Disagreement analysis props
-  getCodeDisagreement
+  getCodeDisagreement,
+  activeTab: controlledActiveTab,
+  onActiveTabChange,
+  profileEditRequestId
 }) => {
-  const [activeTab, setActiveTab] = useState('analysis');
+  const [internalActiveTab, setInternalActiveTab] = useState('analysis');
+  const activeTab = controlledActiveTab || internalActiveTab;
+  const setActiveTab = onActiveTabChange || setInternalActiveTab;
   const [livingCodebookState, setLivingCodebookState] = useState({
     isActive: false,
     selectedCode: null
@@ -100,6 +106,7 @@ const Sidebar = ({
       case 'analysis':
         return (
           <AnalysisTab
+            projectId={projectId}
             currentUser={currentUser}
             currentUserProfile={currentUserProfile}
             userProfiles={userProfiles}
@@ -127,6 +134,7 @@ const Sidebar = ({
       case 'admin':
         return (
           <AdminTab
+            projectId={projectId}
             userProfiles={userProfiles}
             currentUser={currentUser}
             showAuthorInfo={showAuthorInfo}
@@ -142,6 +150,7 @@ const Sidebar = ({
             onToggleShowCodeDetails={onToggleShowCodeDetails}
             hideSameCodeHighlights={hideSameCodeHighlights}
             onToggleHideSameCodeHighlights={onToggleHideSameCodeHighlights}
+            profileEditRequestId={profileEditRequestId}
           />
         );
       

@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { requireFirebaseAuth } from '../../../lib/api/requireFirebaseAuth.js';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -25,8 +26,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  if (!(await requireFirebaseAuth(req, res))) return;
+
   try {
-  const { codeName, codeDefinition, existingExamples, newPassage, context } = req.body;
+  const { codeName, codeDefinition, existingExamples, newPassage, context } = req.body || {};
 
     // Validate required fields
   if (!codeName || !codeDefinition || !existingExamples || !newPassage || !context) {
@@ -103,7 +106,7 @@ Respond in JSON format.
 
     // Call OpenAI API
     const response = await openai.chat.completions.create({
-      model: 'gpt-5-mini',
+      model: 'gpt-5.5',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }

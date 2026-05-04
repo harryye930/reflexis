@@ -4,6 +4,7 @@ import CodeManagement from './codes/CodeManagement.js';
 import LivingCodebook from './codebook/LivingCodebook.js';
 
 const AnalysisTab = ({ 
+  projectId,
   currentUser, 
   currentUserProfile, 
   userProfiles, 
@@ -31,6 +32,7 @@ const AnalysisTab = ({
     return (
       <div className="code-transition-enter">
         <LivingCodebook 
+          projectId={projectId}
           code={livingCodebookState.selectedCode}
           currentUser={currentUser}
           userProfiles={userProfiles}

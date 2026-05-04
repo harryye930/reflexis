@@ -118,7 +118,7 @@ const ReflexiveStream = ({
 
       {/* Filter Controls */}
       <div className="mb-6">
-        <div className="filter-control bg-gradient-to-r from-slate-50 to-gray-50 border border-gray-200/60 rounded-lg p-4">
+        <div className="filter-control bg-white border border-slate-200 rounded-lg p-4">
           <label className="block text-sm font-medium text-slate-700 mb-3 flex items-center gap-2">
             <People sx={{ fontSize: 18 }} />
             Filter by User
@@ -126,7 +126,7 @@ const ReflexiveStream = ({
           <select
             value={filterUser}
             onChange={(e) => setFilterUser(e.target.value)}
-            className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm bg-white transition-all duration-200 hover:border-gray-400"
+            className="block w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm bg-white transition-all duration-200 hover:border-slate-400"
           >
             <option value="all">All users ({uniqueUsers.length} contributors)</option>
             {uniqueUsers.map(userId => (
@@ -141,7 +141,7 @@ const ReflexiveStream = ({
   {/* Reflexive Stream - Grouped by Session (Reflexive Lens) */}
       <div className="space-y-4">
         {sortedGroups.length === 0 ? (
-          <div className="text-center py-12 bg-gradient-to-br from-slate-50 to-gray-50 border border-gray-200/60 rounded-lg">
+          <div className="text-center py-12 bg-slate-50 border border-slate-200 rounded-lg">
             <div className="mb-4">
               <ChatBubbleOutline sx={{ fontSize: 28, opacity: 0.4 }} />
             </div>

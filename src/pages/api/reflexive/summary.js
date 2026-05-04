@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { requireFirebaseAuth } from '../../../lib/api/requireFirebaseAuth.js';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -9,8 +10,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  if (!(await requireFirebaseAuth(req, res))) return;
+
   try {
-    const { responses, userId } = req.body;
+    const { responses, userId } = req.body || {};
 
     if (!responses || !Array.isArray(responses) || responses.length === 0) {
       return res.status(400).json({ error: 'No reflexive responses provided' });
@@ -53,7 +56,7 @@ Please generate a set of "Reflective Starting Points." For each category, provid
 
 // Corresponding change to your response_format object
     const completion = await openai.chat.completions.create({
-      model: "gpt-5",
+      model: "gpt-5.5",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }

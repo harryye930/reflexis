@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { requireFirebaseAuth } from '../../../lib/api/requireFirebaseAuth.js';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -9,15 +10,17 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  if (!(await requireFirebaseAuth(req, res))) return;
+
   try {
-    const { 
-      codedText, 
-      context, 
-      codes, 
+    const {
+      codedText,
+      context,
+      codes,
       codeDefinitions,
       researchers,
-      documentTitle 
-    } = req.body;
+      documentTitle
+    } = req.body || {};
 
     if (!codedText || !context || !codes || !researchers || codes.length < 2 || researchers.length < 2) {
       return res.status(400).json({ 
@@ -66,7 +69,7 @@ Based on the information above, generate a title and a prompt. The prompt should
 - The **Prompt** should be a single, curious question that encourages the researchers to reflect on their perspectives. Address them by their first names.`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-5-mini",
+      model: "gpt-5.5",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }

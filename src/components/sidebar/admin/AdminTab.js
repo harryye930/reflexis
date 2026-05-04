@@ -4,6 +4,7 @@ import AdminControls from './AdminControls.js';
 import ResearcherProfile from './ResearcherProfile.js';
 
 const AdminTab = ({ 
+  projectId,
   userProfiles,
   currentUser,
   showAuthorInfo,
@@ -18,7 +19,8 @@ const AdminTab = ({
   showCodeDetails,
   onToggleShowCodeDetails,
   hideSameCodeHighlights,
-  onToggleHideSameCodeHighlights
+  onToggleHideSameCodeHighlights,
+  profileEditRequestId
 }) => {
   // Get current user profile from userProfiles
   const currentUserProfile = currentUser ? userProfiles[currentUser.uid] : null;
@@ -34,9 +36,11 @@ const AdminTab = ({
       
       {/* Researcher Profile Section */}
       <ResearcherProfile 
+        projectId={projectId}
         currentUser={currentUser}
         currentUserProfile={currentUserProfile}
         onMessage={onMessage}
+        editRequestId={profileEditRequestId}
       />
       
       {/* Collaborators Section */}

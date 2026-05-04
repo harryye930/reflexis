@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 import { AuthService } from '../services/api/firebase/authService.js';
 
-export const useUserActivity = (appId, currentUser) => {
+export const useUserActivity = (currentUser) => {
   useEffect(() => {
     if (!currentUser) return;
 
-    const authService = new AuthService(appId);
+    const authService = new AuthService();
 
     const updateActivity = async () => {
       try {
@@ -19,5 +19,5 @@ export const useUserActivity = (appId, currentUser) => {
     updateActivity();
     const interval = setInterval(updateActivity, 30000);
     return () => clearInterval(interval);
-  }, [appId, currentUser]);
+  }, [currentUser]);
 };

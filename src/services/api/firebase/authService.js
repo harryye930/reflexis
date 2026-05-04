@@ -1,26 +1,56 @@
-import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  updateProfile
+} from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../../../lib/firebase.js';
-import { getAvailableColor } from '../../../lib/utils/colorUtils.js';
 import { ResearchBackgroundSummaryService } from './researchBackgroundSummaryService.js';
 
-export class AuthService {
-  constructor(appId) {
-    this.appId = appId;
-  }
+const toAuthError = (error) => ({
+  code: error?.code || 'auth/unknown',
+  message: error?.message || 'Authentication failed'
+});
 
+export class AuthService {
   // Listen to authentication state changes
   onAuthStateChange(callback) {
     return onAuthStateChanged(auth, callback);
   }
 
-  // Sign in anonymously
-  async signInAnonymously() {
+  async signUp(email, password) {
     try {
-      await signInAnonymously(auth);
+      const credential = await createUserWithEmailAndPassword(auth, email, password);
+      await this.createUserDocument(credential.user.uid, {
+        userId: credential.user.uid,
+        email: credential.user.email,
+        profileCompleted: false,
+        createdAt: new Date(),
+        lastSeen: new Date()
+      });
+      return { success: true, user: credential.user };
+    } catch (error) {
+      return { success: false, error: toAuthError(error) };
+    }
+  }
+
+  async signIn(email, password) {
+    try {
+      const credential = await signInWithEmailAndPassword(auth, email, password);
+      return { success: true, user: credential.user };
+    } catch (error) {
+      return { success: false, error: toAuthError(error) };
+    }
+  }
+
+  async signOut() {
+    try {
+      await firebaseSignOut(auth);
       return { success: true };
     } catch (error) {
-      console.error('Error signing in anonymously:', error);
+      console.error('Error signing out:', error);
       return { success: false, error };
     }
   }
@@ -28,7 +58,7 @@ export class AuthService {
   // Get user document from Firestore
   async getUserDocument(userId) {
     try {
-      const userDocRef = doc(db, `artifacts/${this.appId}/public/data/users`, userId);
+      const userDocRef = doc(db, 'users', userId);
       const userDoc = await getDoc(userDocRef);
       
       if (userDoc.exists()) {
@@ -45,7 +75,7 @@ export class AuthService {
   // Create new user document
   async createUserDocument(userId, userData) {
     try {
-      const userDocRef = doc(db, `artifacts/${this.appId}/public/data/users`, userId);
+      const userDocRef = doc(db, 'users', userId);
       await setDoc(userDocRef, userData);
       return { success: true };
     } catch (error) {
@@ -81,9 +111,9 @@ export class AuthService {
         }
       }
 
-      const userDocRef = doc(db, `artifacts/${this.appId}/public/data/users`, userId);
+      const userDocRef = doc(db, 'users', userId);
       await setDoc(userDocRef, updateData, { merge: true });
-      return { success: true };
+      return { success: true, data: updateData, reducedResearchBackground: updateData.reducedResearchBackground };
     } catch (error) {
       console.error('Error updating user document:', error);
       return { success: false, error };
@@ -106,6 +136,10 @@ export class AuthService {
         lastSeen: new Date()
       };
 
+      if (auth.currentUser?.uid === userId) {
+        await updateProfile(auth.currentUser, { displayName });
+      }
+
       // Add reduced research background if generation was successful
       if (summaryResult.success) {
         updateData.reducedResearchBackground = summaryResult.keywords;
@@ -114,29 +148,27 @@ export class AuthService {
         // Continue with profile completion even if summary generation fails
       }
 
-      const userDocRef = doc(db, `artifacts/${this.appId}/public/data/users`, userId);
+      const userDocRef = doc(db, 'users', userId);
       await setDoc(userDocRef, updateData, { merge: true });
       
-      return { success: true };
+      return { success: true, data: updateData, reducedResearchBackground: updateData.reducedResearchBackground };
     } catch (error) {
       console.error('Error completing profile:', error);
       return { success: false, error };
     }
   }
 
-  // Setup new user with color assignment
-  async setupNewUser(userId, isAnonymous = false) {
+  async setupNewUser(user) {
     try {
-      const assignedColor = await getAvailableColor(this.appId);
       const userData = {
-        userId,
-        color: assignedColor,
+        userId: user.uid,
+        email: user.email || null,
+        name: user.displayName || '',
         lastSeen: new Date(),
-        isAnonymous,
         profileCompleted: false
       };
       
-      return await this.createUserDocument(userId, userData);
+      return await this.createUserDocument(user.uid, userData);
     } catch (error) {
       console.error('Error setting up new user:', error);
       return { success: false, error };
@@ -165,4 +197,4 @@ export class AuthService {
       };
     }
   }
-} 
+}
