@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { authFetch } from '../lib/authFetch.js';
 
-export const useDiscussionPrompt = () => {
+export const useDiscussionPrompt = (disableLlm = false) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [discussionPrompt, setDiscussionPrompt] = useState(null);
   const [error, setError] = useState(null);
@@ -12,6 +12,10 @@ export const useDiscussionPrompt = () => {
     allCodes, 
     activeDocument 
   }) => {
+    if (disableLlm) {
+      return { success: false, error: 'LLM features are disabled in settings' };
+    }
+
     if (!highlights || highlights.length < 2) {
       return { success: false, error: 'Need at least 2 highlights for discussion prompt' };
     }
@@ -101,7 +105,8 @@ export const useDiscussionPrompt = () => {
           codes: researchers.map(r => r.code),
           codeDefinitions,
           researchers,
-          documentTitle: activeDocument?.title
+          documentTitle: activeDocument?.title,
+          llmEnabled: !disableLlm
         }),
       });
 

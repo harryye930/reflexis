@@ -26,7 +26,8 @@ const ResearchBackgroundDisplay = ({
   useShortHeaders = false,
   className = '',
   userName,
-  reducedResearchBackground
+  reducedResearchBackground,
+  disableLlm = false
 }) => {
   const [summaryKeywords, setSummaryKeywords] = useState('');
   const [isLoadingSummary, setIsLoadingSummary] = useState(false);
@@ -50,6 +51,7 @@ const ResearchBackgroundDisplay = ({
     async function fetchSummary() {
       if (variant !== 'inline') return;
       if (reducedResearchBackground) return; // Use provided summary instead of fetching
+      if (disableLlm) return;
       if (!researchBackground || !researchBackground.trim()) return;
       try {
         setIsLoadingSummary(true);
@@ -57,7 +59,7 @@ const ResearchBackgroundDisplay = ({
         const res = await authFetch('/api/research-background/summary', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ researchBackground, userName }),
+          body: JSON.stringify({ researchBackground, userName, llmEnabled: !disableLlm }),
         });
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);
@@ -74,7 +76,7 @@ const ResearchBackgroundDisplay = ({
     return () => {
       aborted = true;
     };
-  }, [variant, researchBackground, userName, reducedResearchBackground]);
+  }, [variant, researchBackground, userName, reducedResearchBackground, disableLlm]);
 
   return (
     <div className={`${containerSpacing} ${className}`}>

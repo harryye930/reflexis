@@ -16,6 +16,8 @@ const AdminTab = ({
   onToggleDisableHighlightManagement,
   disableCodeDriftDetection,
   onToggleDisableCodeDriftDetection,
+  disableLlm,
+  onToggleDisableLlm,
   showCodeDetails,
   onToggleShowCodeDetails,
   hideSameCodeHighlights,
@@ -41,6 +43,7 @@ const AdminTab = ({
         currentUserProfile={currentUserProfile}
         onMessage={onMessage}
         editRequestId={profileEditRequestId}
+        disableLlm={disableLlm}
       />
       
       {/* Collaborators Section */}
@@ -49,6 +52,7 @@ const AdminTab = ({
           userProfiles={userProfiles}
           currentUser={currentUser}
           showAuthorInfo={showAuthorInfo}
+          disableLlm={disableLlm}
         />
       </div>
       
@@ -62,6 +66,8 @@ const AdminTab = ({
         onToggleDisableHighlightManagement={onToggleDisableHighlightManagement}
         disableCodeDriftDetection={disableCodeDriftDetection}
         onToggleDisableCodeDriftDetection={onToggleDisableCodeDriftDetection}
+        disableLlm={disableLlm}
+        onToggleDisableLlm={onToggleDisableLlm}
         showCodeDetails={showCodeDetails}
         onToggleShowCodeDetails={onToggleShowCodeDetails}
         hideSameCodeHighlights={hideSameCodeHighlights}

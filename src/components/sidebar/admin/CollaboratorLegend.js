@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { getUserDisplayColor, getUserDisplayName, shouldShowAuthorInfo } from '../../../lib/utils/hoverUtils';
 import ResearchBackgroundDisplay from '../../common/ResearchBackgroundDisplay.js';
 
-const CollaboratorLegend = ({ userProfiles, currentUser, showAuthorInfo = true }) => {
+const CollaboratorLegend = ({ userProfiles, currentUser, showAuthorInfo = true, disableLlm = false }) => {
   const [hoveredUser, setHoveredUser] = useState(null);
 
   // Don't show the legend if showAuthorInfo is false
@@ -57,6 +57,7 @@ const CollaboratorLegend = ({ userProfiles, currentUser, showAuthorInfo = true }
                       size="xs"
                       showHeaders={false}
                       userName={profile.name}
+                      disableLlm={disableLlm}
                     />
                   ) : (
                     <div className="text-xs text-gray-500 italic">

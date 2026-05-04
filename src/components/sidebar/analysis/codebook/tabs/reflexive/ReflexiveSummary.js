@@ -8,7 +8,8 @@ const ReflexiveSummary = ({
   currentUser, 
   userProfiles, 
   filterUser,
-  loading 
+  loading,
+  disableLlm = false
 }) => {
   const [summary, setSummary] = useState(null);
   const [metadata, setMetadata] = useState(null);
@@ -75,6 +76,11 @@ const ReflexiveSummary = ({
       return;
     }
 
+    if (disableLlm) {
+      setError('LLM features are disabled in settings');
+      return;
+    }
+
     setSummaryLoading(true);
     setError(null);
 
@@ -86,7 +92,8 @@ const ReflexiveSummary = ({
         },
         body: JSON.stringify({
           responses: responsesForSummary,
-          userId: filterUser === 'all' ? 'all_users' : filterUser
+          userId: filterUser === 'all' ? 'all_users' : filterUser,
+          llmEnabled: !disableLlm
         }),
       });
 
@@ -169,7 +176,7 @@ const ReflexiveSummary = ({
             {summary ? (
               <button
                 onClick={handleRegenerateSummary}
-                disabled={summaryLoading}
+                disabled={summaryLoading || disableLlm}
                 className="px-3 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-md hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap"
               >
         {summaryLoading ? (
@@ -188,7 +195,7 @@ const ReflexiveSummary = ({
             ) : (
               <button
                 onClick={handleGenerateSummary}
-                disabled={summaryLoading}
+                disabled={summaryLoading || disableLlm}
                 className="px-3 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-md hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap"
               >
                 {summaryLoading ? (
@@ -306,7 +313,9 @@ const ReflexiveSummary = ({
           {!summary && !summaryLoading && !error && (
             <div className="text-center py-8 text-slate-500">
               <p className="text-sm leading-relaxed">
-                Click <strong>&ldquo;Generate Analysis&rdquo;</strong> above to create AI-powered insights from the reflexive responses.
+                {disableLlm
+                  ? 'LLM features are disabled in settings.'
+                  : <>Click <strong>&ldquo;Generate Analysis&rdquo;</strong> above to create AI-powered insights from the reflexive responses.</>}
               </p>
               <p className="text-xs mt-2 text-slate-400">
                 Analysis will synthesize patterns across {responsesForSummary.length} response{responsesForSummary.length === 1 ? '' : 's'}

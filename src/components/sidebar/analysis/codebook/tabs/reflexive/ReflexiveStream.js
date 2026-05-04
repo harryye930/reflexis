@@ -30,7 +30,8 @@ const ReflexiveStream = ({
   currentUser, 
   userProfiles, 
   loading,
-  onNavigateToHighlight
+  onNavigateToHighlight,
+  disableLlm = false
 }) => {
   const [filterUser, setFilterUser] = useState('all');
   const [expandedGroups, setExpandedGroups] = useState(new Set());
@@ -114,6 +115,7 @@ const ReflexiveStream = ({
         userProfiles={userProfiles}
         filterUser={filterUser}
         loading={loading}
+        disableLlm={disableLlm}
       />
 
       {/* Filter Controls */}
@@ -200,6 +202,7 @@ const ReflexiveStream = ({
                             showHeaders={true}
                             useShortHeaders={true}
                             className="text-xs text-gray-500"
+                            disableLlm={disableLlm}
                           />
                         </div>
                       </div>

@@ -14,7 +14,11 @@ export default async function handler(req, res) {
   if (!(await requireFirebaseAuth(req, res))) return;
 
   try {
-    const { researchBackground, userName } = req.body || {};
+    const { researchBackground, userName, llmEnabled = true } = req.body || {};
+
+    if (llmEnabled === false) {
+      return res.status(403).json({ error: 'LLM features are disabled in settings' });
+    }
 
     if (!researchBackground || typeof researchBackground !== 'string') {
       return res.status(400).json({ error: 'researchBackground (string) is required' });

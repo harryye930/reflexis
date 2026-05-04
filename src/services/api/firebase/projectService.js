@@ -307,7 +307,7 @@ export class ProjectService {
     }
   }
 
-  async updateMemberProfile(projectId, userId, profileData) {
+  async updateMemberProfile(projectId, userId, profileData, options = {}) {
     try {
       const updates = {
         name: profileData.name,
@@ -318,7 +318,7 @@ export class ProjectService {
 
       if (profileData.reducedResearchBackground !== undefined) {
         updates.reducedResearchBackground = profileData.reducedResearchBackground || null;
-      } else if (profileData.researchBackground) {
+      } else if (profileData.researchBackground && !options.skipResearchBackgroundSummary) {
         const summaryResult = await ResearchBackgroundSummaryService.generateSummary(
           profileData.researchBackground,
           profileData.name

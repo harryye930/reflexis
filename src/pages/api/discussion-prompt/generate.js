@@ -19,8 +19,13 @@ export default async function handler(req, res) {
       codes,
       codeDefinitions,
       researchers,
-      documentTitle
+      documentTitle,
+      llmEnabled = true
     } = req.body || {};
+
+    if (llmEnabled === false) {
+      return res.status(403).json({ error: 'LLM features are disabled in settings' });
+    }
 
     if (!codedText || !context || !codes || !researchers || codes.length < 2 || researchers.length < 2) {
       return res.status(400).json({ 

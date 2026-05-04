@@ -36,38 +36,11 @@ The same guide is also available as a local HTML infographic:
 
 ## Privacy and Data Use
 
-This section describes the data flows in this codebase. Deployment owners should review and adapt this statement for their institution, participants, ethics protocol, and hosting configuration.
+Reflexis uses Firebase Auth for sign-in and Firestore for project storage. Stored project data can include researcher profiles, project membership, document text, codes, highlights, reflexive notes, and related timestamps/metadata. Firestore rules limit project data access to signed-in project members, with extra controls for project owners.
 
-### Data Storage
+Some optional AI-assisted features use the OpenAI API with `gpt-5.5`. These features may send relevant excerpts of project data, such as selected passages, code definitions, researcher positionality text, or reflexive notes, to generate summaries, discussion prompts, or conceptual-drift checks.
 
-Reflexis uses Firebase for authentication and Firestore for application data.
-
-- **Authentication:** Firebase Auth handles email/password sign-up and sign-in.
-- **User profile data:** Firestore stores user IDs, email addresses, display names, profile completion state, last-seen timestamps, researcher background/positionality text, reduced researcher-background keywords, and project-specific initial views of the data.
-- **Project data:** Firestore stores project names, project membership, roles, invitation keys/hashes, project settings, and member activity.
-- **Research corpus data:** Firestore stores document titles, descriptions, and text content added to a project.
-- **Analysis data:** Firestore stores codes, code definitions, code history, highlights/annotations, selected passages or text ranges, reflexive responses, and related metadata such as author IDs and timestamps.
-- **Access model:** Firestore security rules restrict project data to signed-in project members. Project owners have additional permissions for project settings, reset/delete actions, document deletion, and member/project management.
-
-### LLM Use
-
-AI-assisted features use the OpenAI API through authenticated Next.js API routes. The model currently configured in the source is `gpt-5.5`.
-
-The following features may send project or researcher content to OpenAI when invoked:
-
-- **Research background keyword summaries:** Sends the researcher name, qualitative analysis history, background/positionality text, and project-specific initial view of the data to generate reduced keyword summaries.
-- **Conceptual drift detection:** Sends the code name, current code definition, existing coded examples, a new selected passage, and surrounding context to check whether a code meaning may be shifting.
-- **Discussion prompt generation:** Sends coded text, surrounding context, document title, applied codes, code definitions, researcher names, and researcher positionality/background summaries to generate a conversation starter.
-- **Reflexive summary generation:** Sends reflexive responses and notes to summarize patterns in team reflection.
-
-LLM outputs may be displayed in the interface and, depending on the workflow, may contribute to stored derived data such as reduced researcher-background keywords or updated code definitions. 
-
-### Privacy Notes
-
-- Do not enter participant data, sensitive personal information, or confidential research material unless your team has approval to store it in the configured Firebase project and send relevant excerpts to the configured LLM provider.
-- Use a Firebase project and OpenAI account governed by the deployment owner, not shared demo credentials.
-- Review Firestore rules, Firebase project settings, OpenAI data settings, institutional review requirements, and participant consent language before production use.
-- Delete or reset demo projects and accounts when they are no longer needed.
+LLM-assisted features can be turned off in the interface from **Settings**. Deployment owners should still review Firebase, OpenAI, consent, and institutional privacy requirements before using Reflexis with participant or confidential research data.
 
 ## Citation
 

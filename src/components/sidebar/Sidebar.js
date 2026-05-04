@@ -29,6 +29,8 @@ const Sidebar = ({
   onToggleDisableHighlightManagement,
   disableCodeDriftDetection,
   onToggleDisableCodeDriftDetection,
+  disableLlm,
+  onToggleDisableLlm,
   showCodeDetails,
   onToggleShowCodeDetails,
   hideSameCodeHighlights,
@@ -128,6 +130,7 @@ const Sidebar = ({
             onNavigateToHighlight={onNavigateToHighlight}
             getCodeDisagreement={getCodeDisagreement}
             showCodeDetails={showCodeDetails}
+            disableLlm={disableLlm}
           />
         );
       
@@ -146,6 +149,8 @@ const Sidebar = ({
             onToggleDisableHighlightManagement={onToggleDisableHighlightManagement}
             disableCodeDriftDetection={disableCodeDriftDetection}
             onToggleDisableCodeDriftDetection={onToggleDisableCodeDriftDetection}
+            disableLlm={disableLlm}
+            onToggleDisableLlm={onToggleDisableLlm}
             showCodeDetails={showCodeDetails}
             onToggleShowCodeDetails={onToggleShowCodeDetails}
             hideSameCodeHighlights={hideSameCodeHighlights}

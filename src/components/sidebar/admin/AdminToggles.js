@@ -9,6 +9,8 @@ const AdminToggles = ({
   onToggleDisableHighlightManagement,
   disableCodeDriftDetection,
   onToggleDisableCodeDriftDetection,
+  disableLlm,
+  onToggleDisableLlm,
   showCodeDetails,
   onToggleShowCodeDetails,
   hideSameCodeHighlights,
@@ -134,6 +136,26 @@ const AdminToggles = ({
             <span
               className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
                 !disableCodeDriftDetection ? 'translate-x-5' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Toggle for all LLM-backed features */}
+        <div className="flex items-center justify-between border-t border-gray-200 pt-3">
+          <div className="flex-1">
+            <label className="text-sm text-gray-600">Enable LLM features</label>
+            <p className="text-xs text-gray-500">Allow AI summaries, discussion prompts, and code drift checks</p>
+          </div>
+          <button
+            onClick={onToggleDisableLlm}
+            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+              !disableLlm ? 'bg-blue-600' : 'bg-gray-200'
+            }`}
+          >
+            <span
+              className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                !disableLlm ? 'translate-x-5' : 'translate-x-1'
               }`}
             />
           </button>

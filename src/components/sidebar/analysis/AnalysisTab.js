@@ -25,7 +25,8 @@ const AnalysisTab = ({
   onUpdateCodeInLivingCodebook,
   onNavigateToHighlight,
   getCodeDisagreement, // New prop for disagreement data
-  showCodeDetails // New prop for showing/hiding code details
+  showCodeDetails, // New prop for showing/hiding code details
+  disableLlm = false
 }) => {
   // If Living Codebook is active, show it instead of the normal view
   if (livingCodebookState.isActive && livingCodebookState.selectedCode) {
@@ -46,6 +47,7 @@ const AnalysisTab = ({
           onNavigateToHighlight={onNavigateToHighlight}
           getCodeDisagreement={getCodeDisagreement}
           showCodeDetails={showCodeDetails}
+          disableLlm={disableLlm}
         />
       </div>
     );

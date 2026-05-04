@@ -18,6 +18,7 @@ const HighlightedText = ({
   showHoverTooltips = true,
   showAuthorInfo = true,
   disableHighlightManagement = false,
+  disableLlm = false,
   // Reflexive modal state for emphasis
   showReflexiveModal = false,
   reflexiveHighlightId = null
@@ -201,6 +202,7 @@ const HighlightedText = ({
         onDeleteHighlight={onDeleteHighlight}
         onReflexiveClick={handleReflexiveClick}
         activeDocument={activeDocument}
+        disableLlm={disableLlm}
       />
     </div>
   );

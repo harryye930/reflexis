@@ -9,7 +9,7 @@ import {
 } from '../../../constants/researchBackground.js';
 import ResearchBackgroundDisplay from '../../common/ResearchBackgroundDisplay.js';
 
-const ResearcherProfile = ({ projectId, currentUser, currentUserProfile, onMessage, editRequestId }) => {
+const ResearcherProfile = ({ projectId, currentUser, currentUserProfile, onMessage, editRequestId, disableLlm = false }) => {
   const [isEditing, setIsEditing] = useState(false);
   // Separate background components for editing
   const [editQualitativeHistory, setEditQualitativeHistory] = useState('');
@@ -103,20 +103,29 @@ const ResearcherProfile = ({ projectId, currentUser, currentUserProfile, onMessa
         editInitialDataView
       );
 
-      const result = await authService.updateUserDocument(currentUser.uid, {
-        name: currentUserProfile.name,
-        researchBackground: accountResearchBackground,
-        profileCompleted: true,
-        lastSeen: new Date()
-      });
+      const result = await authService.updateUserDocument(
+        currentUser.uid,
+        {
+          name: currentUserProfile.name,
+          researchBackground: accountResearchBackground,
+          profileCompleted: true,
+          lastSeen: new Date()
+        },
+        { skipResearchBackgroundSummary: disableLlm }
+      );
 
       if (result.success) {
-        const memberResult = await projectService.updateMemberProfile(projectId, currentUser.uid, {
-          name: currentUserProfile.name,
-          researchBackground: projectResearchBackground,
-          initialDataView: editInitialDataView.trim(),
-          profileCompleted: true
-        });
+        const memberResult = await projectService.updateMemberProfile(
+          projectId,
+          currentUser.uid,
+          {
+            name: currentUserProfile.name,
+            researchBackground: projectResearchBackground,
+            initialDataView: editInitialDataView.trim(),
+            profileCompleted: true
+          },
+          { skipResearchBackgroundSummary: disableLlm }
+        );
 
         if (!memberResult.success) {
           throw new Error(memberResult.error || 'Failed to update project profile');
@@ -189,6 +198,7 @@ const ResearcherProfile = ({ projectId, currentUser, currentUserProfile, onMessa
                 size="xs"
                 showHeaders={true}
                 useShortHeaders={false}
+                disableLlm={disableLlm}
               />
             </div>
           </>

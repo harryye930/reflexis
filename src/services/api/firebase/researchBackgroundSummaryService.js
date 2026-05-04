@@ -8,10 +8,14 @@ export class ResearchBackgroundSummaryService {
    * @param {string} userName - Optional user name for context
    * @returns {Promise<{success: boolean, keywords?: string, error?: string}>}
    */
-  static async generateSummary(researchBackground, userName = null) {
+  static async generateSummary(researchBackground, userName = null, options = {}) {
     try {
       if (!researchBackground || typeof researchBackground !== 'string') {
         return { success: false, error: 'Valid research background is required' };
+      }
+
+      if (options.skipLlm) {
+        return { success: false, error: 'LLM features are disabled in settings' };
       }
 
       const response = await authFetch('/api/research-background/summary', {
@@ -21,7 +25,8 @@ export class ResearchBackgroundSummaryService {
         },
         body: JSON.stringify({
           researchBackground: researchBackground.trim(),
-          userName
+          userName,
+          llmEnabled: true
         }),
       });
 

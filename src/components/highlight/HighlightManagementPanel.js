@@ -152,7 +152,8 @@ const HighlightManagementPanel = ({
   onClose,
   onDeleteHighlight,
   onReflexiveClick,
-  activeDocument
+  activeDocument,
+  disableLlm = false
 }) => {
   const panelRef = useRef(null);
   const [autoPromptGenerated, setAutoPromptGenerated] = useState(false);
@@ -163,7 +164,7 @@ const HighlightManagementPanel = ({
     error: promptError, 
     generateDiscussionPrompt, 
     clearDiscussionPrompt 
-  } = useDiscussionPrompt();
+  } = useDiscussionPrompt(disableLlm);
 
   // Check if we should show discussion prompt - different users with different codes
   const shouldShowDiscussionPromptOption = useCallback(() => {
@@ -202,7 +203,7 @@ const HighlightManagementPanel = ({
 
   // Auto-generate discussion prompt when conditions are met
   useEffect(() => {
-    if (visible && shouldShowDiscussionPromptOption() && !autoPromptGenerated && !isGenerating) {
+    if (visible && !disableLlm && shouldShowDiscussionPromptOption() && !autoPromptGenerated && !isGenerating) {
       setAutoPromptGenerated(true);
       generateDiscussionPrompt({
         highlights,
@@ -211,7 +212,7 @@ const HighlightManagementPanel = ({
         activeDocument
       });
     }
-  }, [visible, highlights, userProfiles, allCodes, activeDocument, autoPromptGenerated, isGenerating, generateDiscussionPrompt, shouldShowDiscussionPromptOption]);
+  }, [visible, disableLlm, highlights, userProfiles, allCodes, activeDocument, autoPromptGenerated, isGenerating, generateDiscussionPrompt, shouldShowDiscussionPromptOption]);
 
   // Reset auto-generation flag when panel closes or highlights change
   useEffect(() => {
@@ -276,6 +277,7 @@ const HighlightManagementPanel = ({
                 onClose={handleCloseDiscussionPrompt}
                 userProfiles={userProfiles}
                 allCodes={allCodes}
+                disableLlm={disableLlm}
               />
             )}
             {promptError && (

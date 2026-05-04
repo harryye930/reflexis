@@ -29,12 +29,16 @@ export default async function handler(req, res) {
   if (!(await requireFirebaseAuth(req, res))) return;
 
   try {
-  const { codeName, codeDefinition, existingExamples, newPassage, context } = req.body || {};
+    const { codeName, codeDefinition, existingExamples, newPassage, context, llmEnabled = true } = req.body || {};
+
+    if (llmEnabled === false) {
+      return res.status(403).json({ error: 'LLM features are disabled in settings' });
+    }
 
     // Validate required fields
-  if (!codeName || !codeDefinition || !existingExamples || !newPassage || !context) {
+    if (!codeName || !codeDefinition || !existingExamples || !newPassage || !context) {
       return res.status(400).json({ 
-    error: 'Missing required fields: codeName, codeDefinition, existingExamples, newPassage, context' 
+        error: 'Missing required fields: codeName, codeDefinition, existingExamples, newPassage, context' 
       });
     }
 

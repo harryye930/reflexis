@@ -21,7 +21,8 @@ const LivingCodebook = ({
   onUpdateCodeInLivingCodebook,
   onNavigateToHighlight,
   getCodeDisagreement = null, // New prop for disagreement data
-  showCodeDetails = true // New prop for showing/hiding code details
+  showCodeDetails = true, // New prop for showing/hiding code details
+  disableLlm = false
 }) => {
   const reflexiveService = useMemo(() => (
     projectId ? new ReflexiveService(projectId) : null
@@ -213,6 +214,7 @@ const LivingCodebook = ({
             userProfiles={userProfiles}
             loading={loading}
             onNavigateToHighlight={onNavigateToHighlight}
+            disableLlm={disableLlm}
           />
         );
       case 'disagreement':

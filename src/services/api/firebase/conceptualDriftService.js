@@ -129,7 +129,8 @@ export class ConceptualDriftService {
           codeDefinition,
           existingExamples,
           newPassage,
-          context
+          context,
+          llmEnabled: true
         }),
       });
 

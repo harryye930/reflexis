@@ -128,11 +128,13 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
     toggleDisableHighlightManagement,
     disableCodeDriftDetection,
     toggleDisableCodeDriftDetection,
+    disableLlm,
+    toggleDisableLlm,
     showCodeDetails,
   toggleShowCodeDetails,
   hideSameCodeHighlights,
   toggleHideSameCodeHighlights
-  } = useHoverPreferences(projectId);
+  } = useHoverPreferences(projectId, currentUser);
   
   // Highlight management hook - uses original highlights for management operations
   const {
@@ -165,7 +167,7 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
     addHighlight, 
     deleteHighlight,
     projectId,
-    disableCodeDriftDetection // Add disableCodeDriftDetection parameter
+    disableCodeDriftDetection || disableLlm // Add disableCodeDriftDetection parameter
   );
 
   useUserActivity(currentUser, projectId);
@@ -402,6 +404,7 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
               showHoverTooltips={showHoverTooltips}
               showAuthorInfo={showAuthorInfo}
               disableHighlightManagement={disableHighlightManagement}
+              disableLlm={disableLlm}
               showReflexiveModal={showReflexiveModal}
               reflexiveHighlightId={selectedHighlightForReflexive?.id}
             />
@@ -436,6 +439,8 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
           onToggleDisableHighlightManagement={toggleDisableHighlightManagement}
           disableCodeDriftDetection={disableCodeDriftDetection}
           onToggleDisableCodeDriftDetection={toggleDisableCodeDriftDetection}
+          disableLlm={disableLlm}
+          onToggleDisableLlm={toggleDisableLlm}
           showCodeDetails={showCodeDetails}
           onToggleShowCodeDetails={toggleShowCodeDetails}
           hideSameCodeHighlights={hideSameCodeHighlights}

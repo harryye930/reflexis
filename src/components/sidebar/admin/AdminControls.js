@@ -10,6 +10,8 @@ const AdminControls = ({
   onToggleDisableHighlightManagement,
   disableCodeDriftDetection,
   onToggleDisableCodeDriftDetection,
+  disableLlm,
+  onToggleDisableLlm,
   showCodeDetails,
   onToggleShowCodeDetails,
   hideSameCodeHighlights,
@@ -28,6 +30,8 @@ const AdminControls = ({
           onToggleDisableHighlightManagement={onToggleDisableHighlightManagement}
           disableCodeDriftDetection={disableCodeDriftDetection}
           onToggleDisableCodeDriftDetection={onToggleDisableCodeDriftDetection}
+          disableLlm={disableLlm}
+          onToggleDisableLlm={onToggleDisableLlm}
           showCodeDetails={showCodeDetails}
           onToggleShowCodeDetails={onToggleShowCodeDetails}
           hideSameCodeHighlights={hideSameCodeHighlights}

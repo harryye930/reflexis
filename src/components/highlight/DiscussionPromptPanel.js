@@ -7,7 +7,8 @@ const DiscussionPromptPanel = ({
   discussionPrompt, 
   onClose, 
   userProfiles,
-  allCodes 
+  allCodes,
+  disableLlm = false
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [hoveredUser, setHoveredUser] = useState(null);
@@ -135,6 +136,7 @@ const DiscussionPromptPanel = ({
                           size="xs"
                           showHeaders={false}
                           userName={researcher.name}
+                          disableLlm={disableLlm}
                         />
                       ) : (
                         <div className="text-xs text-gray-500 italic">

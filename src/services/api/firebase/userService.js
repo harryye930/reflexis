@@ -9,6 +9,8 @@ const buildProfileFromMemberData = (data) => ({
   reducedResearchBackground: data.reducedResearchBackground || null,
   initialDataView: data.initialDataView || '',
   initialDataViewReminderDismissedAt: data.initialDataViewReminderDismissedAt || null,
+  preferences: data.preferences || null,
+  disableLlm: data.preferences?.disableLlm ?? data.disableLlm ?? false,
   profileCompleted: !!data.profileCompleted,
   lastSeen: data.lastSeen || null
 });

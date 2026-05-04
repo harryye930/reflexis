@@ -85,10 +85,10 @@ export class AuthService {
   }
 
   // Update user document
-  async updateUserDocument(userId, updateData) {
+  async updateUserDocument(userId, updateData, options = {}) {
     try {
       // If research background is being updated, generate reduced version
-      if (updateData.researchBackground) {
+      if (updateData.researchBackground && !options.skipResearchBackgroundSummary) {
         // Get user name for context (either from updateData or existing document)
         let userName = updateData.name;
         if (!userName) {
@@ -121,13 +121,15 @@ export class AuthService {
   }
 
   // Complete user profile
-  async completeProfile(userId, displayName, researchBackground) {
+  async completeProfile(userId, displayName, researchBackground, options = {}) {
     try {
       // Generate reduced research background
-      const summaryResult = await this.generateReducedResearchBackground(
-        researchBackground,
-        displayName
-      );
+      const summaryResult = options.skipResearchBackgroundSummary
+        ? { success: false, error: 'LLM features are disabled in settings' }
+        : await this.generateReducedResearchBackground(
+            researchBackground,
+            displayName
+          );
       
       const updateData = {
         name: displayName,
