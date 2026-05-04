@@ -24,6 +24,25 @@ import DocumentHeader from './document/DocumentHeader.js';
 import CodeDriftModal from './code-drift/CodeDriftModal.js';
 import ReflectiveQuoteTicker from './common/ReflectiveQuoteTicker.js';
 
+const ACTIVE_COLLABORATOR_WINDOW_MS = 90 * 1000;
+const ACTIVE_COLLABORATOR_REFRESH_MS = 30 * 1000;
+
+const getTimestampMillis = (value) => {
+  if (!value) return 0;
+  if (typeof value.toMillis === 'function') return value.toMillis();
+  if (typeof value.toDate === 'function') return value.toDate().getTime();
+  if (value instanceof Date) return value.getTime();
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') return Date.parse(value) || 0;
+  if (typeof value.seconds === 'number') return value.seconds * 1000;
+  return 0;
+};
+
+const getProfileInitial = (name) => {
+  const trimmedName = (name || '').trim();
+  return trimmedName ? trimmedName.charAt(0).toUpperCase() : '?';
+};
+
 const getProjectInitialDataView = (profile) => {
   if (!profile) return '';
 
@@ -38,10 +57,10 @@ const InitialDataViewReminder = ({ onUpdateView, onDismiss, dismissing }) => (
   <div className="mb-5 rounded-md border border-slate-200 bg-slate-50 px-4 py-3">
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div>
-        <p className="text-sm font-medium text-slate-800">Add your first view when you&rsquo;re ready.</p>
+        <p className="text-sm font-medium text-slate-800">Add your view on the data when you&rsquo;re ready.</p>
         <p className="mt-1 text-sm leading-6 text-slate-600">
           After you&rsquo;ve had some time with this project&rsquo;s documents, note what you&rsquo;re noticing.
-          This stays with this project, so it can be different from your other work.
+          This stays with this project, so it can be different from your other work/projects.
         </p>
       </div>
       <div className="flex flex-shrink-0 items-center gap-2">
@@ -94,6 +113,7 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
   const [profileEditRequestId, setProfileEditRequestId] = useState(0);
   const [reminderHiddenForSession, setReminderHiddenForSession] = useState(false);
   const [dismissingInitialViewReminder, setDismissingInitialViewReminder] = useState(false);
+  const [activeCollaboratorNow, setActiveCollaboratorNow] = useState(() => Date.now());
   
   // Custom hooks for UI management
   const { message, showMessage } = useMessageHandler();
@@ -148,7 +168,16 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
     disableCodeDriftDetection // Add disableCodeDriftDetection parameter
   );
 
-  useUserActivity(currentUser);
+  useUserActivity(currentUser, projectId);
+
+  useEffect(() => {
+    setActiveCollaboratorNow(Date.now());
+    const interval = setInterval(() => {
+      setActiveCollaboratorNow(Date.now());
+    }, ACTIVE_COLLABORATOR_REFRESH_MS);
+
+    return () => clearInterval(interval);
+  }, [projectId]);
 
   // Navigation hook
   const handleNavigateToHighlight = useNavigateToHighlight(
@@ -220,6 +249,19 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
   };
 
   const currentUserProfile = currentUser && userProfiles[currentUser.uid];
+  const activeCollaborators = useMemo(() => {
+    return Object.entries(userProfiles).filter(([userId, profile]) => {
+      if (currentUser?.uid === userId) return true;
+
+      const lastSeenMillis = getTimestampMillis(profile.lastSeen);
+      return lastSeenMillis && activeCollaboratorNow - lastSeenMillis <= ACTIVE_COLLABORATOR_WINDOW_MS;
+    }).map(([userId, profile]) => ({
+      userId,
+      name: profile.name || 'Collaborator',
+      color: profile.color || '#64748b',
+      initial: getProfileInitial(profile.name)
+    }));
+  }, [activeCollaboratorNow, currentUser?.uid, userProfiles]);
   const currentInitialDataView = getProjectInitialDataView(currentUserProfile);
   const shouldShowInitialDataViewReminder = Boolean(
     currentUserProfile
@@ -275,6 +317,25 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
           </div>
         </div>
         <ReflectiveQuoteTicker seedKey={projectId || ''} />
+        <div
+          className="flex flex-shrink-0 items-center"
+          aria-label="Active collaborators"
+        >
+          {activeCollaborators.map((collaborator, index) => (
+            <span
+              key={collaborator.userId}
+              title={collaborator.name}
+              className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-sm font-semibold text-white shadow-sm"
+              style={{
+                backgroundColor: collaborator.color,
+                marginLeft: index === 0 ? 0 : -8,
+                zIndex: activeCollaborators.length - index
+              }}
+            >
+              {collaborator.initial}
+            </span>
+          ))}
+        </div>
         <button
           type="button"
           onClick={onSignOut}

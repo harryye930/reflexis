@@ -1,5 +1,17 @@
-import { collection, onSnapshot, query } from 'firebase/firestore';
+import { collection, doc, onSnapshot, query, updateDoc } from 'firebase/firestore';
 import { db } from '../../../lib/firebase.js';
+
+const buildProfileFromMemberData = (data) => ({
+  name: data.name,
+  color: data.color,
+  role: data.role || 'member',
+  researchBackground: data.researchBackground || null,
+  reducedResearchBackground: data.reducedResearchBackground || null,
+  initialDataView: data.initialDataView || '',
+  initialDataViewReminderDismissedAt: data.initialDataViewReminderDismissedAt || null,
+  profileCompleted: !!data.profileCompleted,
+  lastSeen: data.lastSeen || null
+});
 
 export class UserService {
   constructor(projectId) {
@@ -18,16 +30,7 @@ export class UserService {
         
         // Ensure we have valid member data before adding to profiles
         if (data.userId && data.name && data.color) {
-          profiles[data.userId] = { 
-            name: data.name, 
-            color: data.color,
-            role: data.role || 'member',
-            researchBackground: data.researchBackground || null,
-            reducedResearchBackground: data.reducedResearchBackground || null,
-            initialDataView: data.initialDataView || '',
-            initialDataViewReminderDismissedAt: data.initialDataViewReminderDismissedAt || null,
-            profileCompleted: !!data.profileCompleted
-          };
+          profiles[data.userId] = buildProfileFromMemberData(data);
         }
       });
       callback(profiles);
@@ -51,22 +54,26 @@ export class UserService {
         
         // Ensure we have valid member data before adding to profiles
         if (data.userId && data.name && data.color) {
-          profiles[data.userId] = { 
-            name: data.name, 
-            color: data.color,
-            role: data.role || 'member',
-            researchBackground: data.researchBackground || null,
-            reducedResearchBackground: data.reducedResearchBackground || null,
-            initialDataView: data.initialDataView || '',
-            initialDataViewReminderDismissedAt: data.initialDataViewReminderDismissedAt || null,
-            profileCompleted: !!data.profileCompleted
-          };
+          profiles[data.userId] = buildProfileFromMemberData(data);
         }
       });
       
       return { success: true, data: profiles };
     } catch (error) {
       console.error('Error getting users:', error);
+      return { success: false, error };
+    }
+  }
+
+  async updateLastSeen(userId) {
+    try {
+      await updateDoc(doc(db, 'projects', this.projectId, 'members', userId), {
+        lastSeen: new Date()
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating project member activity:', error);
       return { success: false, error };
     }
   }
