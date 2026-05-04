@@ -93,11 +93,11 @@ const ReflexiveModal = ({
         }}
       >
         {/* Drag handle - visible area at the top with drag indicator */}
-        <div className="drag-handle absolute top-2 left-1/2 transform -translate-x-1/2 w-8 h-1.5 bg-slate-300/60 rounded-full cursor-move z-10 hover:bg-slate-400/80 transition-colors duration-200" title="Drag to move modal" />
-        
-        <div 
+        <div className="drag-handle absolute top-2 left-1/2 transform -translate-x-1/2 w-8 h-1.5 bg-slate-300 rounded-full cursor-move z-10 hover:bg-slate-400 transition-colors duration-200" title="Drag to move modal" />
+
+        <div
           ref={modalRef}
-          className={`bg-gradient-to-br from-slate-50/90 via-white/85 to-blue-50/90 backdrop-blur-md rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-white/60 overflow-hidden ${isSliding ? 'transform scale-98 opacity-60 rotate-0.5' : 'transform scale-100 opacity-100 rotate-0'}`}
+          className={`bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-slate-200 overflow-hidden ${isSliding ? 'transform scale-98 opacity-60 rotate-0.5' : 'transform scale-100 opacity-100 rotate-0'}`}
         >
         {currentStep === 'select' && (
           <div className="p-6 w-[520px]">
@@ -105,7 +105,7 @@ const ReflexiveModal = ({
               <h3 className="text-lg font-light text-slate-800">Choose your reflection prompts</h3>
               <button
                 onClick={onClose}
-                className="text-slate-400 hover:text-slate-600 transition-all duration-300 hover:bg-slate-100/60 rounded-lg p-2 backdrop-blur-sm"
+                className="text-slate-400 hover:text-slate-600 transition-all duration-300 hover:bg-slate-100 rounded-lg p-2"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
@@ -124,21 +124,21 @@ const ReflexiveModal = ({
             <div className="flex items-center justify-between mt-2">
               <button
                 onClick={() => setSelectedPromptIds(strategyOptions.map(s => s.id))}
-                className="px-3 py-2 text-sm text-slate-600 hover:text-slate-800 font-light transition-all duration-300 hover:bg-slate-50/80 rounded-xl backdrop-blur-sm border border-slate-200/50 hover:border-slate-300/60"
+                className="px-3 py-2 text-sm text-slate-600 hover:text-slate-800 font-light transition-all duration-300 hover:bg-slate-100 rounded-xl border border-slate-200 hover:border-slate-300"
               >
                 Select all
               </button>
               <div className="flex gap-2">
                 <button
                   onClick={onClose}
-                  className="px-4 py-2.5 text-sm text-slate-600 hover:text-slate-800 font-light transition-all duration-300 hover:bg-slate-50/80 rounded-xl backdrop-blur-sm border border-slate-200/50 hover:border-slate-300/60"
+                  className="px-4 py-2.5 text-sm text-slate-600 hover:text-slate-800 font-light transition-all duration-300 hover:bg-slate-100 rounded-xl border border-slate-200 hover:border-slate-300"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => setCurrentStep('prompts')}
                   disabled={selectedPromptIds.length === 0}
-                  className="px-5 py-2.5 bg-gradient-to-r from-indigo-500/90 to-purple-500/90 text-white text-sm font-light rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-5 py-2.5 bg-teal-600 text-white text-sm font-light rounded-xl hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Start
                 </button>
@@ -162,32 +162,32 @@ const ReflexiveModal = ({
         )}
         
         {currentStep === 'completed' && (
-          <div className="p-8 text-center max-w-md bg-gradient-to-br from-emerald-50/80 via-white/90 to-teal-50/80">
+          <div className="p-8 text-center max-w-md bg-white">
             <div className="mb-6">
-              <div className="w-20 h-20 mx-auto bg-gradient-to-br from-emerald-100/80 to-teal-100/80 rounded-full flex items-center justify-center mb-6 transition-all duration-500 hover:shadow-lg hover:scale-105 animate-gentle-pulse backdrop-blur-sm border border-emerald-200/40">
-                <svg className="w-9 h-9 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-20 h-20 mx-auto bg-teal-50 rounded-full flex items-center justify-center mb-6 transition-colors duration-200 hover:shadow-md animate-gentle-pulse border border-teal-200">
+                <svg className="w-9 h-9 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
               <h3 className="text-xl font-light text-slate-800 mb-3 tracking-wide">
-                Reflexive Journey <span className="font-medium text-emerald-700">Complete</span>
+                Reflexive Journey <span className="font-medium text-teal-700">Complete</span>
               </h3>
               <p className="text-sm text-slate-600 leading-relaxed font-light">
                 Your contemplative insights have been woven into the analytical tapestry, <br/>
                 enriching the depth of understanding.
               </p>
             </div>
-            
+
             <div className="flex gap-4 justify-center">
               <button
                 onClick={handleBack}
-                className="px-5 py-2.5 text-sm text-slate-600 hover:text-slate-800 font-light transition-all duration-300 hover:bg-slate-50/80 rounded-xl backdrop-blur-sm border border-slate-200/50 hover:border-slate-300/60 hover:shadow-sm"
+                className="px-5 py-2.5 text-sm text-slate-600 hover:text-slate-800 font-light transition-all duration-300 hover:bg-slate-100 rounded-xl border border-slate-200 hover:border-slate-300"
               >
                 Revisit Reflections
               </button>
               <button
                 onClick={onClose}
-                className="px-6 py-2.5 bg-gradient-to-r from-emerald-500/90 to-teal-500/90 text-white text-sm font-light rounded-xl hover:from-emerald-600/95 hover:to-teal-600/95 transition-all duration-300 transform hover:scale-102 backdrop-blur-sm border border-white/20 shadow-lg hover:shadow-xl"
+                className="px-6 py-2.5 bg-teal-600 text-white text-sm font-light rounded-xl hover:bg-teal-700 transition-colors duration-200"
               >
                 Return to Analysis
               </button>

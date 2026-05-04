@@ -56,7 +56,7 @@ Please generate a set of "Reflective Starting Points." For each category, provid
 
 // Corresponding change to your response_format object
     const completion = await openai.chat.completions.create({
-      model: "gpt-5",
+      model: "gpt-5.5",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }

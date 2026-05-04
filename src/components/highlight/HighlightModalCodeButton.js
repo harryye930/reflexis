@@ -16,11 +16,7 @@ const CodeButton = ({
       onMouseLeave={() => setIsHovered(false)}
     >
       <div 
-        className={`code-button-container flex flex-col items-center transition-all duration-400 ease-out ${
-          isHovered 
-            ? 'transform scale-105' 
-            : 'transform scale-100'
-        }`}
+        className="code-button-container flex flex-col items-center transition-all duration-200 ease-out"
         style={{ 
           minHeight: isHovered ? '80px' : '40px',
           width: 'fit-content'
@@ -28,9 +24,9 @@ const CodeButton = ({
       >
         {/* Main code button - shrinks when hovered */}
         <button
-          className={`code-palette-unified rounded-full font-medium border border-gray-100 relative overflow-hidden transition-all duration-400 ease-out transform ${bgColor} ${textColor} ${
+          className={`code-palette-unified rounded-full font-medium border border-gray-100 relative overflow-hidden transition-all duration-200 ease-out ${bgColor} ${textColor} ${
             isHovered 
-              ? 'px-3 py-1 text-xs scale-90 shadow-sm' 
+              ? 'px-3 py-1 text-xs shadow-sm'
               : 'px-4 py-2 text-sm shadow-md hover:shadow-lg'
           }`}
           title={code.description}
@@ -48,10 +44,10 @@ const CodeButton = ({
 
         {/* Action buttons - smoothly appear below */}
         <div 
-          className={`action-buttons flex gap-1 mt-2 transition-all duration-400 ease-out ${
+          className={`action-buttons flex gap-1 mt-2 transition-all duration-200 ease-out ${
             isHovered 
-              ? 'opacity-100 transform translate-y-0 visible' 
-              : 'opacity-0 transform translate-y-(-10px) invisible'
+              ? 'opacity-100 visible'
+              : 'opacity-0 invisible'
           }`}
           style={{
             minWidth: '140px',

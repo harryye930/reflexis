@@ -17,7 +17,7 @@ export const REFLEXIVE_PROMPTS = {
     id: 'positionality',
     title: 'Positionality',
     prompt: (codeLabel, selectedText) => 
-      `What personal or professional experiences make '${codeLabel}' a salient concept for you here?`,
+      `What personal or professional experiences from your past make '${codeLabel}' a strong concept here?`,
     shortPrompt: 'Personal/Professional Perspective',
     placeholder: 'Reflect on your background, experiences, and perspectives that influence this interpretation...',
   icon: null,

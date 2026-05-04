@@ -1,4 +1,4 @@
-import { collection, onSnapshot, addDoc, doc, setDoc, deleteDoc, query, orderBy, getDoc } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, doc, setDoc, deleteDoc, query, orderBy, getDoc, where, getCountFromServer } from 'firebase/firestore';
 import { db } from '../../../lib/firebase.js';
 
 export class DocumentService {
@@ -60,10 +60,45 @@ export class DocumentService {
   // Delete a document
   async deleteDocument(documentId) {
     try {
+      const blockers = await this.getDocumentDeletionBlockers(documentId);
+      if (!blockers.success) return blockers;
+
+      const { annotationCount, noteCount } = blockers;
+      if (annotationCount > 0 || noteCount > 0) {
+        return {
+          success: false,
+          blocked: true,
+          blockers: { annotationCount, noteCount },
+          error: `Delete blocked. Remove all annotations and reflexive notes from this document before deleting it. This document still has ${annotationCount} annotation${annotationCount === 1 ? '' : 's'} and ${noteCount} note${noteCount === 1 ? '' : 's'}.`
+        };
+      }
+
       await deleteDoc(doc(db, `projects/${this.projectId}/documents`, documentId));
       return { success: true };
     } catch (error) {
       console.error("Error deleting document: ", error);
+      return { success: false, error };
+    }
+  }
+
+  // Documents must be empty of annotations and notes before deletion.
+  async getDocumentDeletionBlockers(documentId) {
+    try {
+      const highlightsCollection = collection(db, `projects/${this.projectId}/highlights`);
+      const responsesCollection = collection(db, `projects/${this.projectId}/reflexive_responses`);
+
+      const [highlightCountSnapshot, responseCountSnapshot] = await Promise.all([
+        getCountFromServer(query(highlightsCollection, where('documentId', '==', documentId))),
+        getCountFromServer(query(responsesCollection, where('documentId', '==', documentId)))
+      ]);
+
+      return {
+        success: true,
+        annotationCount: highlightCountSnapshot.data().count,
+        noteCount: responseCountSnapshot.data().count
+      };
+    } catch (error) {
+      console.error("Error checking document deletion blockers: ", error);
       return { success: false, error };
     }
   }

@@ -36,7 +36,7 @@ const DocumentBrowser = ({
   const handleDeleteDocument = async (documentId, title) => {
     if (!isOwner || !onDeleteDocument) return;
     const confirmed = window.confirm(
-      `Delete "${title}" from the corpus?\n\nAll highlights, codes applied, and reflexive notes for this document will become orphaned. This cannot be undone.`
+      `Delete "${title}" from the corpus?\n\nThis will only be allowed if the document has no annotations or reflexive notes. Delete those annotations and notes first, then return here to delete the document.\n\nThis cannot be undone.`
     );
     if (!confirmed) return;
 

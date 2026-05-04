@@ -126,9 +126,9 @@ const ReflexiveSummary = ({
   }
 
   return (
-    <div className="reflexive-summary bg-gradient-to-br from-indigo-50/50 via-white to-purple-50/50 border border-indigo-200/60 rounded-xl shadow-sm mb-6 overflow-hidden">
+    <div className="reflexive-summary bg-white border border-slate-200 rounded-xl shadow-sm mb-6 overflow-hidden">
       {/* Header */}
-      <div className="px-4 sm:px-6 py-4 bg-gradient-to-r from-indigo-50/80 to-purple-50/80 border-b border-indigo-200/40">
+      <div className="px-4 sm:px-6 py-4 bg-teal-50 border-b border-teal-100">
         {/* Title Row */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -144,7 +144,7 @@ const ReflexiveSummary = ({
           
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="p-2 hover:bg-white/60 rounded-lg transition-colors flex-shrink-0 ml-2"
+            className="p-2 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0 ml-2"
           >
             <svg 
               className={`w-5 h-5 text-slate-600 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} 
@@ -160,17 +160,17 @@ const ReflexiveSummary = ({
         {/* Controls Row */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500 bg-slate-100/60 px-2.5 py-1 rounded-full whitespace-nowrap">
+            <span className="text-xs text-slate-600 bg-slate-200 px-2.5 py-1 rounded-full whitespace-nowrap">
               {responsesForSummary.length} responses
             </span>
           </div>
-          
+
           <div className="flex items-center gap-2">
             {summary ? (
               <button
                 onClick={handleRegenerateSummary}
                 disabled={summaryLoading}
-                className="px-3 py-1.5 bg-indigo-500/90 text-white text-xs font-medium rounded-md hover:bg-indigo-600/95 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap"
+                className="px-3 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-md hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap"
               >
         {summaryLoading ? (
                   <>
@@ -189,7 +189,7 @@ const ReflexiveSummary = ({
               <button
                 onClick={handleGenerateSummary}
                 disabled={summaryLoading}
-                className="px-3 py-1.5 bg-indigo-500/90 text-white text-xs font-medium rounded-md hover:bg-indigo-600/95 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap"
+                className="px-3 py-1.5 bg-teal-600 text-white text-xs font-medium rounded-md hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-1.5 whitespace-nowrap"
               >
                 {summaryLoading ? (
                   <>
@@ -230,7 +230,7 @@ const ReflexiveSummary = ({
 
           {summaryLoading && (
             <div className="text-center py-8">
-              <div className="w-8 h-8 border-2 border-indigo-300 border-t-indigo-600 rounded-full animate-spin mx-auto mb-3"></div>
+              <div className="w-8 h-8 border-2 border-teal-300 border-t-teal-600 rounded-full animate-spin mx-auto mb-3"></div>
               <p className="text-sm text-slate-600">Generating reflexive insights...</p>
             </div>
           )}
@@ -243,11 +243,11 @@ const ReflexiveSummary = ({
                   <div className="flex items-center gap-2 mb-3">
                     <Search sx={{ fontSize: 18 }} />
                     <h4 className="text-sm font-semibold text-slate-800">Linguistic Patterns</h4>
-                    <span className="text-xs text-slate-500 bg-slate-100/60 px-2 py-0.5 rounded-full">
+                    <span className="text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
                       {responseCounts.justification} response{responseCounts.justification === 1 ? '' : 's'}
                     </span>
                   </div>
-                  <div className="bg-gradient-to-br from-blue-50/80 to-blue-100/40 border border-blue-200/60 rounded-lg p-3 shadow-sm">
+                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
                     <p className="text-sm text-slate-700 leading-relaxed">{summary.linguisticPatterns}</p>
                   </div>
                 </div>
@@ -259,11 +259,11 @@ const ReflexiveSummary = ({
                   <div className="flex items-center gap-2 mb-3">
                     <Person sx={{ fontSize: 18 }} />
                     <h4 className="text-sm font-semibold text-slate-800">Positionality Narrative</h4>
-                    <span className="text-xs text-slate-500 bg-slate-100/60 px-2 py-0.5 rounded-full">
+                    <span className="text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
                       {responseCounts.positionality} response{responseCounts.positionality === 1 ? '' : 's'}
                     </span>
                   </div>
-                  <div className="bg-gradient-to-br from-purple-50/80 to-purple-100/40 border border-purple-200/60 rounded-lg p-3 shadow-sm">
+                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
                     <p className="text-sm text-slate-700 leading-relaxed">{summary.positionalityNarrative}</p>
                   </div>
                 </div>
@@ -275,11 +275,11 @@ const ReflexiveSummary = ({
                   <div className="flex items-center gap-2 mb-3">
                     <Autorenew sx={{ fontSize: 18 }} />
                     <h4 className="text-sm font-semibold text-slate-800">Alternative Thinking Patterns</h4>
-                    <span className="text-xs text-slate-500 bg-slate-100/60 px-2 py-0.5 rounded-full">
+                    <span className="text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
                       {responseCounts.alternative} response{responseCounts.alternative === 1 ? '' : 's'}
                     </span>
                   </div>
-                  <div className="bg-gradient-to-br from-green-50/80 to-green-100/40 border border-green-200/60 rounded-lg p-3 shadow-sm">
+                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
                     <p className="text-sm text-slate-700 leading-relaxed">{summary.alternativeThinkingPatterns}</p>
                   </div>
                 </div>
@@ -291,11 +291,11 @@ const ReflexiveSummary = ({
                   <div className="flex items-center gap-2 mb-3">
                     <NoteAlt sx={{ fontSize: 18 }} />
                     <h4 className="text-sm font-semibold text-slate-800">Notes</h4>
-                    <span className="text-xs text-slate-500 bg-slate-100/60 px-2 py-0.5 rounded-full">
+                    <span className="text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
                       {responseCounts.note} response{responseCounts.note === 1 ? '' : 's'}
                     </span>
                   </div>
-                  <div className="bg-gradient-to-br from-amber-50/80 to-amber-100/40 border border-amber-200/60 rounded-lg p-3 shadow-sm">
+                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
                     <p className="text-sm text-slate-700 leading-relaxed">{summary.notes}</p>
                   </div>
                 </div>
