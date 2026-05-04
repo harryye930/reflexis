@@ -4,7 +4,7 @@ Reflexis is a collaborative qualitative analysis tool for teams working with tex
 
 This project accompanies the CHI 2026 paper:
 
-[Reflexis: Supporting Reflexivity and Rigor in Collaborative Qualitative Analysis though Design for Deliberation](https://doi.org/10.1145/3772318.3791275)
+[Reflexis: Supporting Reflexivity and Rigour in Collaborative Qualitative Analysis through Design for Deliberation](https://doi.org/10.1145/3772318.3791275)
 
 ## Getting Started
 
