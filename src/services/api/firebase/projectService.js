@@ -11,6 +11,8 @@ import {
 } from 'firebase/firestore';
 import { db } from '../../../lib/firebase.js';
 import { userColors } from '../../../lib/utils/colorUtils.js';
+import { defaultCodes } from '../../../constants/defaultCodes.js';
+import { defaultDocuments } from '../../../constants/defaultDocuments.js';
 
 const PROJECT_DATA_COLLECTIONS = [
   'documents',
@@ -45,6 +47,30 @@ const buildMemberProfile = (user, userProfile, role) => ({
   profileCompleted: !!userProfile?.profileCompleted,
   joinedAt: new Date()
 });
+
+const addDefaultProjectContentToBatch = (batch, projectId, userId) => {
+  defaultDocuments.forEach((defaultDocument) => {
+    const documentRef = doc(db, 'projects', projectId, 'documents', defaultDocument.id);
+    batch.set(documentRef, {
+      title: defaultDocument.title,
+      description: defaultDocument.description,
+      content: defaultDocument.content,
+      isDefault: true,
+      createdAt: defaultDocument.createdAt || new Date(),
+      createdBy: 'system'
+    });
+  });
+
+  defaultCodes.forEach((defaultCode) => {
+    const { docId, ...codeData } = defaultCode;
+    const codeRef = doc(db, 'projects', projectId, 'codes', docId);
+    batch.set(codeRef, {
+      ...codeData,
+      createdBy: userId,
+      createdAt: new Date()
+    });
+  });
+};
 
 export class ProjectService {
   generateJoinKey() {
@@ -142,8 +168,20 @@ export class ProjectService {
 
       await batch.commit();
 
+      let defaultContentError = null;
+      try {
+        const defaultContentBatch = writeBatch(db);
+        addDefaultProjectContentToBatch(defaultContentBatch, projectRef.id, user.uid);
+        await defaultContentBatch.commit();
+      } catch (error) {
+        console.error('Error creating default project content:', error);
+        defaultContentError = error;
+      }
+
       return {
         success: true,
+        defaultContentCreated: !defaultContentError,
+        defaultContentError,
         project: {
           id: projectRef.id,
           name: trimmedName,

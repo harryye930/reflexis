@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from 'react';
-import { defaultCodes } from '../constants/defaultCodes.js';
 import { CodeService } from '../services/api/firebase/codeService.js';
 
 export const useCodes = (projectId, currentUser) => {
@@ -19,19 +18,7 @@ export const useCodes = (projectId, currentUser) => {
       return;
     }
 
-    let seedingDefaultCodes = false;
-
-    const unsubscribeAllCodes = codeService.onCodesSnapshot(async (firebaseCodes) => {
-      if (firebaseCodes.length === 0 && !seedingDefaultCodes) {
-        seedingDefaultCodes = true;
-        const seedResult = await codeService.ensureDefaultCodes(defaultCodes, currentUser.uid);
-        seedingDefaultCodes = false;
-
-        if (seedResult.success && seedResult.createdCount > 0) {
-          return;
-        }
-      }
-
+    const unsubscribeAllCodes = codeService.onCodesSnapshot((firebaseCodes) => {
       // Filter active codes (not deleted)
       const activeCodes = firebaseCodes.filter(code => !code.isDeleted);
       // Filter deleted codes

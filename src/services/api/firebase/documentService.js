@@ -103,45 +103,6 @@ export class DocumentService {
     }
   }
 
-  // Ensure default documents exist in the database
-  async ensureDefaultDocuments(defaultDocuments, userId) {
-    try {
-      const documentsCollection = collection(db, `projects/${this.projectId}/documents`);
-      
-      // Get existing documents to check which defaults are missing
-      const existingDocsQuery = query(documentsCollection);
-      const snapshot = await new Promise((resolve) => {
-        const unsubscribe = onSnapshot(existingDocsQuery, resolve, { includeMetadataChanges: true });
-        setTimeout(() => unsubscribe(), 1000); // Timeout after 1 second
-      });
-      
-      const existingIds = new Set(snapshot.docs.map(doc => doc.id));
-      const missingDefaults = defaultDocuments.filter(doc => !existingIds.has(doc.id));
-      
-      // Add missing default documents
-      if (missingDefaults.length > 0) {
-        const addPromises = missingDefaults.map(async (defaultDoc) => {
-          const docRef = doc(db, `projects/${this.projectId}/documents`, defaultDoc.id);
-          await setDoc(docRef, {
-            title: defaultDoc.title,
-            description: defaultDoc.description,
-            content: defaultDoc.content,
-            isDefault: true,
-            createdAt: defaultDoc.createdAt,
-            createdBy: 'system'
-          });
-        });
-        
-        await Promise.all(addPromises);
-      }
-      
-      return { success: true };
-    } catch (error) {
-      console.error('Error ensuring default documents:', error);
-      return { success: false, error };
-    }
-  }
-
   // Get a single document by ID
   async getDocument(documentId) {
     try {

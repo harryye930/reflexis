@@ -70,7 +70,11 @@ const ProjectDashboard = ({ currentUser, userProfile, onOpenProject, onSignOut }
         projectName: result.project.name,
         key: result.joinKey
       });
-      setMessage('Project created.');
+      setMessage(
+        result.defaultContentCreated
+          ? 'Project created with default documents and starter code.'
+          : 'Project created, but default documents and starter code could not be added.'
+      );
     } else {
       setError(result.error?.message || 'Failed to create project.');
     }

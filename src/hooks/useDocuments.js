@@ -1,14 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { DocumentService } from '../services/api/firebase/documentService.js';
-import { defaultDocuments } from '../constants/defaultDocuments.js';
 
-// Firestore is the source of truth for a project's corpus. We previously
-// merged a hard-coded sample set into every project's view and re-seeded
-// missing entries on every snapshot, which meant admins couldn't actually
-// delete the sample transcripts — they re-appeared on the next listener
-// tick. Now the hook just mirrors what's stored in the project, and the
-// in-memory `defaultDocuments` is only used as a placeholder when there
-// is no signed-in user / no project (the unauth/empty state).
+// Firestore is the source of truth for a project's corpus. Default documents
+// are written once when a project is created, so admins can delete or replace
+// them without the client silently restoring prototype sample content.
 
 export const useDocuments = (projectId, currentUser, isOwner = false) => {
   const [documents, setDocuments] = useState([]);
@@ -22,9 +17,8 @@ export const useDocuments = (projectId, currentUser, isOwner = false) => {
 
   useEffect(() => {
     if (!currentUser || !projectId || !documentService) {
-      // Demo placeholder for the unauthenticated / no-project state.
-      setDocuments(defaultDocuments);
-      setActiveDocumentId(defaultDocuments[0]?.id ?? null);
+      setDocuments([]);
+      setActiveDocumentId(null);
       setDocumentsLoaded(true);
       return;
     }

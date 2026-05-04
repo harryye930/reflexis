@@ -22,46 +22,6 @@ export class CodeService {
     });
   }
 
-  async ensureDefaultCodes(defaultCodes, userId) {
-    try {
-      const codesCollection = collection(db, `projects/${this.projectId}/codes`);
-      const snapshot = await getDocs(query(codesCollection));
-      const existingIds = new Set();
-
-      snapshot.docs.forEach((codeDoc) => {
-        const codeData = codeDoc.data();
-        existingIds.add(codeDoc.id);
-        if (codeData.id) existingIds.add(codeData.id);
-      });
-
-      const missingDefaults = defaultCodes.filter((defaultCode) => (
-        !existingIds.has(defaultCode.docId) && !existingIds.has(defaultCode.id)
-      ));
-
-      if (missingDefaults.length === 0) {
-        return { success: true, createdCount: 0 };
-      }
-
-      const batch = writeBatch(db);
-      missingDefaults.forEach((defaultCode) => {
-        const { docId, ...codeData } = defaultCode;
-        const codeDocRef = doc(db, `projects/${this.projectId}/codes`, docId);
-
-        batch.set(codeDocRef, {
-          ...codeData,
-          createdBy: userId,
-          createdAt: new Date()
-        });
-      });
-
-      await batch.commit();
-      return { success: true, createdCount: missingDefaults.length };
-    } catch (error) {
-      console.error('Error ensuring default codes:', error);
-      return { success: false, error };
-    }
-  }
-
   // Add a new code
   async addCode(codeData, userId, skipHistory = false) {
     try {
