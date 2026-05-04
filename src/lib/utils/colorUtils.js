@@ -65,6 +65,11 @@ export const getAvailableColor = async (projectId) => {
  * @returns {string} RGBA color string
  */
 export const hexToRgba = (hex, opacity) => {
+  // Accept "#rrggbb" only; fall back to neutral grey on malformed input so
+  // downstream styles don't render "rgba(NaN, NaN, NaN, ...)".
+  if (typeof hex !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(hex)) {
+    return `rgba(0, 0, 0, ${opacity})`;
+  }
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);

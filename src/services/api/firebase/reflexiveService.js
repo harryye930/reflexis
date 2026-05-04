@@ -1,4 +1,4 @@
-import { collection, onSnapshot, addDoc, deleteDoc, doc, query, where, orderBy, updateDoc } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, deleteDoc, doc, query, where, orderBy, updateDoc, getDocs } from 'firebase/firestore';
 import { db } from '../../../lib/firebase.js';
 
 export class ReflexiveService {
@@ -71,15 +71,13 @@ export class ReflexiveService {
     try {
       const responsesCollection = collection(db, `projects/${this.projectId}/reflexive_responses`);
       const responsesQuery = query(
-        responsesCollection, 
+        responsesCollection,
         where('documentId', '==', documentId),
         orderBy('createdAt', 'desc')
       );
-      
-      return onSnapshot(responsesQuery, (snapshot) => {
-        const responsesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        return responsesData;
-      });
+
+      const snapshot = await getDocs(responsesQuery);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
       console.error("Error getting document reflexive responses: ", error);
       return { success: false, error };
@@ -91,15 +89,13 @@ export class ReflexiveService {
     try {
       const responsesCollection = collection(db, `projects/${this.projectId}/reflexive_responses`);
       const responsesQuery = query(
-        responsesCollection, 
+        responsesCollection,
         where('userId', '==', userId),
         orderBy('createdAt', 'desc')
       );
-      
-      return onSnapshot(responsesQuery, (snapshot) => {
-        const responsesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        return responsesData;
-      });
+
+      const snapshot = await getDocs(responsesQuery);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
       console.error("Error getting user reflexive responses: ", error);
       return { success: false, error };

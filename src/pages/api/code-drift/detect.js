@@ -29,7 +29,7 @@ export default async function handler(req, res) {
   if (!(await requireFirebaseAuth(req, res))) return;
 
   try {
-  const { codeName, codeDefinition, existingExamples, newPassage, context } = req.body;
+  const { codeName, codeDefinition, existingExamples, newPassage, context } = req.body || {};
 
     // Validate required fields
   if (!codeName || !codeDefinition || !existingExamples || !newPassage || !context) {

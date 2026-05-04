@@ -13,14 +13,14 @@ export default async function handler(req, res) {
   if (!(await requireFirebaseAuth(req, res))) return;
 
   try {
-    const { 
-      codedText, 
-      context, 
-      codes, 
+    const {
+      codedText,
+      context,
+      codes,
       codeDefinitions,
       researchers,
-      documentTitle 
-    } = req.body;
+      documentTitle
+    } = req.body || {};
 
     if (!codedText || !context || !codes || !researchers || codes.length < 2 || researchers.length < 2) {
       return res.status(400).json({ 

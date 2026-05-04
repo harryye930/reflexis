@@ -13,7 +13,7 @@ export default async function handler(req, res) {
   if (!(await requireFirebaseAuth(req, res))) return;
 
   try {
-    const { responses, userId } = req.body;
+    const { responses, userId } = req.body || {};
 
     if (!responses || !Array.isArray(responses) || responses.length === 0) {
       return res.status(400).json({ error: 'No reflexive responses provided' });
