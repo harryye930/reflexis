@@ -75,7 +75,7 @@ If you use Reflexis in research, please cite:
 
 ```bibtex
 @inproceedings{ye2026reflexis,
-  title={Reflexis: Supporting Reflexivity and Rigor in Collaborative Qualitative Analysis though Design for Deliberation},
+  title={Reflexis: Supporting Reflexivity and Rigour in Collaborative Qualitative Analysis through Design for Deliberation},
   author={Ye, Runlong and Huang, Oliver and Yung Kang Lee, Patrick and Liut, Michael and Nobre, Carolina and Kong, Ha-Kyung},
   booktitle={Proceedings of the 2026 CHI Conference on Human Factors in Computing Systems},
   pages={1--31},
