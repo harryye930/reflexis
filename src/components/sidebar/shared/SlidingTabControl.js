@@ -10,7 +10,7 @@ const SlidingTabControl = ({ activeTab, onTabChange }) => {
     },
     { 
       id: 'admin', 
-      label: 'Admin',
+      label: 'Settings',
   icon: (<AdminPanelSettings sx={{ fontSize: 16 }} />)
     }
   ], []);

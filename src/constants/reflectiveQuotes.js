@@ -6,44 +6,44 @@
 
 export const REFLECTIVE_QUOTES = [
   {
-    text: 'Themes are constructed by the researcher; they do not emerge from data.',
-    source: 'Braun & Clarke, 2019'
+    text: 'Themes are generated, created or constructed… they don’t just “emerge” from data.',
+    source: 'Braun & Clarke, 2022'
   },
   {
-    text: 'There is no neutral place from which to read a transcript.',
+    text: 'We are part of the world we study and the data we collect.',
     source: 'Charmaz, 2006'
   },
   {
-    text: 'Reflexivity is a continual internal dialogue with one’s positionality.',
+    text: 'Reflexivity [is] a continual internal dialogue… of researcher’s positionality.',
     source: 'Berger, 2015'
   },
   {
-    text: 'What we notice tells us as much about ourselves as about the data.',
+    text: 'Researchers negotiate the swamp of… self analysis and self disclosure.',
     source: 'Finlay, 2002'
   },
   {
-    text: 'Coding is not mechanical labelling. It is an interpretive choice.',
-    source: 'Saldaña, 2021'
+    text: 'Coding is not a precise science; it’s primarily an interpretive act.',
+    source: 'Saldaña, 2016'
   },
   {
-    text: 'Slow down. Your first reading is rarely your most honest one.',
-    source: 'Practitioner note'
+    text: 'Themes do not reside in the data waiting to be found.',
+    source: 'Byrne, 2022'
   },
   {
-    text: 'Take seriously how participants account for their own lives.',
-    source: 'Riessman, 2008'
+    text: 'The researcher plays an active role in interpreting codes and themes.',
+    source: 'Byrne, 2022'
   },
   {
-    text: 'Trustworthiness comes from transparency, not claims of objectivity.',
+    text: 'Persuade audiences that the findings of an inquiry are worth paying attention to.',
     source: 'Lincoln & Guba, 1985'
   },
   {
-    text: 'Disagreement between coders is data — it points to contested meaning.',
-    source: 'Reflexis team note'
+    text: 'Feminist objectivity means quite simply situated knowledges.',
+    source: 'Haraway, 1988'
   },
   {
-    text: 'Begin with what surprises you, not with what confirms your hypothesis.',
-    source: 'Glaser & Strauss, 1967'
+    text: 'Researcher subjectivity as a resource for research.',
+    source: 'Braun & Clarke, 2024'
   }
 ];
 
