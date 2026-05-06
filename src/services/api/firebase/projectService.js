@@ -484,12 +484,20 @@ export class ProjectService {
     try {
       const projectRef = doc(db, 'projects', projectId);
 
-      const [projectSnapshot, membersSnapshot, codesSnapshot, highlightsSnapshot, documentsSnapshot] = await Promise.all([
+      const [
+        projectSnapshot,
+        membersSnapshot,
+        codesSnapshot,
+        highlightsSnapshot,
+        documentsSnapshot,
+        reflexiveResponsesSnapshot
+      ] = await Promise.all([
         getDoc(projectRef),
         getDocs(collection(projectRef, 'members')),
         getDocs(collection(projectRef, 'codes')),
         getDocs(collection(projectRef, 'highlights')),
-        getDocs(collection(projectRef, 'documents'))
+        getDocs(collection(projectRef, 'documents')),
+        getDocs(collection(projectRef, 'reflexive_responses'))
       ]);
 
       if (!projectSnapshot.exists()) {
@@ -541,6 +549,11 @@ export class ProjectService {
         ...(highlightDoc.data() || {})
       }));
 
+      const reflexiveResponses = reflexiveResponsesSnapshot.docs.map((responseDoc) => ({
+        id: responseDoc.id,
+        ...(responseDoc.data() || {})
+      }));
+
       return {
         success: true,
         data: {
@@ -554,7 +567,8 @@ export class ProjectService {
           codeLookup,
           documents: Array.from(documentLookup.entries()).map(([id, info]) => ({ id, ...info })),
           documentLookup,
-          highlights
+          highlights,
+          reflexiveResponses
         }
       };
     } catch (error) {
