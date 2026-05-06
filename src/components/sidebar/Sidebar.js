@@ -39,6 +39,7 @@ const Sidebar = ({
   onToggleHiddenUser,
   // Navigation props
   onNavigateToHighlight,
+  onOpenProjectHistory,
   // Disagreement analysis props
   getCodeDisagreement,
   activeTab: controlledActiveTab,
@@ -130,6 +131,7 @@ const Sidebar = ({
             onBackToAllCodes={handleBackToAllCodes}
             onUpdateCodeInLivingCodebook={handleUpdateCodeInLivingCodebook}
             onNavigateToHighlight={onNavigateToHighlight}
+            onOpenProjectHistory={onOpenProjectHistory}
             getCodeDisagreement={getCodeDisagreement}
             showCodeDetails={showCodeDetails}
             disableLlm={disableLlm}

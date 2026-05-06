@@ -22,7 +22,8 @@ import DocumentBrowser from './document/DocumentBrowser.js';
 import Sidebar from './sidebar/Sidebar.js';
 import DocumentHeader from './document/DocumentHeader.js';
 import CodeDriftModal from './code-drift/CodeDriftModal.js';
-import ReflectiveQuoteTicker from './common/ReflectiveQuoteTicker.js';
+import ProjectCodeHistoryGraph from './project/ProjectCodeHistoryGraph.js';
+import ProjectWorkspaceHeader from './project/ProjectWorkspaceHeader.js';
 
 const ACTIVE_COLLABORATOR_WINDOW_MS = 90 * 1000;
 const ACTIVE_COLLABORATOR_REFRESH_MS = 30 * 1000;
@@ -114,6 +115,7 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
   const [reminderHiddenForSession, setReminderHiddenForSession] = useState(false);
   const [dismissingInitialViewReminder, setDismissingInitialViewReminder] = useState(false);
   const [activeCollaboratorNow, setActiveCollaboratorNow] = useState(() => Date.now());
+  const [showProjectHistoryGraph, setShowProjectHistoryGraph] = useState(false);
   
   // Custom hooks for UI management
   const { message, showMessage } = useMessageHandler();
@@ -266,6 +268,7 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
       initial: getProfileInitial(profile.name)
     }));
   }, [activeCollaboratorNow, currentUser?.uid, userProfiles]);
+
   const currentInitialDataView = getProjectInitialDataView(currentUserProfile);
   const shouldShowInitialDataViewReminder = Boolean(
     currentUserProfile
@@ -283,7 +286,20 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
     setProfileEditRequestId(0);
     setReminderHiddenForSession(false);
     setDismissingInitialViewReminder(false);
+    setShowProjectHistoryGraph(false);
   }, [projectId]);
+
+  if (showProjectHistoryGraph) {
+    return (
+      <ProjectCodeHistoryGraph
+        projectId={projectId}
+        projectName={project?.name || 'Project'}
+        activeCollaborators={activeCollaborators}
+        onBack={() => setShowProjectHistoryGraph(false)}
+        onSignOut={onSignOut}
+      />
+    );
+  }
 
   const handleOpenProjectProfile = () => {
     setSidebarActiveTab('admin');
@@ -307,48 +323,15 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
 
   return (
     <div className="flex h-screen pt-12">
-      <header className="fixed top-0 left-0 right-0 h-12 bg-white border-b border-gray-200 z-50 flex items-center px-4 gap-4">
-        <div className="flex items-center gap-3 flex-shrink-0">
-          <button
-            type="button"
-            onClick={onBackToProjects}
-            className="px-3 py-1.5 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
-          >
-            Projects
-          </button>
-          <div>
-            <div className="text-sm font-semibold text-gray-900">{project?.name}</div>
-            <div className="text-xs text-gray-500">Collaborative analysis</div>
-          </div>
-        </div>
-        <ReflectiveQuoteTicker seedKey={projectId || ''} />
-        <div
-          className="flex flex-shrink-0 items-center"
-          aria-label="Active collaborators"
-        >
-          {activeCollaborators.map((collaborator, index) => (
-            <span
-              key={collaborator.userId}
-              title={collaborator.name}
-              className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white text-sm font-semibold text-white shadow-sm"
-              style={{
-                backgroundColor: collaborator.color,
-                marginLeft: index === 0 ? 0 : -8,
-                zIndex: activeCollaborators.length - index
-              }}
-            >
-              {collaborator.initial}
-            </span>
-          ))}
-        </div>
-        <button
-          type="button"
-          onClick={onSignOut}
-          className="px-3 py-1.5 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 flex-shrink-0"
-        >
-          Sign Out
-        </button>
-      </header>
+      <ProjectWorkspaceHeader
+        projectId={projectId}
+        projectName={project?.name || 'Project'}
+        subtitle="Collaborative analysis"
+        leftButtonLabel="Projects"
+        onLeftButtonClick={onBackToProjects}
+        activeCollaborators={activeCollaborators}
+        onSignOut={onSignOut}
+      />
       {/* Document Browser - Left Panel */}
       <div className="w-80 flex-shrink-0">
         <DocumentBrowser
@@ -451,6 +434,7 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
           hiddenUserIds={hiddenUserIds}
           onToggleHiddenUser={toggleHiddenUser}
           onNavigateToHighlight={handleNavigateToHighlight}
+          onOpenProjectHistory={() => setShowProjectHistoryGraph(true)}
           getCodeDisagreement={getCodeDisagreement}
           activeTab={sidebarActiveTab}
           onActiveTabChange={setSidebarActiveTab}

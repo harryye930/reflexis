@@ -20,6 +20,7 @@ const LivingCodebook = ({
   onDeleteHighlightsByCode,
   onUpdateCodeInLivingCodebook,
   onNavigateToHighlight,
+  onOpenProjectHistory,
   getCodeDisagreement = null, // New prop for disagreement data
   showCodeDetails = true, // New prop for showing/hiding code details
   disableLlm = false
@@ -232,6 +233,7 @@ const LivingCodebook = ({
             userProfiles={userProfiles} 
             history={codeHistory}
             loading={historyLoading}
+            onOpenProjectHistory={onOpenProjectHistory}
           />
         );
       default:

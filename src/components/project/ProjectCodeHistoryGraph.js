@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback, useContext, createContext } from 'react';
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
-import { FirebaseServiceFactory } from '../services/api/firebase/index.js';
+import ProjectWorkspaceHeader from './ProjectWorkspaceHeader.js';
+import { FirebaseServiceFactory } from '../../services/api/firebase/index.js';
 import 'reactflow/dist/style.css';
 import { applyNodeChanges, applyEdgeChanges } from 'reactflow';
 
@@ -306,9 +305,13 @@ function buildGraph(historyEntries, codesMap) {
   return { nodes, edges };
 }
 
-export default function CodeHistoryGraphPage() {
-  const router = useRouter();
-  const projectId = typeof router.query.projectId === 'string' ? router.query.projectId : '';
+export default function ProjectCodeHistoryGraph({
+  projectId,
+  projectName = 'Project',
+  activeCollaborators = [],
+  onBack,
+  onSignOut
+}) {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -317,8 +320,6 @@ export default function CodeHistoryGraphPage() {
   const [edges, setEdges] = useState([]);
 
   useEffect(() => {
-    if (!router.isReady) return undefined;
-
     if (!projectId) {
       setHistory([]);
       setCodesMap(new Map());
@@ -373,7 +374,7 @@ export default function CodeHistoryGraphPage() {
       unsub?.();
       unsubCodes?.();
     };
-  }, [router.isReady, projectId]);
+  }, [projectId]);
 
   const graph = useMemo(() => buildGraph(history, codesMap), [history, codesMap]);
 
@@ -404,21 +405,27 @@ export default function CodeHistoryGraphPage() {
   }, []);
 
   return (
-    <div className="h-screen w-screen">
-      <div className="flex items-center justify-between px-4 py-2 border-b">
-        <div className="flex items-center gap-2">
-          <Link href="/" className="text-sm text-blue-600 hover:underline">Home</Link>
-          <span className="text-gray-400">/</span>
-          <span className="font-semibold">Code History Graph</span>
-        </div>
-        <div className="text-xs text-gray-500">Events: {history.length}</div>
-      </div>
-      {loading ? (
-        <div className="p-6 text-gray-600">Loading history…</div>
-      ) : error ? (
-        <div className="p-6 text-red-600">{error}</div>
-      ) : (
-        <div className="h-[calc(100vh-48px)]">
+    <div className="h-screen w-screen bg-slate-50 pt-12">
+      <ProjectWorkspaceHeader
+        projectId={projectId}
+        projectName={projectName || 'Project'}
+        subtitle="Code history graph"
+        leftButtonLabel="Project Home"
+        onLeftButtonClick={onBack}
+        activeCollaborators={activeCollaborators}
+        rightContent={(
+          <div className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 flex-shrink-0">
+            <span className="font-semibold text-gray-900">{history.length}</span> Events
+          </div>
+        )}
+        onSignOut={onSignOut}
+      />
+      <div className="h-full">
+        {loading ? (
+          <div className="p-6 text-gray-600">Loading history...</div>
+        ) : error ? (
+          <div className="p-6 text-red-600">{error}</div>
+        ) : (
           <ZoomAwareFlow
             nodes={nodes}
             edges={edges}
@@ -426,8 +433,8 @@ export default function CodeHistoryGraphPage() {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
           />
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

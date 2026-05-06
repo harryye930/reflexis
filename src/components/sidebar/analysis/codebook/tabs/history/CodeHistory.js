@@ -1,13 +1,6 @@
 import React from 'react';
-import Link from 'next/link';
-import { BarChart, Warning, Delete, History, GpsFixed, Edit, Label, EmojiEvents, MergeType, CallSplit } from '@mui/icons-material';
+import { BarChart, Warning, Delete, History, GpsFixed, Edit, Label, MergeType, CallSplit } from '@mui/icons-material';
 import CodeChip from '../../../../../common/CodeChip.js';
-
-const getCodeHistoryGraphHref = (projectId) => (
-  projectId
-    ? { pathname: '/code-history-graph', query: { projectId } }
-    : '/code-history-graph'
-);
 
 // Error Boundary Component
 class CodeHistoryErrorBoundary extends React.Component {
@@ -26,8 +19,6 @@ class CodeHistoryErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
-      const graphHref = getCodeHistoryGraphHref(this.props.projectId);
-
       return (
         <div className="p-6">
           <div className="mb-6">
@@ -35,13 +26,14 @@ class CodeHistoryErrorBoundary extends React.Component {
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Code History</h3>
               </div>
-              <Link
-                href={graphHref}
+              <button
+                type="button"
+                onClick={this.props.onOpenProjectHistory}
                 className="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 ml-4"
               >
                 <BarChart sx={{ fontSize: 16, marginRight: 1 }} />
                 Full History Graph
-              </Link>
+              </button>
             </div>
           </div>
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -67,9 +59,7 @@ class CodeHistoryErrorBoundary extends React.Component {
   }
 }
 
-const CodeHistory = ({ projectId, code, userProfiles, history = [], loading = false }) => {
-  const graphHref = getCodeHistoryGraphHref(projectId);
-
+const CodeHistory = ({ code, userProfiles, history = [], loading = false, onOpenProjectHistory }) => {
   // Remove internal state management since data is now passed as props
   // const [history, setHistory] = useState([]);
   // const [loading, setLoading] = useState(true);
@@ -137,8 +127,6 @@ const CodeHistory = ({ projectId, code, userProfiles, history = [], loading = fa
         return <Delete sx={{ fontSize: 16 }} />;
       case 'apply':
         return <Label sx={{ fontSize: 16 }} />;
-      case 'usage-milestone':
-        return <EmojiEvents sx={{ fontSize: 16 }} />;
       case 'merge':
         return <MergeType sx={{ fontSize: 16 }} />;
       case 'merge_and_delete':
@@ -162,8 +150,6 @@ const CodeHistory = ({ projectId, code, userProfiles, history = [], loading = fa
         return 'bg-red-100 text-red-800';
   case 'apply':
         return 'bg-purple-100 text-purple-800';
-      case 'usage-milestone':
-        return 'bg-yellow-100 text-yellow-800';
   case 'merge':
         return 'bg-orange-100 text-orange-800';
       case 'merge_and_delete':
@@ -408,6 +394,14 @@ const CodeHistory = ({ projectId, code, userProfiles, history = [], loading = fa
     }
   };
 
+  const getColorClass = (colorChange, fallback) => (
+    typeof colorChange === 'string' ? colorChange : colorChange?.bg || fallback
+  );
+
+  const getTextColorClass = (colorChange, fallback) => (
+    typeof colorChange === 'string' ? fallback : colorChange?.text || fallback
+  );
+
   const renderEventChanges = (event) => {
     if (!event || !event.changes) return null;
 
@@ -424,8 +418,8 @@ const CodeHistory = ({ projectId, code, userProfiles, history = [], loading = fa
                     <CodeChip 
                       code={{
                         label: event.changes.label.from,
-                        color: event.changes.color?.from || code.color,
-                        textColor: event.changes.textColor?.from || code.textColor
+                        color: getColorClass(event.changes.color?.from, code.color),
+                        textColor: getTextColorClass(event.changes.color?.from, code.textColor)
                       }}
                       size="md"
                     />
@@ -437,8 +431,8 @@ const CodeHistory = ({ projectId, code, userProfiles, history = [], loading = fa
                     <CodeChip 
                       code={{
                         label: event.changes.label.to,
-                        color: event.changes.color?.to || code.color,
-                        textColor: event.changes.textColor?.to || code.textColor
+                        color: getColorClass(event.changes.color?.to, code.color),
+                        textColor: getTextColorClass(event.changes.color?.to, code.textColor)
                       }}
                       size="md"
                     />
@@ -463,36 +457,16 @@ const CodeHistory = ({ projectId, code, userProfiles, history = [], loading = fa
                 <span className="text-xs font-medium text-purple-600">Color Theme Changed</span>
                 <div className="mt-1 flex items-center gap-2">
                   <span className="text-xs text-gray-600">From:</span>
-                  <span className={`inline-flex px-2 py-1 rounded text-xs ${event.changes.color.from} ${event.changes.textColor?.from}`}>
+                  <span className={`inline-flex px-2 py-1 rounded text-xs ${getColorClass(event.changes.color.from, code.color)} ${getTextColorClass(event.changes.color.from, code.textColor)}`}>
                     Sample
                   </span>
                   <span className="text-xs text-gray-600">To:</span>
-                  <span className={`inline-flex px-2 py-1 rounded text-xs ${event.changes.color.to} ${event.changes.textColor?.to}`}>
+                  <span className={`inline-flex px-2 py-1 rounded text-xs ${getColorClass(event.changes.color.to, code.color)} ${getTextColorClass(event.changes.color.to, code.textColor)}`}>
                     Sample
                   </span>
                 </div>
               </div>
             )}
-          </div>
-        );
-      
-      case 'usage-milestone':
-        return (
-          <div className="mt-3 p-3 bg-gray-50 rounded-md">
-            <div className="space-y-2">
-              <div>
-                <span className="text-xs font-medium text-yellow-600">Milestone Achieved:</span>
-                <p className="text-xs text-gray-700 mt-1 font-medium">
-                  {event.changes.milestone} across {event.changes.documentCount} documents
-                </p>
-              </div>
-              <div>
-                <span className="text-xs font-medium text-yellow-600">Code:</span>
-                <div className="mt-1">
-                  <CodeChip code={code} size="md" />
-                </div>
-              </div>
-            </div>
           </div>
         );
       
@@ -659,13 +633,14 @@ const CodeHistory = ({ projectId, code, userProfiles, history = [], loading = fa
                 Complete audit trail of how this code has evolved.
               </p>
             </div>
-            <Link
-              href={graphHref}
+            <button
+              type="button"
+              onClick={onOpenProjectHistory}
               className="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 ml-4"
             >
               <BarChart sx={{ fontSize: 16, marginRight: 1 }} />
               Full History Graph
-            </Link>
+            </button>
           </div>
           <p className="text-xs text-gray-500 mb-4">Chronological, connected view of code evolution (merge/split included).</p>
         </div>
@@ -688,13 +663,14 @@ const CodeHistory = ({ projectId, code, userProfiles, history = [], loading = fa
               Complete audit trail of how this code has evolved.
             </p>
           </div>
-          <Link
-            href={graphHref}
+          <button
+            type="button"
+            onClick={onOpenProjectHistory}
             className="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 ml-4"
           >
             <BarChart sx={{ fontSize: 16, marginRight: 1 }} />
             Full History Graph
-          </Link>
+          </button>
         </div>
         <p className="text-xs text-gray-500 mb-4">Chronological, connected view of code evolution (merge/split included).</p>
         
@@ -820,7 +796,7 @@ const CodeHistory = ({ projectId, code, userProfiles, history = [], loading = fa
 
 export default function CodeHistoryWrapper(props) {
   return (
-    <CodeHistoryErrorBoundary projectId={props.projectId}>
+    <CodeHistoryErrorBoundary onOpenProjectHistory={props.onOpenProjectHistory}>
       <CodeHistory {...props} />
     </CodeHistoryErrorBoundary>
   );

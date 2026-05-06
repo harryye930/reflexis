@@ -198,33 +198,6 @@ export class CodeHistoryService {
     });
   }
 
-  // Record usage milestones
-  async recordUsageMilestone(codeId, codeLabel, count, documentCount) {
-    let milestone = '';
-    if (count === 10) milestone = '10 applications';
-    else if (count === 25) milestone = '25 applications';
-    else if (count === 50) milestone = '50 applications';
-    else if (count === 100) milestone = '100 applications';
-    else if (count % 100 === 0) milestone = `${count} applications`;
-    
-    if (milestone) {
-      return await this.addHistoryEntry({
-        codeId,
-        type: 'usage-milestone',
-        userId: 'system',
-        user: 'System',
-        description: `Code "${codeLabel}" reached ${milestone} across ${documentCount} documents`,
-        changes: {
-          milestone,
-          count,
-          documentCount
-        }
-      });
-    }
-    
-    return { success: true };
-  }
-
   // Get code history for a specific code
   async getCodeHistory(codeId) {
     try {
@@ -241,44 +214,6 @@ export class CodeHistoryService {
       return { success: true, data: historyData };
     } catch (error) {
       console.error("Error getting code history: ", error);
-      return { success: false, error };
-    }
-  }
-
-  // Get usage statistics for a code
-  async getCodeUsageStats(codeId) {
-    try {
-      // Get all application entries for this code
-      const historyCollection = collection(db, `projects/${this.projectId}/code_history`);
-      const usageQuery = query(
-        historyCollection,
-        where('codeId', '==', codeId),
-  where('type', '==', 'apply'),
-        orderBy('timestamp', 'desc')
-      );
-      
-      const snapshot = await getDocs(usageQuery);
-      const applications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
-      // Calculate stats
-      const totalApplications = applications.length;
-      const uniqueDocuments = new Set(applications.map(app => app.changes?.documentId)).size;
-      const uniqueUsers = new Set(applications.map(app => app.userId)).size;
-      const firstUsed = applications.length > 0 ? applications[applications.length - 1].timestamp : null;
-      const lastUsed = applications.length > 0 ? applications[0].timestamp : null;
-      
-      return {
-        success: true,
-        data: {
-          totalApplications,
-          uniqueDocuments,
-          uniqueUsers,
-          firstUsed,
-          lastUsed
-        }
-      };
-    } catch (error) {
-      console.error("Error getting code usage stats: ", error);
       return { success: false, error };
     }
   }

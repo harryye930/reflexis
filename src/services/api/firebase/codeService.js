@@ -129,23 +129,6 @@ export class CodeService {
   async recordCodeApplication(codeId, codeLabel, documentId, documentTitle, userId) {
     try {
       await this.historyService.recordCodeApplication(codeId, codeLabel, documentId, documentTitle, userId);
-      
-      // Check for usage milestones - make this optional in case indexes are not ready
-      try {
-        const usageStats = await this.historyService.getCodeUsageStats(codeId);
-        if (usageStats.success) {
-          await this.historyService.recordUsageMilestone(
-            codeId, 
-            codeLabel, 
-            usageStats.data.totalApplications, 
-            usageStats.data.uniqueDocuments
-          );
-        }
-      } catch (statsError) {
-        console.warn('Usage stats check failed (indexes may still be building):', statsError);
-        // Continue without milestone tracking for now
-      }
-      
       return { success: true };
     } catch (error) {
       console.error("Error recording code application: ", error);
@@ -156,11 +139,6 @@ export class CodeService {
   // Get code history
   async getCodeHistory(codeId) {
     return await this.historyService.getCodeHistory(codeId);
-  }
-
-  // Get code usage statistics
-  async getCodeUsageStats(codeId) {
-    return await this.historyService.getCodeUsageStats(codeId);
   }
 
   // Listen to code history

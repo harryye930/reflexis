@@ -24,6 +24,7 @@ const AnalysisTab = ({
   onBackToAllCodes,
   onUpdateCodeInLivingCodebook,
   onNavigateToHighlight,
+  onOpenProjectHistory,
   getCodeDisagreement, // New prop for disagreement data
   showCodeDetails, // New prop for showing/hiding code details
   disableLlm = false
@@ -45,6 +46,7 @@ const AnalysisTab = ({
           onDeleteHighlightsByCode={onDeleteHighlightsByCode}
           onUpdateCodeInLivingCodebook={onUpdateCodeInLivingCodebook}
           onNavigateToHighlight={onNavigateToHighlight}
+          onOpenProjectHistory={onOpenProjectHistory}
           getCodeDisagreement={getCodeDisagreement}
           showCodeDetails={showCodeDetails}
           disableLlm={disableLlm}
