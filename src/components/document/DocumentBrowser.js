@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
+import { normalizeTextFileContent } from '../../lib/utils/textFileUtils.js';
+
+const MAX_CONTENT_LENGTH = 10000;
 
 const DocumentBrowser = ({
   documents,
@@ -13,6 +16,38 @@ const DocumentBrowser = ({
   const [showAddForm, setShowAddForm] = useState(false);
   const [newDocForm, setNewDocForm] = useState({ title: '', description: '', content: '' });
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    const isTxt = file.type === 'text/plain' || /\.txt$/i.test(file.name);
+    if (!isTxt) {
+      onMessage('Only .txt files are supported.', true);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const raw = typeof reader.result === 'string' ? reader.result : '';
+      // Normalize CRLF/CR to LF so highlight offsets stay consistent across platforms.
+      const content = normalizeTextFileContent(raw);
+      if (content.length > MAX_CONTENT_LENGTH) {
+        onMessage(`File exceeds the ${MAX_CONTENT_LENGTH.toLocaleString()} character limit.`, true);
+        return;
+      }
+      const baseName = file.name.replace(/\.txt$/i, '').slice(0, 100);
+      setNewDocForm((prev) => ({
+        ...prev,
+        title: prev.title.trim() ? prev.title : baseName,
+        content
+      }));
+    };
+    reader.onerror = () => onMessage('Could not read the file.', true);
+    reader.readAsText(file);
+  };
 
   const handleAddDocument = async (e) => {
     e.preventDefault();
@@ -119,19 +154,36 @@ const DocumentBrowser = ({
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Content *
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-medium text-gray-700">
+                  Content *
+                </label>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-xs font-medium text-blue-600 hover:text-blue-800 focus:outline-none"
+                  title="Upload a .txt file (processed locally, file is not stored)"
+                >
+                  Upload .txt
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".txt,text/plain"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </div>
               <textarea
                 value={newDocForm.content}
                 onChange={(e) => setNewDocForm((prev) => ({ ...prev, content: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                placeholder="Paste or type the text to analyze..."
+                placeholder="Paste or type the text to analyze, or upload a .txt file..."
                 rows={4}
-                maxLength={10000}
+                maxLength={MAX_CONTENT_LENGTH}
               />
               <div className="text-xs text-gray-500 mt-1">
-                {newDocForm.content.length}/10,000 characters
+                {newDocForm.content.length.toLocaleString()}/{MAX_CONTENT_LENGTH.toLocaleString()} characters
               </div>
             </div>
             <div className="flex space-x-2">

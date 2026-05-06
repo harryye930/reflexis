@@ -9,7 +9,21 @@ const DEFAULT_PREFERENCES = {
   disableCodeDriftDetection: false,
   disableLlm: false,
   showCodeDetails: true,
-  hideSameCodeHighlights: false
+  hideSameCodeHighlights: false,
+  hiddenUserIds: []
+};
+
+const sanitizeHiddenUserIds = (value) => {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set();
+  const result = [];
+  for (const id of value) {
+    if (typeof id === 'string' && id && !seen.has(id)) {
+      seen.add(id);
+      result.push(id);
+    }
+  }
+  return result;
 };
 
 const normalizePreferenceValue = (preferences = {}) => ({
@@ -20,7 +34,8 @@ const normalizePreferenceValue = (preferences = {}) => ({
   disableCodeDriftDetection: preferences.disableCodeDriftDetection ?? DEFAULT_PREFERENCES.disableCodeDriftDetection,
   disableLlm: preferences.disableLlm ?? DEFAULT_PREFERENCES.disableLlm,
   showCodeDetails: preferences.showCodeDetails ?? DEFAULT_PREFERENCES.showCodeDetails,
-  hideSameCodeHighlights: preferences.hideSameCodeHighlights ?? DEFAULT_PREFERENCES.hideSameCodeHighlights
+  hideSameCodeHighlights: preferences.hideSameCodeHighlights ?? DEFAULT_PREFERENCES.hideSameCodeHighlights,
+  hiddenUserIds: sanitizeHiddenUserIds(preferences.hiddenUserIds)
 });
 
 const getStoredPreferences = (appId) => {
@@ -41,7 +56,8 @@ const getStoredPreferences = (appId) => {
       disableCodeDriftDetection: prefs.disableCodeDriftDetection,
       disableLlm: prefs.disableLlm,
       showCodeDetails: prefs.showCodeDetails,
-      hideSameCodeHighlights: prefs.hideSameCodeHighlights
+      hideSameCodeHighlights: prefs.hideSameCodeHighlights,
+      hiddenUserIds: prefs.hiddenUserIds
     });
   } catch (error) {
     console.warn('Error reading stored preferences:', error);
@@ -58,6 +74,8 @@ export const useHoverPreferences = (appId, currentUser = null) => {
   const [showCodeDetails, setShowCodeDetails] = useState(true);
   // When true: hide highlights where all overlapping codings use the same code
   const [hideSameCodeHighlights, setHideSameCodeHighlights] = useState(false);
+  // List of collaborator user IDs whose highlights are currently hidden
+  const [hiddenUserIds, setHiddenUserIds] = useState([]);
 
   const currentPreferences = {
     showHoverTooltips,
@@ -66,7 +84,8 @@ export const useHoverPreferences = (appId, currentUser = null) => {
     disableCodeDriftDetection,
     disableLlm,
     showCodeDetails,
-    hideSameCodeHighlights
+    hideSameCodeHighlights,
+    hiddenUserIds
   };
 
   const applyPreferences = (preferences) => {
@@ -78,6 +97,7 @@ export const useHoverPreferences = (appId, currentUser = null) => {
     setDisableLlm(normalized.disableLlm);
     setShowCodeDetails(normalized.showCodeDetails);
     setHideSameCodeHighlights(normalized.hideSameCodeHighlights);
+    setHiddenUserIds(normalized.hiddenUserIds);
   };
 
   // Load preferences from localStorage on mount
@@ -137,10 +157,11 @@ export const useHoverPreferences = (appId, currentUser = null) => {
       disableLlm,
       showCodeDetails,
       hideSameCodeHighlights,
+      hiddenUserIds,
       preferencesVersion: 2
     };
     localStorage.setItem(`hoverPrefs_${appId}`, JSON.stringify(prefs));
-  }, [appId, showHoverTooltips, showAuthor, disableHighlightManagement, disableCodeDriftDetection, disableLlm, showCodeDetails, hideSameCodeHighlights]);
+  }, [appId, showHoverTooltips, showAuthor, disableHighlightManagement, disableCodeDriftDetection, disableLlm, showCodeDetails, hideSameCodeHighlights, hiddenUserIds]);
 
   const savePreferences = (updates) => {
     const previousPreferences = currentPreferences;
@@ -192,6 +213,15 @@ export const useHoverPreferences = (appId, currentUser = null) => {
     savePreferences({ hideSameCodeHighlights: !hideSameCodeHighlights });
   };
 
+  const toggleHiddenUser = (userId) => {
+    if (!userId) return;
+    const isHidden = hiddenUserIds.includes(userId);
+    const next = isHidden
+      ? hiddenUserIds.filter((id) => id !== userId)
+      : [...hiddenUserIds, userId];
+    savePreferences({ hiddenUserIds: next });
+  };
+
   return {
     showHoverTooltips,
     showAuthorInfo: showAuthor, // Export with correct logic
@@ -206,6 +236,8 @@ export const useHoverPreferences = (appId, currentUser = null) => {
     showCodeDetails,
   toggleShowCodeDetails,
   hideSameCodeHighlights,
-  toggleHideSameCodeHighlights
+  toggleHideSameCodeHighlights,
+  hiddenUserIds,
+  toggleHiddenUser
   };
 };

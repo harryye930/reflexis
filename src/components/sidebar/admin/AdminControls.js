@@ -39,7 +39,7 @@ const AdminControls = ({
         />
       </div>
       <div className="text-xs text-gray-500 pt-4 border-t border-gray-200">
-        Project reset, project deletion, and invitation key resets are available to project owners from the project dashboard.
+        Owner-only project actions such as reset, deletion, and invitation key resets are available from the project dashboard.
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Category, AdminPanelSettings } from '@mui/icons-material';
+import { Category, Tune } from '@mui/icons-material';
 
 const SlidingTabControl = ({ activeTab, onTabChange }) => {
   const tabs = useMemo(() => [
@@ -11,7 +11,7 @@ const SlidingTabControl = ({ activeTab, onTabChange }) => {
     { 
       id: 'admin', 
       label: 'Settings',
-  icon: (<AdminPanelSettings sx={{ fontSize: 16 }} />)
+  icon: (<Tune sx={{ fontSize: 16 }} />)
     }
   ], []);
 

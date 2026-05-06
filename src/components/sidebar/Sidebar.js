@@ -35,6 +35,8 @@ const Sidebar = ({
   onToggleShowCodeDetails,
   hideSameCodeHighlights,
   onToggleHideSameCodeHighlights,
+  hiddenUserIds,
+  onToggleHiddenUser,
   // Navigation props
   onNavigateToHighlight,
   // Disagreement analysis props
@@ -155,6 +157,8 @@ const Sidebar = ({
             onToggleShowCodeDetails={onToggleShowCodeDetails}
             hideSameCodeHighlights={hideSameCodeHighlights}
             onToggleHideSameCodeHighlights={onToggleHideSameCodeHighlights}
+            hiddenUserIds={hiddenUserIds}
+            onToggleHiddenUser={onToggleHiddenUser}
             profileEditRequestId={profileEditRequestId}
           />
         );

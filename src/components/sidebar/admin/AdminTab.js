@@ -22,6 +22,8 @@ const AdminTab = ({
   onToggleShowCodeDetails,
   hideSameCodeHighlights,
   onToggleHideSameCodeHighlights,
+  hiddenUserIds,
+  onToggleHiddenUser,
   profileEditRequestId
 }) => {
   // Get current user profile from userProfiles
@@ -30,9 +32,9 @@ const AdminTab = ({
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h2 className="text-xl font-bold text-gray-900">Admin Controls</h2>
+        <h2 className="text-xl font-bold text-gray-900">Settings</h2>
         <p className="text-sm text-gray-600 mt-1">
-          Manage application settings and perform administrative tasks
+          Manage your project profile, collaborators, and display preferences
         </p>
       </div>
       
@@ -48,11 +50,13 @@ const AdminTab = ({
       
       {/* Collaborators Section */}
       <div className="mb-6">
-        <CollaboratorLegend 
+        <CollaboratorLegend
           userProfiles={userProfiles}
           currentUser={currentUser}
           showAuthorInfo={showAuthorInfo}
           disableLlm={disableLlm}
+          hiddenUserIds={hiddenUserIds}
+          onToggleHiddenUser={onToggleHiddenUser}
         />
       </div>
       

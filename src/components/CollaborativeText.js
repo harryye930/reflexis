@@ -9,7 +9,7 @@ import { useHighlightManagement } from '../hooks/useHighlightManagement.js';
 import { useMessageHandler } from '../hooks/useMessageHandler.js';
 import { useNavigateToHighlight } from '../hooks/useNavigateToHighlight.js';
 import { useHoverPreferences } from '../hooks/useHoverPreferences.js';
-import { filterUniquelyCodedHighlights } from '../lib/utils/highlightFilterUtils.js';
+import { filterUniquelyCodedHighlights, filterHighlightsByHiddenUsers } from '../lib/utils/highlightFilterUtils.js';
 import { parseResearchBackgroundFromStorage } from '../constants/researchBackground.js';
 import { ProjectService } from '../services/api/firebase/projectService.js';
 
@@ -133,7 +133,9 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
     showCodeDetails,
   toggleShowCodeDetails,
   hideSameCodeHighlights,
-  toggleHideSameCodeHighlights
+  toggleHideSameCodeHighlights,
+  hiddenUserIds,
+  toggleHiddenUser
   } = useHoverPreferences(projectId, currentUser);
   
   // Highlight management hook - uses original highlights for management operations
@@ -272,8 +274,9 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
     && !reminderHiddenForSession
   );
 
-  // Filter highlights based on uniquely coded text setting
-  const filteredHighlights = filterUniquelyCodedHighlights(highlights, hideSameCodeHighlights);
+  // Filter highlights: drop hidden authors first, then optionally drop uniquely-coded ones
+  const visibleByAuthor = filterHighlightsByHiddenUsers(highlights, hiddenUserIds);
+  const filteredHighlights = filterUniquelyCodedHighlights(visibleByAuthor, hideSameCodeHighlights);
 
   useEffect(() => {
     setSidebarActiveTab('analysis');
@@ -445,6 +448,8 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
           onToggleShowCodeDetails={toggleShowCodeDetails}
           hideSameCodeHighlights={hideSameCodeHighlights}
           onToggleHideSameCodeHighlights={toggleHideSameCodeHighlights}
+          hiddenUserIds={hiddenUserIds}
+          onToggleHiddenUser={toggleHiddenUser}
           onNavigateToHighlight={handleNavigateToHighlight}
           getCodeDisagreement={getCodeDisagreement}
           activeTab={sidebarActiveTab}

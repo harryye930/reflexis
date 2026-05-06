@@ -1,0 +1,27 @@
+Interview Script: First Week Using Reflexis
+
+Interviewer: Thanks for joining today. To start, can you tell me what stood out during your first week using the tool?
+Participant: The first thing I noticed was how quickly the transcript felt familiar. I could see the project context, then move straight into reading.
+
+Interviewer: When did you decide to make your first highlight?
+Participant: I highlighted a sentence when the participant described feeling unsure about which code to choose.
+Participant: I felt rushed during that first pass, but the code notes helped me slow down.
+
+Interviewer: You mentioned feeling rushed. Was that only at the beginning?
+Participant: Not only at the beginning. Later, I felt rushed again when there were two similar codes and I wanted to choose carefully.
+
+Interviewer: What happened when the conversation moved across topics?
+Participant: The line breaks helped. Each speaker turn was visually separate, so I could follow the interview script without losing my place.
+
+Interviewer: Can you give an example from a tricky passage?
+Participant: Yes. The participant said, "I trust the team, but I still want space to disagree."
+Participant: That sentence carried two ideas at once.
+
+Interviewer: Did blank lines change how you read?
+Participant: Blank lines gave me breathing room.
+
+Participant: They also made it easier to select a complete answer without dragging into the next question.
+
+Interviewer: Last question. What should we test before calling this workflow ready?
+Participant: Test a short phrase, a repeated phrase, a sentence that crosses a line break, and a whole speaker turn.
+Participant: Then check that the highlight appears in the right place after the document reloads.

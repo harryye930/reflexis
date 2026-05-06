@@ -123,9 +123,44 @@ export const arraysEqual = (a, b) => {
   return a.every((val, index) => val === b[index]);
 };
 
+// Map an index from the whitespace-collapsed view of `sourceText` (i.e.
+// `sourceText.replace(/\s+/g, ' ')`) back to the equivalent index in the
+// original string. Each whitespace run in the original collapses to a
+// single space in the normalised view, so the original index is larger by
+// (run_length - 1) for every run that precedes the requested position.
+//
+// Why this exists: `findTextWithContext` searches in the normalised view to
+// tolerate `\n\n` paragraph breaks between selected text and source, but
+// the highlight pipeline ultimately stores indices into the original
+// document. Without denormalisation, a selection that spans (or follows)
+// any whitespace run gets indices shifted by one per run.
+export const denormalizeIndex = (sourceText, normalizedIndex) => {
+  if (normalizedIndex <= 0) return 0;
+  let normPos = 0;
+  let i = 0;
+  const len = sourceText.length;
+  while (i < len) {
+    if (normPos >= normalizedIndex) return i;
+    if (/\s/.test(sourceText[i])) {
+      normPos++;
+      i++;
+      while (i < len && /\s/.test(sourceText[i])) i++;
+    } else {
+      normPos++;
+      i++;
+    }
+  }
+  return i;
+};
+
 // Find `targetText` inside `sourceText`, disambiguated by what should
 // appear immediately before and after it. Used as the primary mapping from
 // a live DOM selection back to the canonical source string.
+//
+// Returns `{ start, end }` as indices into the ORIGINAL `sourceText`, or
+// `null` when the target is empty or missing. The search itself runs on a
+// whitespace-collapsed view so the selection can match across `\n\n`
+// paragraph breaks; the indices are denormalised back to the original.
 //
 // We score each occurrence by how many characters of the expected
 // before/after context line up *adjacent* to the match, instead of doing
@@ -142,7 +177,7 @@ export const findTextWithContext = (sourceText, targetText, beforeContext = '', 
   const normalizedAfter = afterContext.replace(/\s+/g, ' ').trim();
   const normalizedSource = sourceText.replace(/\s+/g, ' ');
 
-  if (!normalizedTarget) return -1;
+  if (!normalizedTarget) return null;
 
   // Collect every occurrence; the +1 step deliberately allows overlapping
   // matches like 'aaaa' inside 'aaaaaa'.
@@ -154,8 +189,14 @@ export const findTextWithContext = (sourceText, targetText, beforeContext = '', 
     searchStart = foundIndex + 1;
   }
 
-  if (occurrences.length === 0) return -1;
-  if (occurrences.length === 1) return occurrences[0];
+  if (occurrences.length === 0) return null;
+
+  const toOriginalRange = (normalizedStart) => ({
+    start: denormalizeIndex(sourceText, normalizedStart),
+    end: denormalizeIndex(sourceText, normalizedStart + normalizedTarget.length)
+  });
+
+  if (occurrences.length === 1) return toOriginalRange(occurrences[0]);
 
   // Pull a few extra chars beyond the context length so a leading or
   // trailing space doesn't starve the prefix/suffix comparison.
@@ -194,5 +235,5 @@ export const findTextWithContext = (sourceText, targetText, beforeContext = '', 
     }
   }
 
-  return bestMatch;
+  return toOriginalRange(bestMatch);
 };

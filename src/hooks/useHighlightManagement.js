@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { getAbsoluteIndex, findTextWithContext, getCleanSelectedText, getCleanTextFromContainer, getCleanAbsoluteIndex } from '../lib/utils/selectionUtils.js';
+import { getAbsoluteIndex, findTextWithContext, denormalizeIndex, getCleanSelectedText, getCleanTextFromContainer, getCleanAbsoluteIndex } from '../lib/utils/selectionUtils.js';
 import { useConceptualDrift } from './useConceptualDrift.js';
 import { FirebaseServiceFactory } from '../services/api/firebase/index.js';
 
@@ -107,19 +107,24 @@ export const useHighlightManagement = (
       contextAfter = containerText.substring(endIndex, contextEnd);
     }
     
-    // Try context-aware search first
-  let sourceStartIndex = findTextWithContext(sourceText, selectedTextClean, contextBefore, contextAfter);
-    let sourceEndIndex = sourceStartIndex !== -1 ? sourceStartIndex + selectedTextClean.length : -1;
-    
+    // Try context-aware search first. The helper returns indices into the
+    // ORIGINAL sourceText (already denormalised), so paragraph breaks and
+    // other whitespace runs don't shift the offsets.
+  const contextMatch = findTextWithContext(sourceText, selectedTextClean, contextBefore, contextAfter);
+    let sourceStartIndex = contextMatch ? contextMatch.start : -1;
+    let sourceEndIndex = contextMatch ? contextMatch.end : -1;
+
     // If context search fails, try simpler approaches
     if (sourceStartIndex === -1) {
-      // Simple indexOf search on normalized text
+      // Simple indexOf search on normalized text, then denormalise so the
+      // returned indices line up with the original sourceText.
       const normalizedSource = sourceText.replace(/\s+/g, ' ');
       const normalizedTarget = selectedTextClean.replace(/\s+/g, ' ');
-      
-      sourceStartIndex = normalizedSource.indexOf(normalizedTarget);
-      if (sourceStartIndex !== -1) {
-        sourceEndIndex = sourceStartIndex + normalizedTarget.length;
+
+      const normalizedStart = normalizedSource.indexOf(normalizedTarget);
+      if (normalizedStart !== -1) {
+        sourceStartIndex = denormalizeIndex(sourceText, normalizedStart);
+        sourceEndIndex = denormalizeIndex(sourceText, normalizedStart + normalizedTarget.length);
       } else {
         return { success: false, error: 'Selected text not found in source document' };
       }

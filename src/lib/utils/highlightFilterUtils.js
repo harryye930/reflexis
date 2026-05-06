@@ -69,3 +69,16 @@ export const filterUniquelyCodedHighlights = (highlights, hideSameCodeHighlights
   const hideSet = new Set(hideIds);
   return highlights.filter(h => !hideSet.has(h.id));
 };
+
+/**
+ * Filters out highlights authored by users in the hiddenUserIds list.
+ *
+ * @param {Array} highlights - Array of highlight objects (each may carry userId)
+ * @param {Array<string>} hiddenUserIds - User IDs whose highlights should be hidden
+ * @returns {Array} Filtered array of highlights
+ */
+export const filterHighlightsByHiddenUsers = (highlights, hiddenUserIds) => {
+  if (!highlights || !hiddenUserIds || hiddenUserIds.length === 0) return highlights;
+  const hiddenSet = new Set(hiddenUserIds);
+  return highlights.filter((h) => !hiddenSet.has(h.userId));
+};

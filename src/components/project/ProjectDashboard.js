@@ -1,5 +1,68 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ProjectService } from '../../services/api/firebase/projectService.js';
+import { buildCsv, downloadTextFile } from '../../lib/utils/csvUtils.js';
+
+const formatTimestamp = (value) => {
+  if (!value) return '';
+  if (typeof value.toDate === 'function') return value.toDate().toISOString();
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value.seconds === 'number') return new Date(value.seconds * 1000).toISOString();
+  if (typeof value === 'string' || typeof value === 'number') {
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? String(value) : date.toISOString();
+  }
+  return '';
+};
+
+const sanitizeFilename = (name) => {
+  const trimmed = (name || 'project').trim() || 'project';
+  return trimmed.replace(/[^a-z0-9-_]+/gi, '_').slice(0, 60);
+};
+
+const buildHighlightCsv = ({ project, highlights, codeLookup, memberLookup, documentLookup }) => {
+  const headers = [
+    'Document',
+    'Passage',
+    'Code',
+    'Code description',
+    'Coder',
+    'Coder email',
+    'Coded at',
+    'Highlight ID'
+  ];
+
+  const sorted = [...highlights].sort((a, b) => {
+    const docA = documentLookup.get(a.documentId)?.title || '';
+    const docB = documentLookup.get(b.documentId)?.title || '';
+    if (docA !== docB) return docA.localeCompare(docB);
+    return (a.startIndex ?? 0) - (b.startIndex ?? 0);
+  });
+
+  const rows = sorted.map((highlight) => {
+    const codeKey = highlight.code || highlight.codeId;
+    const code = codeKey ? codeLookup.get(codeKey) : null;
+    const member = highlight.userId ? memberLookup.get(highlight.userId) : null;
+    const documentTitle = documentLookup.get(highlight.documentId)?.title
+      || highlight.documentTitle
+      || (highlight.documentId ? `Document ${highlight.documentId}` : '');
+
+    return [
+      documentTitle,
+      highlight.text || '',
+      code?.label || codeKey || '',
+      code?.description || '',
+      member?.name || '',
+      member?.email || '',
+      formatTimestamp(highlight.createdAt),
+      highlight.id || ''
+    ];
+  });
+
+  return {
+    filename: `${sanitizeFilename(project.name)}_highlights.csv`,
+    content: buildCsv(headers, rows)
+  };
+};
 
 const ProjectDashboard = ({ currentUser, userProfile, onOpenProject, onSignOut }) => {
   const projectService = useMemo(() => new ProjectService(), []);
@@ -208,6 +271,28 @@ const ProjectDashboard = ({ currentUser, userProfile, onOpenProject, onSignOut }
     setBusyAction('');
   };
 
+  const handleExportProject = async (project) => {
+    clearFeedback();
+
+    setBusyAction(`export-${project.id}`);
+    const result = await projectService.exportProjectAnalysis(project.id);
+
+    if (result.success) {
+      const { highlights } = result.data;
+      if (!highlights || highlights.length === 0) {
+        setMessage('No highlights to export yet.');
+      } else {
+        const { filename, content } = buildHighlightCsv(result.data);
+        downloadTextFile(filename, content);
+        setMessage(`Exported ${highlights.length} highlight${highlights.length === 1 ? '' : 's'} to ${filename}.`);
+      }
+    } else {
+      setError(result.error?.message || 'Failed to export project.');
+    }
+
+    setBusyAction('');
+  };
+
   const handleDeleteProject = async (project) => {
     clearFeedback();
 
@@ -406,6 +491,14 @@ const ProjectDashboard = ({ currentUser, userProfile, onOpenProject, onSignOut }
                           className="px-3 py-1.5 text-xs font-medium text-slate-700 border border-slate-300 rounded-md hover:bg-slate-100 disabled:opacity-50"
                         >
                           Reset Key
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleExportProject(project)}
+                          disabled={busyAction === `export-${project.id}`}
+                          className="px-3 py-1.5 text-xs font-medium text-slate-700 border border-slate-300 rounded-md hover:bg-slate-100 disabled:opacity-50"
+                        >
+                          {busyAction === `export-${project.id}` ? 'Exporting...' : 'Export CSV'}
                         </button>
                         <button
                           type="button"

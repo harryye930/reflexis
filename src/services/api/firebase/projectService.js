@@ -480,6 +480,89 @@ export class ProjectService {
     }
   }
 
+  async exportProjectAnalysis(projectId) {
+    try {
+      const projectRef = doc(db, 'projects', projectId);
+
+      const [projectSnapshot, membersSnapshot, codesSnapshot, highlightsSnapshot, documentsSnapshot] = await Promise.all([
+        getDoc(projectRef),
+        getDocs(collection(projectRef, 'members')),
+        getDocs(collection(projectRef, 'codes')),
+        getDocs(collection(projectRef, 'highlights')),
+        getDocs(collection(projectRef, 'documents'))
+      ]);
+
+      if (!projectSnapshot.exists()) {
+        return { success: false, error: 'Project not found' };
+      }
+
+      const projectData = projectSnapshot.data();
+
+      const memberLookup = new Map();
+      membersSnapshot.docs.forEach((memberDoc) => {
+        const data = memberDoc.data() || {};
+        memberLookup.set(memberDoc.id, {
+          name: data.name || 'Unknown',
+          email: data.email || '',
+          role: data.role || 'member'
+        });
+      });
+
+      // Codes are keyed by their logical `id` (or fall back to docId). Highlights
+      // store the logical id under `code` / `codeId`, so we index both.
+      const codeLookup = new Map();
+      const codes = codesSnapshot.docs.map((codeDoc) => {
+        const data = codeDoc.data() || {};
+        const logicalId = data.id || codeDoc.id;
+        const entry = {
+          id: logicalId,
+          docId: codeDoc.id,
+          label: data.label || '',
+          description: data.description || '',
+          color: data.color || '',
+          createdBy: data.createdBy || '',
+          isDeleted: !!data.isDeleted
+        };
+        codeLookup.set(logicalId, entry);
+        codeLookup.set(codeDoc.id, entry);
+        return entry;
+      });
+
+      const documentLookup = new Map();
+      documentsSnapshot.docs.forEach((documentDoc) => {
+        const data = documentDoc.data() || {};
+        documentLookup.set(documentDoc.id, {
+          title: data.title || `Document ${documentDoc.id}`
+        });
+      });
+
+      const highlights = highlightsSnapshot.docs.map((highlightDoc) => ({
+        id: highlightDoc.id,
+        ...(highlightDoc.data() || {})
+      }));
+
+      return {
+        success: true,
+        data: {
+          project: {
+            id: projectId,
+            name: projectData.name || 'Untitled project'
+          },
+          members: Array.from(memberLookup.entries()).map(([userId, info]) => ({ userId, ...info })),
+          memberLookup,
+          codes,
+          codeLookup,
+          documents: Array.from(documentLookup.entries()).map(([id, info]) => ({ id, ...info })),
+          documentLookup,
+          highlights
+        }
+      };
+    } catch (error) {
+      console.error('Error exporting project analysis:', error);
+      return { success: false, error };
+    }
+  }
+
   async deleteProject(projectId, userId) {
     try {
       const projectRef = doc(db, 'projects', projectId);

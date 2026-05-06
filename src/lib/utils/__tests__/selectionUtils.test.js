@@ -25,7 +25,8 @@ import {
   getCleanTextFromContainer,
   getCleanAbsoluteIndex,
   arraysEqual,
-  findTextWithContext
+  findTextWithContext,
+  denormalizeIndex
 } from '../selectionUtils.js';
 
 const makeContainer = (html) => {
@@ -70,29 +71,42 @@ describe('arraysEqual', () => {
 // the highlight pipeline uses to disambiguate repeated phrases.
 // ---------------------------------------------------------------------------
 describe('findTextWithContext', () => {
-  test('returns -1 when target is empty', () => {
-    expect(findTextWithContext('hello world', '')).toBe(-1);
+  test('returns null when target is empty', () => {
+    expect(findTextWithContext('hello world', '')).toBeNull();
   });
 
-  test('returns -1 when target does not appear in source', () => {
-    expect(findTextWithContext('hello world', 'goodbye')).toBe(-1);
+  test('returns null when target does not appear in source', () => {
+    expect(findTextWithContext('hello world', 'goodbye')).toBeNull();
   });
 
   test('finds the unique occurrence of a phrase', () => {
     const source = 'The participant described feeling nervous.';
-    expect(findTextWithContext(source, 'feeling nervous')).toBe(source.indexOf('feeling nervous'));
+    const start = source.indexOf('feeling nervous');
+    expect(findTextWithContext(source, 'feeling nervous')).toEqual({
+      start,
+      end: start + 'feeling nervous'.length
+    });
   });
 
   test('normalises whitespace before searching (matches across newlines)', () => {
     const source = 'The participant\n  described\tfeeling\nnervous.';
     // Source after normalisation: 'The participant described feeling nervous.'
+    // The returned indices must point back into the ORIGINAL string so the
+    // caller can store them against the unnormalised document.
     const result = findTextWithContext(source, 'described feeling');
-    expect(result).toBeGreaterThan(-1);
+    expect(result).not.toBeNull();
+    // 'described' starts at original index 18 ("The participant\n  ".length)
+    // and the matched substring spans the embedded \t.
+    expect(source.substring(result.start, result.end).replace(/\s+/g, ' ').trim())
+      .toBe('described feeling');
   });
 
   test('returns the first occurrence when target appears repeatedly and no context is given', () => {
     const source = 'trust matters here. trust matters there.';
-    expect(findTextWithContext(source, 'trust matters')).toBe(0);
+    expect(findTextWithContext(source, 'trust matters')).toEqual({
+      start: 0,
+      end: 'trust matters'.length
+    });
   });
 
   test('disambiguates repeated text using before-context', () => {
@@ -104,7 +118,8 @@ describe('findTextWithContext', () => {
 
     const beforeContext = 'Later, hopefully,';
     const result = findTextWithContext(source, 'trust matters', beforeContext, '');
-    expect(result).toBe(secondIndex);
+    expect(result.start).toBe(secondIndex);
+    expect(result.end).toBe(secondIndex + 'trust matters'.length);
   });
 
   test('disambiguates repeated text using after-context', () => {
@@ -112,16 +127,16 @@ describe('findTextWithContext', () => {
     const here = source.indexOf('trust matters');
     const there = source.indexOf('trust matters', here + 1);
 
-    expect(findTextWithContext(source, 'trust matters', '', 'there')).toBe(there);
+    expect(findTextWithContext(source, 'trust matters', '', 'there').start).toBe(there);
     // And the other side, just to make sure the test isn't tautological.
-    expect(findTextWithContext(source, 'trust matters', '', 'here')).toBe(here);
+    expect(findTextWithContext(source, 'trust matters', '', 'here').start).toBe(here);
   });
 
   test('falls back to first occurrence when context words are too short to score', () => {
     // Words of length <=2 are filtered out, so 'a' as before-context can't
     // score any occurrence and we should get the first match.
     const source = 'cat in a hat. cat on a mat.';
-    expect(findTextWithContext(source, 'cat', 'a', 'a')).toBe(0);
+    expect(findTextWithContext(source, 'cat', 'a', 'a').start).toBe(0);
   });
 
   test('does not infinite-loop on overlapping target patterns', () => {
@@ -129,6 +144,91 @@ describe('findTextWithContext', () => {
     // increments searchStart by 1 to allow overlap; this test guards the
     // termination of that loop.
     expect(() => findTextWithContext('aaaaaaaa', 'aaaa')).not.toThrow();
+  });
+
+  // -------------------------------------------------------------------------
+  // Whitespace-run regression: an "empty line" in qualitative documents is
+  // really a `\n\n` sequence. The matcher searches in a whitespace-collapsed
+  // view, so it must denormalise the returned indices to keep them aligned
+  // with the original document. Bug fixed in: highlights crossing or
+  // following an empty line failed validation because the indices were off
+  // by one per whitespace run.
+  // -------------------------------------------------------------------------
+  describe('whitespace-run handling', () => {
+    test('simple: indices align when source contains a paragraph break before the target', () => {
+      const source = 'First paragraph.\n\nSecond paragraph.';
+      const result = findTextWithContext(source, 'Second paragraph.');
+      // The literal target appears at index 18, not at 17 (which is what a
+      // raw normalised-index would give us).
+      expect(result.start).toBe(source.indexOf('Second paragraph.'));
+      expect(source.substring(result.start, result.end)).toBe('Second paragraph.');
+    });
+
+    test('medium: target spans an empty line in the source', () => {
+      // The selection logic feeds the helper a whitespace-collapsed target
+      // (the `\s+/g` step in the hook). The original source still has the
+      // `\n\n` between the two halves.
+      const source = 'end of A.\n\nstart of B.';
+      const target = 'end of A. start of B.'; // collapsed form of the selection
+      const result = findTextWithContext(source, target);
+      expect(result).not.toBeNull();
+      // Round-tripping through the original substring must reproduce the
+      // user's intended selection exactly, including the paragraph break.
+      expect(source.substring(result.start, result.end)).toBe('end of A.\n\nstart of B.');
+    });
+
+    test('complex: multiple paragraph breaks before AND inside the target', () => {
+      // Three paragraphs; the user's selection covers the tails of P1, all
+      // of P2, and the head of P3 — crossing two empty lines.
+      const source =
+        'Intro paragraph that we skip.\n\n' +
+        'P1 ends here.\n\n' +
+        'P2 entire body.\n\n' +
+        'P3 starts here. P3 tail.';
+      const target = 'ends here. P2 entire body. P3 starts here.';
+      const result = findTextWithContext(source, target);
+      expect(result).not.toBeNull();
+      // The recovered slice must be the literal characters from the
+      // original document, not a shifted neighbourhood.
+      expect(source.substring(result.start, result.end))
+        .toBe('ends here.\n\nP2 entire body.\n\nP3 starts here.');
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// denormalizeIndex: pure index-mapping helper used by the highlight pipeline
+// to translate a position from the whitespace-collapsed view back to the
+// original source.
+// ---------------------------------------------------------------------------
+describe('denormalizeIndex', () => {
+  test('simple: identity when source has no consecutive whitespace', () => {
+    const source = 'hello world';
+    expect(denormalizeIndex(source, 0)).toBe(0);
+    expect(denormalizeIndex(source, 6)).toBe(6); // 'w' of 'world'
+    expect(denormalizeIndex(source, source.length)).toBe(source.length);
+  });
+
+  test('medium: one paragraph break shifts later indices by one per extra whitespace char', () => {
+    const source = 'Hello\n\nWorld';                    // length 12
+    const normalized = source.replace(/\s+/g, ' ');     // 'Hello World', length 11
+    // 'World' starts at normalised index 6, original index 7.
+    expect(denormalizeIndex(source, normalized.indexOf('World'))).toBe(source.indexOf('World'));
+    // End of normalised string maps to end of original string.
+    expect(denormalizeIndex(source, normalized.length)).toBe(source.length);
+  });
+
+  test('complex: multiple whitespace runs of varying length all collapse correctly', () => {
+    const source = 'A\n\n\nB\t\tC   D'; // runs: 3 newlines, 2 tabs, 3 spaces
+    const normalized = source.replace(/\s+/g, ' ');     // 'A B C D'
+    for (const ch of ['A', 'B', 'C', 'D']) {
+      expect(denormalizeIndex(source, normalized.indexOf(ch))).toBe(source.indexOf(ch));
+    }
+  });
+
+  test('non-positive index clamps to zero', () => {
+    expect(denormalizeIndex('anything', 0)).toBe(0);
+    expect(denormalizeIndex('anything', -5)).toBe(0);
   });
 });
 
@@ -313,8 +413,8 @@ describe('end-to-end pipeline', () => {
     const contextBefore = cleanText.substring(Math.max(0, cleanStart - 50), cleanStart);
     const contextAfter = cleanText.substring(cleanEnd, Math.min(cleanText.length, cleanEnd + 50));
 
-    const sourceIdx = findTextWithContext(sourceText, 'feeling nervous', contextBefore, contextAfter);
-    expect(sourceText.substring(sourceIdx, sourceIdx + 'feeling nervous'.length)).toBe('feeling nervous');
+    const match = findTextWithContext(sourceText, 'feeling nervous', contextBefore, contextAfter);
+    expect(sourceText.substring(match.start, match.end)).toBe('feeling nervous');
   });
 
   test('repeated phrase is disambiguated by trailing context', () => {
@@ -332,7 +432,8 @@ describe('end-to-end pipeline', () => {
 
     const contextAfter = cleanText.substring(cleanEnd, cleanEnd + 30);
 
-    const sourceIdx = findTextWithContext(sourceText, 'trust matters', '', contextAfter);
-    expect(sourceIdx).toBe(secondOccurrence);
+    const match = findTextWithContext(sourceText, 'trust matters', '', contextAfter);
+    expect(match.start).toBe(secondOccurrence);
+    expect(match.end).toBe(secondOccurrence + 'trust matters'.length);
   });
 });
