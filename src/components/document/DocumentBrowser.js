@@ -1,7 +1,9 @@
 import React, { useRef, useState } from 'react';
 import { normalizeTextFileContent } from '../../lib/utils/textFileUtils.js';
 
-const MAX_CONTENT_LENGTH = 10000;
+const MAX_CONTENT_BYTES = 900 * 1024;
+const byteSize = (str) => new Blob([str ?? '']).size;
+const formatKB = (bytes) => `${(bytes / 1024).toFixed(1)} KB`;
 
 const DocumentBrowser = ({
   documents,
@@ -34,8 +36,8 @@ const DocumentBrowser = ({
       const raw = typeof reader.result === 'string' ? reader.result : '';
       // Normalize CRLF/CR to LF so highlight offsets stay consistent across platforms.
       const content = normalizeTextFileContent(raw);
-      if (content.length > MAX_CONTENT_LENGTH) {
-        onMessage(`File exceeds the ${MAX_CONTENT_LENGTH.toLocaleString()} character limit.`, true);
+      if (byteSize(content) > MAX_CONTENT_BYTES) {
+        onMessage(`File exceeds the ${formatKB(MAX_CONTENT_BYTES)} size limit.`, true);
         return;
       }
       const baseName = file.name.replace(/\.txt$/i, '').slice(0, 100);
@@ -54,6 +56,11 @@ const DocumentBrowser = ({
 
     if (!newDocForm.title.trim() || !newDocForm.content.trim()) {
       onMessage('Please fill in title and content fields', true);
+      return;
+    }
+
+    if (byteSize(newDocForm.content) > MAX_CONTENT_BYTES) {
+      onMessage(`Content exceeds the ${formatKB(MAX_CONTENT_BYTES)} size limit.`, true);
       return;
     }
 
@@ -180,11 +187,16 @@ const DocumentBrowser = ({
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 placeholder="Paste or type the text to analyze, or upload a .txt file..."
                 rows={4}
-                maxLength={MAX_CONTENT_LENGTH}
               />
-              <div className="text-xs text-gray-500 mt-1">
-                {newDocForm.content.length.toLocaleString()}/{MAX_CONTENT_LENGTH.toLocaleString()} characters
-              </div>
+              {(() => {
+                const used = byteSize(newDocForm.content);
+                const over = used > MAX_CONTENT_BYTES;
+                return (
+                  <div className={`text-xs mt-1 ${over ? 'text-red-600' : 'text-gray-500'}`}>
+                    {formatKB(used)} / {formatKB(MAX_CONTENT_BYTES)}
+                  </div>
+                );
+              })()}
             </div>
             <div className="flex space-x-2">
               <button

@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 
-const DocumentSelector = ({ 
+const MAX_CONTENT_BYTES = 900 * 1024;
+const byteSize = (str) => new Blob([str ?? '']).size;
+const formatKB = (bytes) => `${(bytes / 1024).toFixed(1)} KB`;
+
+const DocumentSelector = ({
   documents, 
   activeDocument, 
   onDocumentSwitch, 
@@ -22,6 +26,11 @@ const DocumentSelector = ({
     
     if (!newDocForm.title.trim() || !newDocForm.content.trim()) {
       onMessage('Please fill in title and content fields', true);
+      return;
+    }
+
+    if (byteSize(newDocForm.content) > MAX_CONTENT_BYTES) {
+      onMessage(`Content exceeds the ${formatKB(MAX_CONTENT_BYTES)} size limit.`, true);
       return;
     }
 
@@ -92,11 +101,16 @@ const DocumentSelector = ({
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 placeholder="Paste or type the text to analyze..."
                 rows={6}
-                maxLength={10000}
               />
-              <div className="text-xs text-gray-500 mt-1">
-                {newDocForm.content.length}/10,000 characters
-              </div>
+              {(() => {
+                const used = byteSize(newDocForm.content);
+                const over = used > MAX_CONTENT_BYTES;
+                return (
+                  <div className={`text-xs mt-1 ${over ? 'text-red-600' : 'text-gray-500'}`}>
+                    {formatKB(used)} / {formatKB(MAX_CONTENT_BYTES)}
+                  </div>
+                );
+              })()}
             </div>
             <div className="flex space-x-2">
               <button
