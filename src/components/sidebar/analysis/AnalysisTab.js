@@ -27,6 +27,7 @@ const AnalysisTab = ({
   onOpenProjectHistory,
   getCodeDisagreement, // New prop for disagreement data
   showCodeDetails, // New prop for showing/hiding code details
+  showOnlyOwnCodes = false,
   disableLlm = false
 }) => {
   // If Living Codebook is active, show it instead of the normal view
@@ -79,6 +80,7 @@ const AnalysisTab = ({
         onCodeNameClick={onCodeNameClick}
         getCodeDisagreement={getCodeDisagreement}
         showCodeDetails={showCodeDetails}
+        showOnlyOwnCodes={showOnlyOwnCodes}
       />
     </div>
   );

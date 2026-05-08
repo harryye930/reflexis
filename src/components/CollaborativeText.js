@@ -136,6 +136,8 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
   toggleShowCodeDetails,
   hideSameCodeHighlights,
   toggleHideSameCodeHighlights,
+  showOnlyOwnCodes,
+  toggleShowOnlyOwnCodes,
   hiddenUserIds,
   toggleHiddenUser
   } = useHoverPreferences(projectId, currentUser);
@@ -431,6 +433,8 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
           onToggleShowCodeDetails={toggleShowCodeDetails}
           hideSameCodeHighlights={hideSameCodeHighlights}
           onToggleHideSameCodeHighlights={toggleHideSameCodeHighlights}
+          showOnlyOwnCodes={showOnlyOwnCodes}
+          onToggleShowOnlyOwnCodes={toggleShowOnlyOwnCodes}
           hiddenUserIds={hiddenUserIds}
           onToggleHiddenUser={toggleHiddenUser}
           onNavigateToHighlight={handleNavigateToHighlight}

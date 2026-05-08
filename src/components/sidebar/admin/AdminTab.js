@@ -22,6 +22,8 @@ const AdminTab = ({
   onToggleShowCodeDetails,
   hideSameCodeHighlights,
   onToggleHideSameCodeHighlights,
+  showOnlyOwnCodes,
+  onToggleShowOnlyOwnCodes,
   hiddenUserIds,
   onToggleHiddenUser,
   profileEditRequestId
@@ -76,6 +78,8 @@ const AdminTab = ({
         onToggleShowCodeDetails={onToggleShowCodeDetails}
         hideSameCodeHighlights={hideSameCodeHighlights}
         onToggleHideSameCodeHighlights={onToggleHideSameCodeHighlights}
+        showOnlyOwnCodes={showOnlyOwnCodes}
+        onToggleShowOnlyOwnCodes={onToggleShowOnlyOwnCodes}
       />
     </div>
   );

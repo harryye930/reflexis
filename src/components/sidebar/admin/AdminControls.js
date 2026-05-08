@@ -15,7 +15,9 @@ const AdminControls = ({
   showCodeDetails,
   onToggleShowCodeDetails,
   hideSameCodeHighlights,
-  onToggleHideSameCodeHighlights
+  onToggleHideSameCodeHighlights,
+  showOnlyOwnCodes,
+  onToggleShowOnlyOwnCodes
 }) => {
   return (
     <div className="space-y-6">
@@ -36,6 +38,8 @@ const AdminControls = ({
           onToggleShowCodeDetails={onToggleShowCodeDetails}
           hideSameCodeHighlights={hideSameCodeHighlights}
           onToggleHideSameCodeHighlights={onToggleHideSameCodeHighlights}
+          showOnlyOwnCodes={showOnlyOwnCodes}
+          onToggleShowOnlyOwnCodes={onToggleShowOnlyOwnCodes}
         />
       </div>
       <div className="text-xs text-gray-500 pt-4 border-t border-gray-200">

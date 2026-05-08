@@ -18,7 +18,8 @@ const CodeManagement = ({
   title = "Available Codes",
   onCodeNameClick, // New prop for Living Codebook
   getCodeDisagreement = null, // New prop for disagreement data function
-  showCodeDetails = true // New prop for showing/hiding code details and management controls
+  showCodeDetails = true, // New prop for showing/hiding code details and management controls
+  showOnlyOwnCodes = false // When true, only display codes created by the current user
 }) => {
   const [showDescriptions, setShowDescriptions] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -77,6 +78,14 @@ const CodeManagement = ({
     return await onSplitCode(splitData);
   };
 
+  const ownUserId = currentUser?.uid;
+  const visibleCodes = showOnlyOwnCodes && ownUserId
+    ? (allCodes || []).filter(code => code.createdBy === ownUserId)
+    : allCodes;
+  const visibleDeletedCodes = showOnlyOwnCodes && ownUserId
+    ? (deletedCodes || []).filter(code => code.createdBy === ownUserId)
+    : deletedCodes;
+
   return (
     <div className="mb-6">
       {showCodeDetails && (
@@ -110,8 +119,8 @@ const CodeManagement = ({
       
       {/* Code List */}
       <CodeList
-        allCodes={allCodes}
-        deletedCodes={deletedCodes}
+        allCodes={visibleCodes}
+        deletedCodes={visibleDeletedCodes}
         showDescriptions={showDescriptions}
         onEdit={null}
         onDelete={null}

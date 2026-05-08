@@ -14,7 +14,9 @@ const AdminToggles = ({
   showCodeDetails,
   onToggleShowCodeDetails,
   hideSameCodeHighlights,
-  onToggleHideSameCodeHighlights
+  onToggleHideSameCodeHighlights,
+  showOnlyOwnCodes,
+  onToggleShowOnlyOwnCodes
 }) => {
   return (
     <div className="space-y-3">
@@ -101,6 +103,26 @@ const AdminToggles = ({
           </button>
         </div>
 
+        {/* Toggle for showing only codes authored by the current user */}
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <label className="text-sm text-gray-600">Show only my codes</label>
+            <p className="text-xs text-gray-500">Hide codes in the codebook that were created by other collaborators</p>
+          </div>
+          <button
+            onClick={onToggleShowOnlyOwnCodes}
+            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+              showOnlyOwnCodes ? 'bg-blue-600' : 'bg-gray-200'
+            }`}
+          >
+            <span
+              className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                showOnlyOwnCodes ? 'translate-x-5' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+
         {/* Toggle for hiding same-code highlights */}
         <div className="flex items-center justify-between">
           <div className="flex-1">
@@ -121,26 +143,6 @@ const AdminToggles = ({
           </button>
         </div>
 
-        {/* Toggle for code drift detection */}
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <label className="text-sm text-gray-600">Enable code drift detection</label>
-            <p className="text-xs text-gray-500">Detect and prevent conceptual drift when applying codes to text</p>
-          </div>
-          <button
-            onClick={onToggleDisableCodeDriftDetection}
-            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-              !disableCodeDriftDetection ? 'bg-blue-600' : 'bg-gray-200'
-            }`}
-          >
-            <span
-              className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                !disableCodeDriftDetection ? 'translate-x-5' : 'translate-x-1'
-              }`}
-            />
-          </button>
-        </div>
-
         {/* Toggle for all LLM-backed features */}
         <div className="flex items-center justify-between border-t border-gray-200 pt-3">
           <div className="flex-1">
@@ -156,6 +158,27 @@ const AdminToggles = ({
             <span
               className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
                 !disableLlm ? 'translate-x-5' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+
+        {/* Toggle for code drift detection (LLM-backed; disabled when LLM features are off) */}
+        <div className={`flex items-center justify-between pl-4 ${disableLlm ? 'opacity-50' : ''}`}>
+          <div className="flex-1">
+            <label className="text-sm text-gray-600">Enable code drift detection</label>
+            <p className="text-xs text-gray-500">Detect and prevent conceptual drift when applying codes to text</p>
+          </div>
+          <button
+            onClick={onToggleDisableCodeDriftDetection}
+            disabled={disableLlm}
+            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+              !disableLlm && !disableCodeDriftDetection ? 'bg-blue-600' : 'bg-gray-200'
+            } ${disableLlm ? 'cursor-not-allowed' : ''}`}
+          >
+            <span
+              className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                !disableLlm && !disableCodeDriftDetection ? 'translate-x-5' : 'translate-x-1'
               }`}
             />
           </button>

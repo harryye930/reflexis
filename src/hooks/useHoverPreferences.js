@@ -10,6 +10,7 @@ const DEFAULT_PREFERENCES = {
   disableLlm: false,
   showCodeDetails: true,
   hideSameCodeHighlights: false,
+  showOnlyOwnCodes: false,
   hiddenUserIds: []
 };
 
@@ -35,6 +36,7 @@ const normalizePreferenceValue = (preferences = {}) => ({
   disableLlm: preferences.disableLlm ?? DEFAULT_PREFERENCES.disableLlm,
   showCodeDetails: preferences.showCodeDetails ?? DEFAULT_PREFERENCES.showCodeDetails,
   hideSameCodeHighlights: preferences.hideSameCodeHighlights ?? DEFAULT_PREFERENCES.hideSameCodeHighlights,
+  showOnlyOwnCodes: preferences.showOnlyOwnCodes ?? DEFAULT_PREFERENCES.showOnlyOwnCodes,
   hiddenUserIds: sanitizeHiddenUserIds(preferences.hiddenUserIds)
 });
 
@@ -57,6 +59,7 @@ const getStoredPreferences = (appId) => {
       disableLlm: prefs.disableLlm,
       showCodeDetails: prefs.showCodeDetails,
       hideSameCodeHighlights: prefs.hideSameCodeHighlights,
+      showOnlyOwnCodes: prefs.showOnlyOwnCodes,
       hiddenUserIds: prefs.hiddenUserIds
     });
   } catch (error) {
@@ -74,6 +77,8 @@ export const useHoverPreferences = (appId, currentUser = null) => {
   const [showCodeDetails, setShowCodeDetails] = useState(true);
   // When true: hide highlights where all overlapping codings use the same code
   const [hideSameCodeHighlights, setHideSameCodeHighlights] = useState(false);
+  // When true: hide codes in the codebook authored by other collaborators
+  const [showOnlyOwnCodes, setShowOnlyOwnCodes] = useState(false);
   // List of collaborator user IDs whose highlights are currently hidden
   const [hiddenUserIds, setHiddenUserIds] = useState([]);
 
@@ -85,6 +90,7 @@ export const useHoverPreferences = (appId, currentUser = null) => {
     disableLlm,
     showCodeDetails,
     hideSameCodeHighlights,
+    showOnlyOwnCodes,
     hiddenUserIds
   };
 
@@ -97,6 +103,7 @@ export const useHoverPreferences = (appId, currentUser = null) => {
     setDisableLlm(normalized.disableLlm);
     setShowCodeDetails(normalized.showCodeDetails);
     setHideSameCodeHighlights(normalized.hideSameCodeHighlights);
+    setShowOnlyOwnCodes(normalized.showOnlyOwnCodes);
     setHiddenUserIds(normalized.hiddenUserIds);
   };
 
@@ -157,11 +164,12 @@ export const useHoverPreferences = (appId, currentUser = null) => {
       disableLlm,
       showCodeDetails,
       hideSameCodeHighlights,
+      showOnlyOwnCodes,
       hiddenUserIds,
       preferencesVersion: 2
     };
     localStorage.setItem(`hoverPrefs_${appId}`, JSON.stringify(prefs));
-  }, [appId, showHoverTooltips, showAuthor, disableHighlightManagement, disableCodeDriftDetection, disableLlm, showCodeDetails, hideSameCodeHighlights, hiddenUserIds]);
+  }, [appId, showHoverTooltips, showAuthor, disableHighlightManagement, disableCodeDriftDetection, disableLlm, showCodeDetails, hideSameCodeHighlights, showOnlyOwnCodes, hiddenUserIds]);
 
   const savePreferences = (updates) => {
     const previousPreferences = currentPreferences;
@@ -213,6 +221,10 @@ export const useHoverPreferences = (appId, currentUser = null) => {
     savePreferences({ hideSameCodeHighlights: !hideSameCodeHighlights });
   };
 
+  const toggleShowOnlyOwnCodes = () => {
+    savePreferences({ showOnlyOwnCodes: !showOnlyOwnCodes });
+  };
+
   const toggleHiddenUser = (userId) => {
     if (!userId) return;
     const isHidden = hiddenUserIds.includes(userId);
@@ -237,6 +249,8 @@ export const useHoverPreferences = (appId, currentUser = null) => {
   toggleShowCodeDetails,
   hideSameCodeHighlights,
   toggleHideSameCodeHighlights,
+  showOnlyOwnCodes,
+  toggleShowOnlyOwnCodes,
   hiddenUserIds,
   toggleHiddenUser
   };

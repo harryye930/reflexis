@@ -35,6 +35,8 @@ const Sidebar = ({
   onToggleShowCodeDetails,
   hideSameCodeHighlights,
   onToggleHideSameCodeHighlights,
+  showOnlyOwnCodes,
+  onToggleShowOnlyOwnCodes,
   hiddenUserIds,
   onToggleHiddenUser,
   // Navigation props
@@ -134,10 +136,11 @@ const Sidebar = ({
             onOpenProjectHistory={onOpenProjectHistory}
             getCodeDisagreement={getCodeDisagreement}
             showCodeDetails={showCodeDetails}
+            showOnlyOwnCodes={showOnlyOwnCodes}
             disableLlm={disableLlm}
           />
         );
-      
+
       case 'admin':
         return (
           <AdminTab
@@ -159,6 +162,8 @@ const Sidebar = ({
             onToggleShowCodeDetails={onToggleShowCodeDetails}
             hideSameCodeHighlights={hideSameCodeHighlights}
             onToggleHideSameCodeHighlights={onToggleHideSameCodeHighlights}
+            showOnlyOwnCodes={showOnlyOwnCodes}
+            onToggleShowOnlyOwnCodes={onToggleShowOnlyOwnCodes}
             hiddenUserIds={hiddenUserIds}
             onToggleHiddenUser={onToggleHiddenUser}
             profileEditRequestId={profileEditRequestId}
