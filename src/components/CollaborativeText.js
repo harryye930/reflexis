@@ -283,6 +283,11 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
   const visibleByAuthor = filterHighlightsByHiddenUsers(highlights, hiddenUserIds);
   const filteredHighlights = filterUniquelyCodedHighlights(visibleByAuthor, hideSameCodeHighlights);
 
+  // Codes available to apply from the code selection modal — honor "show only my codes"
+  const selectableCodes = showOnlyOwnCodes && currentUser?.uid
+    ? (allCodes || []).filter(code => code.createdBy === currentUser.uid)
+    : allCodes;
+
   useEffect(() => {
     setSidebarActiveTab('analysis');
     setProfileEditRequestId(0);
@@ -450,7 +455,7 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
     {showModal && (
         <HighlightingModal
           modalPosition={modalPosition}
-          allCodes={allCodes}
+          allCodes={selectableCodes}
           onCodeSelect={handleAddHighlight}
           onClose={closeModal}
           selectedText={selectedText}
