@@ -1,5 +1,5 @@
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { db } from '../lib/firebase.js';
 
 const DEFAULT_PREFERENCES = {
@@ -10,7 +10,7 @@ const DEFAULT_PREFERENCES = {
   disableLlm: false,
   showCodeDetails: true,
   hideSameCodeHighlights: false,
-  showOnlyOwnCodes: false,
+  hiddenCodeOwnerIds: [],
   hiddenUserIds: []
 };
 
@@ -36,7 +36,7 @@ const normalizePreferenceValue = (preferences = {}) => ({
   disableLlm: preferences.disableLlm ?? DEFAULT_PREFERENCES.disableLlm,
   showCodeDetails: preferences.showCodeDetails ?? DEFAULT_PREFERENCES.showCodeDetails,
   hideSameCodeHighlights: preferences.hideSameCodeHighlights ?? DEFAULT_PREFERENCES.hideSameCodeHighlights,
-  showOnlyOwnCodes: preferences.showOnlyOwnCodes ?? DEFAULT_PREFERENCES.showOnlyOwnCodes,
+  hiddenCodeOwnerIds: sanitizeHiddenUserIds(preferences.hiddenCodeOwnerIds),
   hiddenUserIds: sanitizeHiddenUserIds(preferences.hiddenUserIds)
 });
 
@@ -59,7 +59,7 @@ const getStoredPreferences = (appId) => {
       disableLlm: prefs.disableLlm,
       showCodeDetails: prefs.showCodeDetails,
       hideSameCodeHighlights: prefs.hideSameCodeHighlights,
-      showOnlyOwnCodes: prefs.showOnlyOwnCodes,
+      hiddenCodeOwnerIds: prefs.hiddenCodeOwnerIds,
       hiddenUserIds: prefs.hiddenUserIds
     });
   } catch (error) {
@@ -77,8 +77,8 @@ export const useHoverPreferences = (appId, currentUser = null) => {
   const [showCodeDetails, setShowCodeDetails] = useState(true);
   // When true: hide highlights where all overlapping codings use the same code
   const [hideSameCodeHighlights, setHideSameCodeHighlights] = useState(false);
-  // When true: hide codes in the codebook authored by other collaborators
-  const [showOnlyOwnCodes, setShowOnlyOwnCodes] = useState(false);
+  // List of collaborator user IDs whose qualitative codes are currently hidden
+  const [hiddenCodeOwnerIds, setHiddenCodeOwnerIds] = useState([]);
   // List of collaborator user IDs whose highlights are currently hidden
   const [hiddenUserIds, setHiddenUserIds] = useState([]);
 
@@ -90,11 +90,11 @@ export const useHoverPreferences = (appId, currentUser = null) => {
     disableLlm,
     showCodeDetails,
     hideSameCodeHighlights,
-    showOnlyOwnCodes,
+    hiddenCodeOwnerIds,
     hiddenUserIds
   };
 
-  const applyPreferences = (preferences) => {
+  const applyPreferences = useCallback((preferences) => {
     const normalized = normalizePreferenceValue(preferences);
     setShowHoverTooltips(normalized.showHoverTooltips);
     setShowAuthor(normalized.showAuthorInfo);
@@ -103,9 +103,9 @@ export const useHoverPreferences = (appId, currentUser = null) => {
     setDisableLlm(normalized.disableLlm);
     setShowCodeDetails(normalized.showCodeDetails);
     setHideSameCodeHighlights(normalized.hideSameCodeHighlights);
-    setShowOnlyOwnCodes(normalized.showOnlyOwnCodes);
+    setHiddenCodeOwnerIds(normalized.hiddenCodeOwnerIds);
     setHiddenUserIds(normalized.hiddenUserIds);
-  };
+  }, []);
 
   // Load preferences from localStorage on mount
   useEffect(() => {
@@ -113,7 +113,7 @@ export const useHoverPreferences = (appId, currentUser = null) => {
     if (storedPreferences) {
       applyPreferences(storedPreferences);
     }
-  }, [appId]);
+  }, [appId, applyPreferences]);
 
   // Keep project-user preferences synced to this user's member profile in Firebase.
   useEffect(() => {
@@ -152,7 +152,7 @@ export const useHoverPreferences = (appId, currentUser = null) => {
         console.warn('Error loading project preferences:', error);
       }
     );
-  }, [appId, currentUser?.uid]);
+  }, [appId, currentUser?.uid, applyPreferences]);
 
   // Save preferences to localStorage when they change
   useEffect(() => {
@@ -164,12 +164,12 @@ export const useHoverPreferences = (appId, currentUser = null) => {
       disableLlm,
       showCodeDetails,
       hideSameCodeHighlights,
-      showOnlyOwnCodes,
+      hiddenCodeOwnerIds,
       hiddenUserIds,
       preferencesVersion: 2
     };
     localStorage.setItem(`hoverPrefs_${appId}`, JSON.stringify(prefs));
-  }, [appId, showHoverTooltips, showAuthor, disableHighlightManagement, disableCodeDriftDetection, disableLlm, showCodeDetails, hideSameCodeHighlights, showOnlyOwnCodes, hiddenUserIds]);
+  }, [appId, showHoverTooltips, showAuthor, disableHighlightManagement, disableCodeDriftDetection, disableLlm, showCodeDetails, hideSameCodeHighlights, hiddenCodeOwnerIds, hiddenUserIds]);
 
   const savePreferences = (updates) => {
     const previousPreferences = currentPreferences;
@@ -221,10 +221,6 @@ export const useHoverPreferences = (appId, currentUser = null) => {
     savePreferences({ hideSameCodeHighlights: !hideSameCodeHighlights });
   };
 
-  const toggleShowOnlyOwnCodes = () => {
-    savePreferences({ showOnlyOwnCodes: !showOnlyOwnCodes });
-  };
-
   const toggleHiddenUser = (userId) => {
     if (!userId) return;
     const isHidden = hiddenUserIds.includes(userId);
@@ -232,6 +228,15 @@ export const useHoverPreferences = (appId, currentUser = null) => {
       ? hiddenUserIds.filter((id) => id !== userId)
       : [...hiddenUserIds, userId];
     savePreferences({ hiddenUserIds: next });
+  };
+
+  const toggleHiddenCodeOwner = (userId) => {
+    if (!userId) return;
+    const isHidden = hiddenCodeOwnerIds.includes(userId);
+    const next = isHidden
+      ? hiddenCodeOwnerIds.filter((id) => id !== userId)
+      : [...hiddenCodeOwnerIds, userId];
+    savePreferences({ hiddenCodeOwnerIds: next });
   };
 
   return {
@@ -246,12 +251,12 @@ export const useHoverPreferences = (appId, currentUser = null) => {
     disableLlm,
     toggleDisableLlm,
     showCodeDetails,
-  toggleShowCodeDetails,
-  hideSameCodeHighlights,
-  toggleHideSameCodeHighlights,
-  showOnlyOwnCodes,
-  toggleShowOnlyOwnCodes,
-  hiddenUserIds,
-  toggleHiddenUser
+    toggleShowCodeDetails,
+    hideSameCodeHighlights,
+    toggleHideSameCodeHighlights,
+    hiddenCodeOwnerIds,
+    toggleHiddenCodeOwner,
+    hiddenUserIds,
+    toggleHiddenUser
   };
 };

@@ -35,8 +35,8 @@ const Sidebar = ({
   onToggleShowCodeDetails,
   hideSameCodeHighlights,
   onToggleHideSameCodeHighlights,
-  showOnlyOwnCodes,
-  onToggleShowOnlyOwnCodes,
+  hiddenCodeOwnerIds,
+  onToggleHiddenCodeOwner,
   hiddenUserIds,
   onToggleHiddenUser,
   // Navigation props
@@ -136,7 +136,7 @@ const Sidebar = ({
             onOpenProjectHistory={onOpenProjectHistory}
             getCodeDisagreement={getCodeDisagreement}
             showCodeDetails={showCodeDetails}
-            showOnlyOwnCodes={showOnlyOwnCodes}
+            hiddenCodeOwnerIds={hiddenCodeOwnerIds}
             disableLlm={disableLlm}
           />
         );
@@ -162,8 +162,8 @@ const Sidebar = ({
             onToggleShowCodeDetails={onToggleShowCodeDetails}
             hideSameCodeHighlights={hideSameCodeHighlights}
             onToggleHideSameCodeHighlights={onToggleHideSameCodeHighlights}
-            showOnlyOwnCodes={showOnlyOwnCodes}
-            onToggleShowOnlyOwnCodes={onToggleShowOnlyOwnCodes}
+            hiddenCodeOwnerIds={hiddenCodeOwnerIds}
+            onToggleHiddenCodeOwner={onToggleHiddenCodeOwner}
             hiddenUserIds={hiddenUserIds}
             onToggleHiddenUser={onToggleHiddenUser}
             profileEditRequestId={profileEditRequestId}

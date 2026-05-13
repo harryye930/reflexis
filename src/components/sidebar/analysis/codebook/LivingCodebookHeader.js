@@ -1,5 +1,6 @@
 import React from 'react';
 import { CODE_COLOR_OPTIONS } from '../../../../constants/codeColors.js';
+import { CODE_LABEL_MAX_LENGTH } from '../../../../constants/codeLimits.js';
 import CodeChip from '../../../common/CodeChip.js';
 
 const LivingCodebookHeader = ({ 
@@ -125,7 +126,7 @@ const LivingCodebookHeader = ({
                 onChange={(e) => setEditForm(prev => ({ ...prev, label: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Code label"
-                maxLength={20}
+                maxLength={CODE_LABEL_MAX_LENGTH}
               />
             </div>
 

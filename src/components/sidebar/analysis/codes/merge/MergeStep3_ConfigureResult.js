@@ -1,5 +1,6 @@
 import React from 'react';
 import { CODE_COLOR_OPTIONS } from '../../../../../constants/codeColors.js';
+import { CODE_LABEL_MAX_LENGTH } from '../../../../../constants/codeLimits.js';
 
 const MergeStep3_ConfigureResult = ({ 
   selectedCodes,
@@ -33,9 +34,9 @@ const MergeStep3_ConfigureResult = ({
             onChange={(e) => onResultConfigChange({ ...resultConfig, label: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="Code label"
-            maxLength={20}
+            maxLength={CODE_LABEL_MAX_LENGTH}
           />
-          <p className="text-xs text-gray-500 mt-1">{resultConfig.label.length}/20</p>
+          <p className="text-xs text-gray-500 mt-1">{resultConfig.label.length}/{CODE_LABEL_MAX_LENGTH}</p>
         </div>
 
         <div>

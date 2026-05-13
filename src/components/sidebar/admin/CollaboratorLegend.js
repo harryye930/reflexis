@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { HighlightAlt, Sell } from '@mui/icons-material';
 import { getUserDisplayColor, getUserDisplayName, shouldShowAuthorInfo } from '../../../lib/utils/hoverUtils';
 import ResearchBackgroundDisplay from '../../common/ResearchBackgroundDisplay.js';
 
@@ -9,7 +9,9 @@ const CollaboratorLegend = ({
   showAuthorInfo = true,
   disableLlm = false,
   hiddenUserIds = [],
-  onToggleHiddenUser
+  onToggleHiddenUser,
+  hiddenCodeOwnerIds = [],
+  onToggleHiddenCodeOwner
 }) => {
   const [hoveredUser, setHoveredUser] = useState(null);
 
@@ -19,6 +21,7 @@ const CollaboratorLegend = ({
   }
 
   const hiddenSet = new Set(hiddenUserIds);
+  const hiddenCodeOwnerSet = new Set(hiddenCodeOwnerIds);
 
   return (
     <div>
@@ -29,6 +32,7 @@ const CollaboratorLegend = ({
           const userName = getUserDisplayName(profile, showAuthorInfo, currentUser, userId);
           const isCurrentUser = currentUser && userId === currentUser.uid;
           const isHidden = hiddenSet.has(userId);
+          const areCodesHidden = hiddenCodeOwnerSet.has(userId);
 
           // Don't show tooltip for current user or if no research background
           const shouldShowTooltip = !isCurrentUser && (profile.researchBackground || profile.reducedResearchBackground);
@@ -49,20 +53,40 @@ const CollaboratorLegend = ({
                     {userName || 'Loading...'}
                   </span>
                 </div>
-                {onToggleHiddenUser && (
-                  <button
-                    type="button"
-                    onClick={() => onToggleHiddenUser(userId)}
-                    className="p-1 text-gray-400 hover:text-gray-700 focus:outline-none focus:ring-1 focus:ring-gray-300 rounded"
-                    title={isHidden ? `Show ${userName || 'this collaborator'}'s highlights` : `Hide ${userName || 'this collaborator'}'s highlights`}
-                    aria-label={isHidden ? 'Show highlights' : 'Hide highlights'}
-                    aria-pressed={isHidden}
-                  >
-                    {isHidden
-                      ? <VisibilityOff fontSize="small" />
-                      : <Visibility fontSize="small" />}
-                  </button>
-                )}
+                <div className="flex flex-shrink-0 items-center gap-1">
+                  {onToggleHiddenUser && (
+                    <button
+                      type="button"
+                      onClick={() => onToggleHiddenUser(userId)}
+                      className={`p-1 rounded focus:outline-none focus:ring-1 ${
+                        isHidden
+                          ? 'bg-gray-100 text-gray-300 hover:text-gray-500 focus:ring-gray-300'
+                          : 'bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 focus:ring-blue-300'
+                      }`}
+                      title={isHidden ? `Show ${userName || 'this collaborator'}'s corpus highlights` : `Hide ${userName || 'this collaborator'}'s corpus highlights`}
+                      aria-label={isHidden ? 'Show corpus highlights' : 'Hide corpus highlights'}
+                      aria-pressed={isHidden}
+                    >
+                      <HighlightAlt fontSize="small" />
+                    </button>
+                  )}
+                  {onToggleHiddenCodeOwner && (
+                    <button
+                      type="button"
+                      onClick={() => onToggleHiddenCodeOwner(userId)}
+                      className={`p-1 rounded focus:outline-none focus:ring-1 ${
+                        areCodesHidden
+                          ? 'bg-gray-100 text-gray-300 hover:text-gray-500 focus:ring-gray-300'
+                          : 'bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 focus:ring-blue-300'
+                      }`}
+                      title={areCodesHidden ? `Show ${userName || 'this collaborator'}'s qualitative codes` : `Hide ${userName || 'this collaborator'}'s qualitative codes`}
+                      aria-label={areCodesHidden ? 'Show qualitative codes' : 'Hide qualitative codes'}
+                      aria-pressed={areCodesHidden}
+                    >
+                      <Sell fontSize="small" />
+                    </button>
+                  )}
+                </div>
               </div>
               
               {/* Tooltip */}

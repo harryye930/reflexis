@@ -6,6 +6,12 @@ import CodePaletteFooter from './CodePaletteFooter.js';
 import CodeMergeModal from './merge/CodeMergeModal.js';
 import CodeSplitModal from './split/CodeSplitModal.js';
 
+const formatNameList = (names) => {
+  if (names.length <= 1) return names[0] || '';
+  if (names.length === 2) return names.join(' and ');
+  return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`;
+};
+
 const CodeManagement = ({ 
   allCodes, 
   deletedCodes = [], // New prop for deleted codes
@@ -19,7 +25,7 @@ const CodeManagement = ({
   onCodeNameClick, // New prop for Living Codebook
   getCodeDisagreement = null, // New prop for disagreement data function
   showCodeDetails = true, // New prop for showing/hiding code details and management controls
-  showOnlyOwnCodes = false // When true, only display codes created by the current user
+  hiddenCodeOwnerIds = [] // When set, hide qualitative codes created by those collaborators
 }) => {
   const [showDescriptions, setShowDescriptions] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -78,13 +84,23 @@ const CodeManagement = ({
     return await onSplitCode(splitData);
   };
 
-  const ownUserId = currentUser?.uid;
-  const visibleCodes = showOnlyOwnCodes && ownUserId
-    ? (allCodes || []).filter(code => code.createdBy === ownUserId)
+  const hiddenCodeOwnerSet = new Set(hiddenCodeOwnerIds);
+  const hiddenCodeOwnerNames = hiddenCodeOwnerIds.map((userId) => {
+    if (userId === currentUser?.uid) return 'you';
+    return userProfiles?.[userId]?.name || 'unknown collaborator';
+  });
+  const hiddenCodeOwnerSummary = hiddenCodeOwnerNames.length > 0
+    ? `Hiding codes from ${formatNameList(hiddenCodeOwnerNames)}.`
+    : null;
+  const visibleCodes = hiddenCodeOwnerSet.size > 0
+    ? (allCodes || []).filter(code => !hiddenCodeOwnerSet.has(code.createdBy))
     : allCodes;
-  const visibleDeletedCodes = showOnlyOwnCodes && ownUserId
-    ? (deletedCodes || []).filter(code => code.createdBy === ownUserId)
+  const visibleDeletedCodes = hiddenCodeOwnerSet.size > 0
+    ? (deletedCodes || []).filter(code => !hiddenCodeOwnerSet.has(code.createdBy))
     : deletedCodes;
+  const hiddenCodesMessage = hiddenCodeOwnerSet.size > 0
+    ? 'No qualitative codes are visible with the current collaborator filters.'
+    : 'No codes available yet.';
 
   return (
     <div className="mb-6">
@@ -116,7 +132,13 @@ const CodeManagement = ({
           onMessage={onMessage}
         />
       )}
-      
+
+      {hiddenCodeOwnerSummary && (
+        <div className="mb-3 rounded-md border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-800">
+          {hiddenCodeOwnerSummary}
+        </div>
+      )}
+
       {/* Code List */}
       <CodeList
         allCodes={visibleCodes}
@@ -129,6 +151,7 @@ const CodeManagement = ({
         onCodeNameClick={onCodeNameClick}
         hideEditButtons={true}
         getCodeDisagreement={getCodeDisagreement}
+        emptyMessage={hiddenCodesMessage}
       />
       
       {showCodeDetails && (

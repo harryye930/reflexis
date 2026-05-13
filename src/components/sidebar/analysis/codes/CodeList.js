@@ -13,14 +13,18 @@ const CodeList = ({
   variant = "selection",
   onCodeNameClick, // New prop for Living Codebook
   hideEditButtons = false, // New prop to hide edit buttons
-  getCodeDisagreement = null // New prop for disagreement data function
+  getCodeDisagreement = null, // New prop for disagreement data function
+  emptyMessage = 'No codes available yet.'
 }) => {
   const [showDeletedCodes, setShowDeletedCodes] = useState(false);
-  if (!allCodes || allCodes.length === 0) {
+  const hasActiveCodes = allCodes && allCodes.length > 0;
+  const hasDeletedCodes = deletedCodes && deletedCodes.length > 0;
+
+  if (!hasActiveCodes && !hasDeletedCodes) {
     return (
       <div className="mb-6">
         <h3 className="font-semibold text-gray-700 mb-3">Available Codes</h3>
-        <p className="text-sm text-gray-500">Loading codes...</p>
+        <p className="text-sm text-gray-500">{emptyMessage}</p>
       </div>
     );
   }
@@ -28,7 +32,7 @@ const CodeList = ({
   return (
     <div id="codes-list" className="space-y-3">
       {/* Active Codes */}
-      {allCodes.map(code => (
+      {(allCodes || []).map(code => (
         <CodeItem
           key={code.id}
           code={code}

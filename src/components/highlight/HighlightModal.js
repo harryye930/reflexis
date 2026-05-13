@@ -1,7 +1,14 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Label, Add } from '@mui/icons-material';
+import { Label, Add, Close, Search } from '@mui/icons-material';
 import CodeButton from './HighlightModalCodeButton.js';
 import CodeForm from '../sidebar/analysis/codes/CodeForm.js';
+import { filterCodesBySearchQuery } from '../../lib/utils/codeSearchUtils.js';
+
+const formatNameList = (names) => {
+  if (names.length <= 1) return names[0] || '';
+  if (names.length === 2) return names.join(' and ');
+  return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`;
+};
 
 const HighlightingModal = ({ 
   modalPosition, 
@@ -13,13 +20,24 @@ const HighlightingModal = ({
   documentId,
   onAddCode, // new: function to create code
   isDetecting = false,
+  hiddenCodeOwnerIds = [],
+  userProfiles = {},
   // Notify parent to open Reflexive modal at top-level with this highlight
   onStartReflexive
 }) => {
   const modalRef = useRef(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const initialRangeRef = useRef(null);
+  const sourceCodes = Array.isArray(allCodes) ? allCodes : [];
+  const hiddenCodeOwnerNames = hiddenCodeOwnerIds.map((userId) => {
+    if (userId === currentUser?.uid) return 'you';
+    return userProfiles?.[userId]?.name || 'unknown collaborator';
+  });
+  const hiddenCodeOwnerSummary = hiddenCodeOwnerNames.length > 0
+    ? `Hiding codes from ${formatNameList(hiddenCodeOwnerNames)}.`
+    : null;
 
   // Click-outside handling for the highlighting modal
   useEffect(() => {
@@ -58,9 +76,7 @@ const HighlightingModal = ({
     } catch {}
   };
 
-  if (!allCodes || allCodes.length === 0) {
-    // Still allow adding a new code even if there are no codes
-  }
+  const visibleCodes = filterCodesBySearchQuery(sourceCodes, searchQuery);
 
   const handleDirectApply = async (codeId) => {
     if (isDetecting) return; // prevent duplicate clicks while detecting
@@ -163,32 +179,81 @@ const HighlightingModal = ({
             <Label sx={{ fontSize: 18, color: '#3b82f6' }} />
             <p className="text-sm text-gray-700 font-medium">{showAddForm ? 'Create a new code:' : 'Apply code to selection:'}</p>
           </div>
+          {!showAddForm && hiddenCodeOwnerSummary && (
+            <div className="mb-3 rounded-md border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-800">
+              {hiddenCodeOwnerSummary}
+            </div>
+          )}
           {/* Either show the code selector grid or the CodeForm */}
           {!showAddForm ? (
-            <div id="modal-codes-list" className={`grid grid-cols-2 gap-4 auto-rows-max max-h-80 overflow-y-auto ${(isDetecting) ? 'pointer-events-none opacity-60' : ''}`}>
-              {allCodes && allCodes.map(code => (
-                <div key={code.id} className="flex justify-center">
-                  <CodeButton
-                    code={code}
-                    bgColor={code.color}
-                    textColor={code.textColor}
-                    onDirectApply={() => handleDirectApply(code.id)}
-                    onReflexiveApply={() => handleReflexiveApply(code)}
-                  />
-                </div>
-              ))}
-              {/* Add button tile at the end */}
-              <button
-                type="button"
-                onClick={() => setShowAddForm(true)}
-                className={`flex items-center justify-center border-2 border-dashed border-green-300 hover:border-green-400 hover:bg-green-50 rounded-lg p-4 transition-colors ${(isDetecting) ? 'pointer-events-none opacity-60' : ''}`}
-              >
-                <div className="flex items-center gap-2 text-green-700">
-                  <Add sx={{ fontSize: 18, color: '#10b981' }} />
-                  <span className="text-sm font-medium">Add code</span>
-                </div>
-              </button>
-            </div>
+            <>
+              <div className={`relative mb-4 ${(isDetecting) ? 'pointer-events-none opacity-60' : ''}`}>
+                <Search
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  sx={{ fontSize: 18 }}
+                />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Search codes"
+                  aria-label="Search codes"
+                  autoComplete="off"
+                  disabled={isDetecting}
+                  className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-10 pr-10 text-sm text-gray-700 placeholder:text-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed"
+                />
+                {searchQuery && (
+                  <div className="absolute inset-y-0 right-2 flex items-center">
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      aria-label="Clear code search"
+                      className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                      disabled={isDetecting}
+                    >
+                      <Close sx={{ fontSize: 16 }} />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div id="modal-codes-list" className={`grid grid-cols-2 gap-4 auto-rows-max max-h-80 overflow-y-auto ${(isDetecting) ? 'pointer-events-none opacity-60' : ''}`}>
+                {visibleCodes.map(code => (
+                  <div key={code.id} className="flex justify-center">
+                    <CodeButton
+                      code={code}
+                      bgColor={code.color}
+                      textColor={code.textColor}
+                      onDirectApply={() => handleDirectApply(code.id)}
+                      onReflexiveApply={() => handleReflexiveApply(code)}
+                    />
+                  </div>
+                ))}
+                {sourceCodes.length === 0 && (
+                  <div className="col-span-2 rounded-lg border border-dashed border-gray-200 p-4 text-center text-sm text-gray-500">
+                    {hiddenCodeOwnerSummary
+                      ? 'No qualitative codes are visible with the current collaborator filters.'
+                      : 'No codes yet. Add a code to apply it to this selection.'}
+                  </div>
+                )}
+                {sourceCodes.length > 0 && visibleCodes.length === 0 && (
+                  <div className="col-span-2 rounded-lg border border-dashed border-gray-200 p-4 text-center text-sm text-gray-500">
+                    No codes match your search.
+                  </div>
+                )}
+                {/* Add button tile at the end */}
+                <button
+                  type="button"
+                  onClick={() => setShowAddForm(true)}
+                  className={`flex items-center justify-center border-2 border-dashed border-green-300 hover:border-green-400 hover:bg-green-50 rounded-lg p-4 transition-colors ${(isDetecting) ? 'pointer-events-none opacity-60' : ''}`}
+                >
+                  <div className="flex items-center gap-2 text-green-700">
+                    <Add sx={{ fontSize: 18, color: '#10b981' }} />
+                    <span className="text-sm font-medium">Add code</span>
+                  </div>
+                </button>
+              </div>
+            </>
           ) : (
             <div className="mt-1 p-3 border border-green-200 rounded-lg bg-green-50">
               <CodeForm

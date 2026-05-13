@@ -136,8 +136,8 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
   toggleShowCodeDetails,
   hideSameCodeHighlights,
   toggleHideSameCodeHighlights,
-  showOnlyOwnCodes,
-  toggleShowOnlyOwnCodes,
+  hiddenCodeOwnerIds,
+  toggleHiddenCodeOwner,
   hiddenUserIds,
   toggleHiddenUser
   } = useHoverPreferences(projectId, currentUser);
@@ -283,9 +283,10 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
   const visibleByAuthor = filterHighlightsByHiddenUsers(highlights, hiddenUserIds);
   const filteredHighlights = filterUniquelyCodedHighlights(visibleByAuthor, hideSameCodeHighlights);
 
-  // Codes available to apply from the code selection modal — honor "show only my codes"
-  const selectableCodes = showOnlyOwnCodes && currentUser?.uid
-    ? (allCodes || []).filter(code => code.createdBy === currentUser.uid)
+  // Codes available to apply from the code selection modal honor hidden code authors.
+  const hiddenCodeOwnerSet = new Set(hiddenCodeOwnerIds);
+  const selectableCodes = hiddenCodeOwnerSet.size > 0
+    ? (allCodes || []).filter(code => !hiddenCodeOwnerSet.has(code.createdBy))
     : allCodes;
 
   useEffect(() => {
@@ -438,8 +439,8 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
           onToggleShowCodeDetails={toggleShowCodeDetails}
           hideSameCodeHighlights={hideSameCodeHighlights}
           onToggleHideSameCodeHighlights={toggleHideSameCodeHighlights}
-          showOnlyOwnCodes={showOnlyOwnCodes}
-          onToggleShowOnlyOwnCodes={toggleShowOnlyOwnCodes}
+          hiddenCodeOwnerIds={hiddenCodeOwnerIds}
+          onToggleHiddenCodeOwner={toggleHiddenCodeOwner}
           hiddenUserIds={hiddenUserIds}
           onToggleHiddenUser={toggleHiddenUser}
           onNavigateToHighlight={handleNavigateToHighlight}
@@ -464,6 +465,8 @@ function CollaborativeTextContent({ currentUser, project, onBackToProjects, onSi
           documentId={activeDocumentId}
           onAddCode={addCode}
           isDetecting={isDetecting}
+          hiddenCodeOwnerIds={hiddenCodeOwnerIds}
+          userProfiles={userProfiles}
           onStartReflexive={handleStartReflexiveFromCodingModal}
         />
       )}

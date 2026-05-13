@@ -1,5 +1,6 @@
-import React from 'react';
-import CodeChip from './CodeChip.js';
+import React, { useState } from 'react';
+import { Close, Search } from '@mui/icons-material';
+import { filterCodesBySearchQuery } from '../../lib/utils/codeSearchUtils.js';
 
 const CodeSelector = ({ 
   codes, 
@@ -8,25 +9,32 @@ const CodeSelector = ({
   selectionMode = "multiple", // "single" or "multiple"
   showDescriptions = true,
   currentUser,
-  userProfiles,
+  userProfiles = {},
   title = "Select Codes",
   description = "Choose codes from the list below."
 }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const sourceCodes = Array.isArray(codes) ? codes : [];
+  const selectedCodeList = Array.isArray(selectedCodes) ? selectedCodes : [];
+
   const getUserName = (userId) => {
+    const profiles = userProfiles || {};
     if (userId === 'system') return 'System';
-    if (userId && userProfiles[userId]) {
-      const authorName = userProfiles[userId].name;
+    if (userId && profiles[userId]) {
+      const authorName = profiles[userId].name || 'Unknown';
       const isCurrentUser = currentUser && userId === currentUser.uid;
       return isCurrentUser ? `${authorName} (you)` : authorName;
     }
     return 'Unknown';
   };
 
+  const visibleCodes = filterCodesBySearchQuery(sourceCodes, searchQuery, getUserName);
+
   const isCodeSelected = (code) => {
     if (selectionMode === "single") {
       return selectedCodes?.id === code.id;
     }
-    return selectedCodes.find(c => c.id === code.id);
+    return selectedCodeList.find(c => c.id === code.id);
   };
 
   return (
@@ -35,9 +43,37 @@ const CodeSelector = ({
       <p className="text-sm text-gray-600 mb-4">
         {description}
       </p>
+
+      <div className="relative mb-4">
+        <Search
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          sx={{ fontSize: 18 }}
+        />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          placeholder="Search codes"
+          aria-label="Search codes"
+          autoComplete="off"
+          className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-10 pr-10 text-sm text-gray-700 placeholder:text-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+        />
+        {searchQuery && (
+          <div className="absolute inset-y-0 right-2 flex items-center">
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              aria-label="Clear code search"
+              className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            >
+              <Close sx={{ fontSize: 16 }} />
+            </button>
+          </div>
+        )}
+      </div>
       
       <div className="max-h-64 overflow-y-auto space-y-2 mb-6">
-        {codes.map(code => (
+        {visibleCodes.map(code => (
           <div
             key={code.id}
             onClick={() => onCodeSelect(code)}
@@ -78,11 +114,21 @@ const CodeSelector = ({
             </div>
           </div>
         ))}
+        {sourceCodes.length === 0 && (
+          <div className="rounded-lg border border-dashed border-gray-200 p-4 text-center text-sm text-gray-500">
+            No codes available.
+          </div>
+        )}
+        {sourceCodes.length > 0 && visibleCodes.length === 0 && (
+          <div className="rounded-lg border border-dashed border-gray-200 p-4 text-center text-sm text-gray-500">
+            No codes match your search.
+          </div>
+        )}
       </div>
 
       {selectionMode === "multiple" && (
         <div className="text-sm text-gray-600">
-          Selected: {selectedCodes.length} code{selectedCodes.length !== 1 ? 's' : ''}
+          Selected: {selectedCodeList.length} code{selectedCodeList.length !== 1 ? 's' : ''}
         </div>
       )}
     </div>
