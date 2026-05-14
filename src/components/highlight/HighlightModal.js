@@ -1,8 +1,15 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { Label, Add, Close, Search } from '@mui/icons-material';
+import React, { useCallback, useRef, useEffect, useState } from 'react';
+import { Label, Add, Close, Search, OpenInFull } from '@mui/icons-material';
 import CodeButton from './HighlightModalCodeButton.js';
 import CodeForm from '../sidebar/analysis/codes/CodeForm.js';
-import { filterCodesBySearchQuery } from '../../lib/utils/codeSearchUtils.js';
+import { CODE_SORT_MODES, filterCodesBySearchQuery, sortCodes } from '../../lib/utils/codeSearchUtils.js';
+
+const MIN_MODAL_WIDTH = 370;
+const MIN_MODAL_HEIGHT = 320;
+const DEFAULT_MODAL_WIDTH = 420;
+const VIEWPORT_MARGIN = 16;
+
+const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
 const formatNameList = (names) => {
   if (names.length <= 1) return names[0] || '';
@@ -29,7 +36,13 @@ const HighlightingModal = ({
   const [showAddForm, setShowAddForm] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortMode, setSortMode] = useState(CODE_SORT_MODES.ALPHABETICAL);
   const initialRangeRef = useRef(null);
+  const resizeStateRef = useRef(null);
+  const [modalSize, setModalSize] = useState({
+    width: DEFAULT_MODAL_WIDTH,
+    height: null
+  });
   const sourceCodes = Array.isArray(allCodes) ? allCodes : [];
   const hiddenCodeOwnerNames = hiddenCodeOwnerIds.map((userId) => {
     if (userId === currentUser?.uid) return 'you';
@@ -76,7 +89,110 @@ const HighlightingModal = ({
     } catch {}
   };
 
-  const visibleCodes = filterCodesBySearchQuery(sourceCodes, searchQuery);
+  const visibleCodes = sortCodes(filterCodesBySearchQuery(sourceCodes, searchQuery), sortMode);
+  const hasCustomHeight = modalSize.height !== null;
+
+  const getMaxModalSize = useCallback(() => {
+    if (typeof window === 'undefined') {
+      return { maxWidth: DEFAULT_MODAL_WIDTH, maxHeight: MIN_MODAL_HEIGHT };
+    }
+
+    return {
+      maxWidth: Math.max(
+        MIN_MODAL_WIDTH,
+        window.scrollX + window.innerWidth - modalPosition.x - VIEWPORT_MARGIN
+      ),
+      maxHeight: Math.max(
+        MIN_MODAL_HEIGHT,
+        window.scrollY + window.innerHeight - modalPosition.y - VIEWPORT_MARGIN
+      )
+    };
+  }, [modalPosition.x, modalPosition.y]);
+
+  const handleResizePointerMove = useCallback((event) => {
+    const resizeState = resizeStateRef.current;
+    if (!resizeState) return;
+
+    const { maxWidth, maxHeight } = getMaxModalSize();
+    setModalSize({
+      width: clamp(
+        resizeState.startWidth + event.clientX - resizeState.startX,
+        MIN_MODAL_WIDTH,
+        maxWidth
+      ),
+      height: clamp(
+        resizeState.startHeight + event.clientY - resizeState.startY,
+        MIN_MODAL_HEIGHT,
+        maxHeight
+      )
+    });
+  }, [getMaxModalSize]);
+
+  const handleResizePointerUp = useCallback(() => {
+    const resizeState = resizeStateRef.current;
+    resizeStateRef.current = null;
+
+    window.removeEventListener('pointermove', handleResizePointerMove);
+    window.removeEventListener('pointerup', handleResizePointerUp);
+    window.removeEventListener('pointercancel', handleResizePointerUp);
+
+    if (resizeState) {
+      document.body.style.cursor = resizeState.previousCursor;
+      document.body.style.userSelect = resizeState.previousUserSelect;
+    }
+  }, [handleResizePointerMove]);
+
+  const handleResizePointerDown = useCallback((event) => {
+    if (!modalRef.current) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const rect = modalRef.current.getBoundingClientRect();
+    resizeStateRef.current = {
+      startX: event.clientX,
+      startY: event.clientY,
+      startWidth: rect.width,
+      startHeight: rect.height,
+      previousCursor: document.body.style.cursor,
+      previousUserSelect: document.body.style.userSelect
+    };
+
+    document.body.style.cursor = 'nwse-resize';
+    document.body.style.userSelect = 'none';
+
+    window.removeEventListener('pointermove', handleResizePointerMove);
+    window.removeEventListener('pointerup', handleResizePointerUp);
+    window.removeEventListener('pointercancel', handleResizePointerUp);
+    window.addEventListener('pointermove', handleResizePointerMove);
+    window.addEventListener('pointerup', handleResizePointerUp);
+    window.addEventListener('pointercancel', handleResizePointerUp);
+  }, [handleResizePointerMove, handleResizePointerUp]);
+
+  useEffect(() => {
+    const handleWindowResize = () => {
+      const { maxWidth, maxHeight } = getMaxModalSize();
+      setModalSize(prev => ({
+        width: clamp(prev.width, MIN_MODAL_WIDTH, maxWidth),
+        height: prev.height === null ? null : clamp(prev.height, MIN_MODAL_HEIGHT, maxHeight)
+      }));
+    };
+
+    window.addEventListener('resize', handleWindowResize);
+    return () => window.removeEventListener('resize', handleWindowResize);
+  }, [getMaxModalSize]);
+
+  useEffect(() => {
+    return () => {
+      window.removeEventListener('pointermove', handleResizePointerMove);
+      window.removeEventListener('pointerup', handleResizePointerUp);
+      window.removeEventListener('pointercancel', handleResizePointerUp);
+      if (resizeStateRef.current) {
+        document.body.style.cursor = resizeStateRef.current.previousCursor;
+        document.body.style.userSelect = resizeStateRef.current.previousUserSelect;
+      }
+    };
+  }, [handleResizePointerMove, handleResizePointerUp]);
 
   const handleDirectApply = async (codeId) => {
     if (isDetecting) return; // prevent duplicate clicks while detecting
@@ -157,14 +273,16 @@ const HighlightingModal = ({
       <div
           id="coding-modal"
           ref={modalRef}
-          className="coding-modal bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl border border-gray-200/50 p-4 transition-all duration-300"
+          className="coding-modal relative flex flex-col bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl border border-gray-200/50 p-4 transition-all duration-300"
           style={{ 
             left: modalPosition.x, 
             top: modalPosition.y,
-            minWidth: '370px',
-            maxWidth: '500px',
-            maxHeight: '70vh',
-            overflowY: 'auto'
+            width: `${modalSize.width}px`,
+            height: hasCustomHeight ? `${modalSize.height}px` : undefined,
+            minWidth: `${MIN_MODAL_WIDTH}px`,
+            minHeight: hasCustomHeight ? `${MIN_MODAL_HEIGHT}px` : undefined,
+            maxHeight: hasCustomHeight ? undefined : '70vh',
+            overflow: hasCustomHeight ? 'hidden' : 'auto'
           }}
         >
           {isDetecting && (
@@ -186,38 +304,55 @@ const HighlightingModal = ({
           )}
           {/* Either show the code selector grid or the CodeForm */}
           {!showAddForm ? (
-            <>
-              <div className={`relative mb-4 ${(isDetecting) ? 'pointer-events-none opacity-60' : ''}`}>
-                <Search
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                  sx={{ fontSize: 18 }}
-                />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                  placeholder="Search codes"
-                  aria-label="Search codes"
-                  autoComplete="off"
+            <div className="flex min-h-0 flex-1 flex-col">
+              <div className={`mb-4 flex gap-2 ${(isDetecting) ? 'pointer-events-none opacity-60' : ''}`}>
+                <div className="relative min-w-0 flex-1">
+                  <Search
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    sx={{ fontSize: 18 }}
+                  />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    placeholder="Search codes"
+                    aria-label="Search codes"
+                    autoComplete="off"
+                    disabled={isDetecting}
+                    className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-10 pr-10 text-sm text-gray-700 placeholder:text-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed"
+                  />
+                  {searchQuery && (
+                    <div className="absolute inset-y-0 right-2 flex items-center">
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery('')}
+                        aria-label="Clear code search"
+                        className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                        disabled={isDetecting}
+                      >
+                        <Close sx={{ fontSize: 16 }} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <label className="sr-only" htmlFor="highlight-code-sort">Sort codes</label>
+                <select
+                  id="highlight-code-sort"
+                  value={sortMode}
+                  onChange={(event) => setSortMode(event.target.value)}
                   disabled={isDetecting}
-                  className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-10 pr-10 text-sm text-gray-700 placeholder:text-gray-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed"
-                />
-                {searchQuery && (
-                  <div className="absolute inset-y-0 right-2 flex items-center">
-                    <button
-                      type="button"
-                      onClick={() => setSearchQuery('')}
-                      aria-label="Clear code search"
-                      className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                      disabled={isDetecting}
-                    >
-                      <Close sx={{ fontSize: 16 }} />
-                    </button>
-                  </div>
-                )}
+                  className="w-32 rounded-lg border border-gray-200 bg-white px-2 py-2 text-sm text-gray-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed"
+                >
+                  <option value={CODE_SORT_MODES.ALPHABETICAL}>A-Z</option>
+                  <option value={CODE_SORT_MODES.CREATED_AT}>Newest</option>
+                </select>
               </div>
 
-              <div id="modal-codes-list" className={`grid grid-cols-2 gap-4 auto-rows-max max-h-80 overflow-y-auto ${(isDetecting) ? 'pointer-events-none opacity-60' : ''}`}>
+              <div
+                id="modal-codes-list"
+                className={`grid gap-4 auto-rows-max overflow-y-auto ${(hasCustomHeight) ? 'min-h-32 flex-1' : 'max-h-80'} ${(isDetecting) ? 'pointer-events-none opacity-60' : ''}`}
+                style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}
+              >
                 {visibleCodes.map(code => (
                   <div key={code.id} className="flex justify-center">
                     <CodeButton
@@ -253,9 +388,9 @@ const HighlightingModal = ({
                   </div>
                 </button>
               </div>
-            </>
+            </div>
           ) : (
-            <div className="mt-1 p-3 border border-green-200 rounded-lg bg-green-50">
+            <div className="mt-1 min-h-0 flex-1 overflow-y-auto rounded-lg border border-green-200 bg-green-50 p-3">
               <CodeForm
                 onSubmit={handleCreateCodeSubmit}
                 onCancel={handleCreateCodeCancel}
@@ -274,6 +409,15 @@ const HighlightingModal = ({
               Cancel
             </button>
           </div>
+          <button
+            type="button"
+            aria-label="Resize highlighting modal"
+            title="Resize"
+            onPointerDown={handleResizePointerDown}
+            className="absolute bottom-1 right-1 z-20 flex h-6 w-6 cursor-nwse-resize items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
+          >
+            <OpenInFull sx={{ fontSize: 14 }} />
+          </button>
       </div>
     </>
   );

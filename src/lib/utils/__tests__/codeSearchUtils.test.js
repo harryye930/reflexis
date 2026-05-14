@@ -1,4 +1,9 @@
-import { codeMatchesSearchQuery, filterCodesBySearchQuery } from '../codeSearchUtils.js';
+import {
+  CODE_SORT_MODES,
+  codeMatchesSearchQuery,
+  filterCodesBySearchQuery,
+  sortCodes
+} from '../codeSearchUtils.js';
 
 const codes = [
   {
@@ -54,5 +59,26 @@ describe('code search helpers', () => {
 
   test('normalizes accents while searching', () => {
     expect(filterCodesBySearchQuery(codes, 'cafe').map(code => code.id)).toEqual(['cafe_notes']);
+  });
+
+  test('sorts codes alphabetically by label', () => {
+    const unsortedCodes = [
+      { id: 'z', label: 'Zebra' },
+      { id: 'a', label: 'apple' },
+      { id: 'b', label: 'Beta' }
+    ];
+
+    expect(sortCodes(unsortedCodes, CODE_SORT_MODES.ALPHABETICAL).map(code => code.id)).toEqual(['a', 'b', 'z']);
+    expect(unsortedCodes.map(code => code.id)).toEqual(['z', 'a', 'b']);
+  });
+
+  test('sorts codes by creation time with newest first', () => {
+    const unsortedCodes = [
+      { id: 'old', label: 'Old', createdAt: new Date('2026-01-01T00:00:00Z') },
+      { id: 'new', label: 'New', createdAt: { toDate: () => new Date('2026-08-01T00:00:00Z') } },
+      { id: 'middle', label: 'Middle', createdAt: '2026-06-01T00:00:00Z' }
+    ];
+
+    expect(sortCodes(unsortedCodes, CODE_SORT_MODES.CREATED_AT).map(code => code.id)).toEqual(['new', 'middle', 'old']);
   });
 });
