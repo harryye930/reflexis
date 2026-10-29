@@ -70,7 +70,7 @@ Based on the information above, generate a title and a prompt. The prompt should
 - The **Prompt** should be a single, curious question that encourages the researchers to reflect on their perspectives. Address them by their first names.`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-5.5",
+      model: "gpt-6.1-sol",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }

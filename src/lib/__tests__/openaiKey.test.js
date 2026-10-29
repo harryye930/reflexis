@@ -85,11 +85,11 @@ describe('checking a visitor key', () => {
   const failWith = (error) => mockRetrieve.mockRejectedValueOnce(Object.assign(new Error('OpenAI error'), error));
 
   test('a working key is accepted', async () => {
-    mockRetrieve.mockResolvedValueOnce({ id: 'gpt-5.5' });
+    mockRetrieve.mockResolvedValueOnce({ id: 'gpt-6.1-sol' });
     const res = await check({ 'x-openai-key': visitorKey });
     expect(res.statusCode).toBe(200);
     expect(res.body).toEqual({ success: true });
-    expect(mockRetrieve).toHaveBeenCalledWith('gpt-5.5');
+    expect(mockRetrieve).toHaveBeenCalledWith('gpt-6.1-sol');
   });
 
   test('a missing or malformed key, or the wrong method, never reaches OpenAI or the deployment key', async () => {

@@ -13,7 +13,7 @@ export default async function handler(req, res) {
   if (!openai) return;
 
   try {
-    await openai.models.retrieve('gpt-5.5');
+    await openai.models.retrieve('gpt-6.1-sol');
   } catch (error) {
     // Restricted keys may not be allowed to read model details, so only refuse a key OpenAI rejects outright.
     if (error.code === 'invalid_api_key') {

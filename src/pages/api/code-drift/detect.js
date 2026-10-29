@@ -106,7 +106,7 @@ Respond in JSON format.
 
     // Call OpenAI API
     const response = await openai.chat.completions.create({
-      model: 'gpt-5.5',
+      model: 'gpt-6.1-sol',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
