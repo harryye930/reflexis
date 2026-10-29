@@ -1,6 +1,6 @@
 /* Run against a built local server. Requires Playwright (or PLAYWRIGHT_MODULE).
  * --record also captures a captioned tour; all browser profiles are temporary.
- * No Firebase or AI requests are allowed during verification or recording.
+ * No Firebase or AI requests are allowed during verification or recording; no OpenAI key is entered.
  */
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
@@ -25,7 +25,7 @@ async function protect(page) {
 async function enter(page) {
   await page.goto(`${baseUrl}/demo`);
   await page.locator('[title="Click to open Living Codebook"]').first().waitFor();
-  await page.getByText('Changes aren’t saved. AI is disabled.', { exact: true }).waitFor();
+  await page.getByText('Changes aren’t saved. To use AI, add your OpenAI key in Settings.', { exact: true }).waitFor();
   assert.equal(await page.locator('[aria-label="Demo guide"]').count(), 0);
   assert.equal((await page.locator('body').innerText()).includes('\u00b7'), false);
 }

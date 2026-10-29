@@ -2,6 +2,14 @@ import React from 'react';
 import ReflectiveQuoteTicker from '../common/ReflectiveQuoteTicker.js';
 import { isDemoProject } from '../../lib/demo/seed.js';
 import { resetDemo } from '../../lib/demo/store.js';
+import { useOpenAIKey } from '../../hooks/useOpenAIKey.js';
+
+const DemoStatus = () => {
+  const openAIKey = useOpenAIKey();
+  return openAIKey
+    ? 'Changes aren’t saved. AI uses your OpenAI key.'
+    : 'Changes aren’t saved. To use AI, add your OpenAI key in Settings.';
+};
 
 const ProjectWorkspaceHeader = ({
   projectId,
@@ -26,7 +34,7 @@ const ProjectWorkspaceHeader = ({
       )}
       <div>
         <div className="text-sm font-semibold text-gray-900">{projectName}</div>
-        <div className="text-xs text-gray-500">{isDemoProject(projectId) ? 'Changes aren’t saved. AI is disabled.' : subtitle}</div>
+        <div className="text-xs text-gray-500">{isDemoProject(projectId) ? <DemoStatus /> : subtitle}</div>
       </div>
     </div>
 

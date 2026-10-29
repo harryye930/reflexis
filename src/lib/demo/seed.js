@@ -30,7 +30,7 @@ export function createDemoSeed() {
     profileCompleted: true, initialDataView,
     researchBackground: formatResearchBackgroundForStorage(history, background, initialDataView),
     reducedResearchBackground: history, lastSeen: date(),
-    preferences: { disableLlm: true, disableCodeDriftDetection: true }
+    preferences: { disableLlm: false, disableCodeDriftDetection: false }
   }));
   defaultDocuments.forEach((document) => put('documents', document.id, {
     ...document, createdAt: date(), createdBy: 'system'

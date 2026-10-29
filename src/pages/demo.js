@@ -8,7 +8,7 @@ export default function Demo() {
     <>
       <Head>
         <title>Reflexis demo</title>
-        <meta name="description" content="Demo workspace. Changes are not saved. AI features are disabled." />
+        <meta name="description" content="Demo workspace. Changes are not saved. Bring your own OpenAI key to try AI features." />
         <link rel="icon" href="/favicon.svg" />
       </Head>
       <CollaborativeText currentUser={demoUser} project={demoProject} onBackToProjects={exitDemo} onSignOut={exitDemo} />

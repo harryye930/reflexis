@@ -1,6 +1,10 @@
 import React from 'react';
+import OpenAIKeyField from './OpenAIKeyField.js';
+import { useOpenAIKey } from '../../../hooks/useOpenAIKey.js';
+import { isDemoProject } from '../../../lib/demo/seed.js';
 
 const AdminToggles = ({ 
+  projectId,
   showHoverTooltips, 
   showAuthorInfo, 
   onToggleHoverTooltips, 
@@ -16,6 +20,9 @@ const AdminToggles = ({
   hideSameCodeHighlights,
   onToggleHideSameCodeHighlights
 }) => {
+  const openAIKey = useOpenAIKey();
+  const llmUnavailable = isDemoProject(projectId) && !openAIKey;
+
   return (
     <div className="space-y-3">
       <h4 className="font-semibold text-gray-700 text-sm">Highlight Display Settings</h4>
@@ -125,13 +132,18 @@ const AdminToggles = ({
         <div className="flex items-center justify-between border-t border-gray-200 pt-3">
           <div className="flex-1">
             <label className="text-sm text-gray-600">Enable LLM features</label>
-            <p className="text-xs text-gray-500">Allow AI summaries, discussion prompts, and code drift checks</p>
+            <p className="text-xs text-gray-500">
+              {llmUnavailable
+                ? 'Add your OpenAI API key below to try AI summaries, discussion prompts, and code drift checks'
+                : 'Allow AI summaries, discussion prompts, and code drift checks'}
+            </p>
           </div>
           <button
             onClick={onToggleDisableLlm}
+            disabled={llmUnavailable}
             className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
               !disableLlm ? 'bg-blue-600' : 'bg-gray-200'
-            }`}
+            } ${llmUnavailable ? 'cursor-not-allowed opacity-50' : ''}`}
           >
             <span
               className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
@@ -140,6 +152,8 @@ const AdminToggles = ({
             />
           </button>
         </div>
+
+        {isDemoProject(projectId) && <OpenAIKeyField />}
 
         {/* Toggle for code drift detection (LLM-backed; disabled when LLM features are off) */}
         <div className={`flex items-center justify-between pl-4 ${disableLlm ? 'opacity-50' : ''}`}>

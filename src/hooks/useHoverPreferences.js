@@ -2,6 +2,7 @@ import { doc, onSnapshot, updateDoc } from '../lib/projectStore.js';
 import { useState, useEffect, useCallback } from 'react';
 import { db } from '../lib/firebase.js';
 import { isDemoProject } from '../lib/demo/seed.js';
+import { useOpenAIKey } from './useOpenAIKey.js';
 
 const DEFAULT_PREFERENCES = {
   showHoverTooltips: true,
@@ -74,7 +75,7 @@ export const useHoverPreferences = (appId, currentUser = null) => {
   const [showAuthor, setShowAuthor] = useState(true); // Show author info by default - true = show individual colors and names, false = unified color and no names
   const [disableHighlightManagement, setDisableHighlightManagement] = useState(false);
   const [disableCodeDriftDetection, setDisableCodeDriftDetection] = useState(false);
-  const [disableLlm, setDisableLlm] = useState(isDemoProject(appId));
+  const [disableLlm, setDisableLlm] = useState(false);
   const [showCodeDetails, setShowCodeDetails] = useState(true);
   // When true: hide highlights where all overlapping codings use the same code
   const [hideSameCodeHighlights, setHideSameCodeHighlights] = useState(false);
@@ -82,6 +83,9 @@ export const useHoverPreferences = (appId, currentUser = null) => {
   const [hiddenCodeOwnerIds, setHiddenCodeOwnerIds] = useState([]);
   // List of collaborator user IDs whose highlights are currently hidden
   const [hiddenUserIds, setHiddenUserIds] = useState([]);
+  // The demo has no deployment key, so its AI features need the visitor's own.
+  const openAIKey = useOpenAIKey();
+  const llmUnavailable = isDemoProject(appId) && !openAIKey;
 
   const currentPreferences = {
     showHoverTooltips,
@@ -101,12 +105,12 @@ export const useHoverPreferences = (appId, currentUser = null) => {
     setShowAuthor(normalized.showAuthorInfo);
     setDisableHighlightManagement(normalized.disableHighlightManagement);
     setDisableCodeDriftDetection(normalized.disableCodeDriftDetection);
-    setDisableLlm(isDemoProject(appId) || normalized.disableLlm);
+    setDisableLlm(normalized.disableLlm);
     setShowCodeDetails(normalized.showCodeDetails);
     setHideSameCodeHighlights(normalized.hideSameCodeHighlights);
     setHiddenCodeOwnerIds(normalized.hiddenCodeOwnerIds);
     setHiddenUserIds(normalized.hiddenUserIds);
-  }, [appId]);
+  }, []);
 
   // Load preferences from localStorage on mount
   useEffect(() => {
@@ -214,7 +218,7 @@ export const useHoverPreferences = (appId, currentUser = null) => {
   };
 
   const toggleDisableLlm = () => {
-    if (isDemoProject(appId)) return;
+    if (llmUnavailable) return;
     savePreferences({ disableLlm: !disableLlm });
   };
 
@@ -253,7 +257,7 @@ export const useHoverPreferences = (appId, currentUser = null) => {
     toggleDisableHighlightManagement,
     disableCodeDriftDetection,
     toggleDisableCodeDriftDetection,
-    disableLlm,
+    disableLlm: llmUnavailable || disableLlm,
     toggleDisableLlm,
     showCodeDetails,
     toggleShowCodeDetails,

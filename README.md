@@ -32,7 +32,9 @@ The demo opens the full default corpus with sample codes, overlapping annotation
 
 The sample history includes **Data verification** merging into **Invisible work**, and **Feedback barriers** splitting into **Public voice** and **Technical translation**. The retired source codes remain under **Deleted Codes**. Their histories show transferred highlights and reflections, with connections in the full history graph.
 
-Each tab keeps its own workspace in memory. Changes are not saved; refreshing or selecting **Reset demo** restores the sample workspace. Concurrent visitors and tabs never subscribe to each other’s changes. Demo operations use only the reserved `reflexis-demo` local namespace; real projects continue through Firebase with their existing access controls. AI calls are disabled in the demo. The sample collaborators and analysis are illustrative, and do not use existing account or project data.
+Each tab keeps its own workspace in memory. Changes are not saved; refreshing or selecting **Reset demo** restores the sample workspace. Concurrent visitors and tabs never subscribe to each other’s changes. Demo operations use only the reserved `reflexis-demo` local namespace; real projects continue through Firebase with their existing access controls. The sample collaborators and analysis are illustrative, and do not use existing account or project data.
+
+AI features are off in the demo until a visitor adds their own OpenAI API key under **Settings → Enable LLM features**. The key is checked with OpenAI when it is added, kept only in that tab’s memory (not browser storage or Firebase), and sent with each AI request. The API routes use it for that request only and never store it; server error logs show at most OpenAI’s masked form of the key. Requests are billed to the visitor’s OpenAI account, and refreshing, resetting, or leaving the demo removes the key. The deployment’s own `OPENAI_API_KEY` is never used for the demo.
 
 To make the URL publicly available, deploy this version through your normal release process. The demo needs no backend migration.
 
@@ -56,7 +58,7 @@ Reflexis uses Firebase Auth for sign-in and Firestore for project storage. Store
 
 Some optional AI-assisted features use the OpenAI API with `gpt-5.5`. These features may send relevant excerpts of project data, such as selected passages, code definitions, researcher positionality text, or reflexive notes, to generate summaries, discussion prompts, or conceptual-drift checks.
 
-LLM-assisted features can be turned off in the interface from **Settings**. Deployment owners should still review Firebase, OpenAI, consent, and institutional privacy requirements before using Reflexis with participant or confidential research data.
+LLM-assisted features can be turned off in the interface from **Settings**. The AI API routes accept a request without sign-in only when it carries the caller’s own OpenAI key, which is billed to that caller rather than the deployment. Deployment owners should still review Firebase, OpenAI, consent, and institutional privacy requirements before using Reflexis with participant or confidential research data.
 
 ## Citation
 
