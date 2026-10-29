@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ReflectButton from '../common/ReflectButton.js';
 
 const CodeButton = ({ 
   code, 
@@ -52,7 +53,7 @@ const CodeButton = ({
           style={{
             minWidth: '140px',
             maxHeight: isHovered ? '32px' : '0px',
-            overflow: 'hidden'
+            overflow: isHovered ? 'visible' : 'hidden'
           }}
         >
           <button
@@ -64,15 +65,13 @@ const CodeButton = ({
           >
             Apply
           </button>
-          <button
+          <ReflectButton
             onClick={(e) => {
               e.stopPropagation();
               onReflexiveApply();
             }}
-            className="flex-1 px-3 py-1 text-xs bg-indigo-50/80 hover:bg-indigo-100/90 text-indigo-700 rounded-md transition-all duration-300 font-light border border-indigo-200/60 hover:border-indigo-300/70 hover:shadow-sm backdrop-blur-sm"
-          >
-            Reflect
-          </button>
+            className="flex-1"
+          />
         </div>
       </div>
     </div>

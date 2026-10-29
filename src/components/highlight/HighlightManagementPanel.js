@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import CodeChip from '../common/CodeChip.js';
+import ReflectButton from '../common/ReflectButton.js';
 import { getUserDisplayColor, getUserDisplayName, shouldShowAuthorInfo } from '../../lib/utils/hoverUtils';
 import DiscussionPromptPanel from './DiscussionPromptPanel.js';
 import { useDiscussionPrompt } from '../../hooks/useDiscussionPrompt.js';
@@ -69,20 +70,13 @@ const HighlightItem = ({
           
           {/* Action buttons */}
           <div className="flex items-center gap-2">
-            {/* Reflexive button - simplified blue button for any authenticated user */}
             {currentUser && onReflexiveClick && (
-              <button
+              <ReflectButton
                 onClick={handleReflexiveClick}
-                className="text-xs px-2 py-1.5 rounded-md transition-colors font-medium bg-indigo-100 text-indigo-700 hover:bg-indigo-200 hover:text-indigo-800"
                 title="Reflect on this code"
               >
-                <div className="flex items-center gap-1">
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span>Reflect on Code</span>
-                </div>
-              </button>
+                Reflect on Code
+              </ReflectButton>
             )}
             
             {/* Delete button - available to any authenticated user */}

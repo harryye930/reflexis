@@ -8,7 +8,7 @@ import {
   query,
   updateDoc,
   writeBatch
-} from 'firebase/firestore';
+} from '../../../lib/projectStore.js';
 import { db } from '../../../lib/firebase.js';
 import { userColors } from '../../../lib/utils/colorUtils.js';
 import { defaultCodes } from '../../../constants/defaultCodes.js';

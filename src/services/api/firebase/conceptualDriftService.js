@@ -1,4 +1,4 @@
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs } from '../../../lib/projectStore.js';
 import { db } from '../../../lib/firebase.js';
 import { authFetch } from '../../../lib/authFetch.js';
 import { CodeService } from './codeService.js';

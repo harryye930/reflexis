@@ -1,6 +1,7 @@
-import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc } from '../lib/projectStore.js';
 import { useState, useEffect, useCallback } from 'react';
 import { db } from '../lib/firebase.js';
+import { isDemoProject } from '../lib/demo/seed.js';
 
 const DEFAULT_PREFERENCES = {
   showHoverTooltips: true,
@@ -41,7 +42,7 @@ const normalizePreferenceValue = (preferences = {}) => ({
 });
 
 const getStoredPreferences = (appId) => {
-  if (!appId) return null;
+  if (!appId || isDemoProject(appId)) return null;
 
   try {
     const savedPrefs = localStorage.getItem(`hoverPrefs_${appId}`);
@@ -73,7 +74,7 @@ export const useHoverPreferences = (appId, currentUser = null) => {
   const [showAuthor, setShowAuthor] = useState(true); // Show author info by default - true = show individual colors and names, false = unified color and no names
   const [disableHighlightManagement, setDisableHighlightManagement] = useState(false);
   const [disableCodeDriftDetection, setDisableCodeDriftDetection] = useState(false);
-  const [disableLlm, setDisableLlm] = useState(false);
+  const [disableLlm, setDisableLlm] = useState(isDemoProject(appId));
   const [showCodeDetails, setShowCodeDetails] = useState(true);
   // When true: hide highlights where all overlapping codings use the same code
   const [hideSameCodeHighlights, setHideSameCodeHighlights] = useState(false);
@@ -100,12 +101,12 @@ export const useHoverPreferences = (appId, currentUser = null) => {
     setShowAuthor(normalized.showAuthorInfo);
     setDisableHighlightManagement(normalized.disableHighlightManagement);
     setDisableCodeDriftDetection(normalized.disableCodeDriftDetection);
-    setDisableLlm(normalized.disableLlm);
+    setDisableLlm(isDemoProject(appId) || normalized.disableLlm);
     setShowCodeDetails(normalized.showCodeDetails);
     setHideSameCodeHighlights(normalized.hideSameCodeHighlights);
     setHiddenCodeOwnerIds(normalized.hiddenCodeOwnerIds);
     setHiddenUserIds(normalized.hiddenUserIds);
-  }, []);
+  }, [appId]);
 
   // Load preferences from localStorage on mount
   useEffect(() => {
@@ -156,6 +157,7 @@ export const useHoverPreferences = (appId, currentUser = null) => {
 
   // Save preferences to localStorage when they change
   useEffect(() => {
+    if (isDemoProject(appId)) return;
     const prefs = {
       showHoverTooltips,
       showAuthorInfo: showAuthor,
@@ -168,7 +170,9 @@ export const useHoverPreferences = (appId, currentUser = null) => {
       hiddenUserIds,
       preferencesVersion: 2
     };
-    localStorage.setItem(`hoverPrefs_${appId}`, JSON.stringify(prefs));
+    try {
+      localStorage.setItem(`hoverPrefs_${appId}`, JSON.stringify(prefs));
+    } catch { /* Preferences still work in memory when browser storage is unavailable. */ }
   }, [appId, showHoverTooltips, showAuthor, disableHighlightManagement, disableCodeDriftDetection, disableLlm, showCodeDetails, hideSameCodeHighlights, hiddenCodeOwnerIds, hiddenUserIds]);
 
   const savePreferences = (updates) => {
@@ -210,6 +214,7 @@ export const useHoverPreferences = (appId, currentUser = null) => {
   };
 
   const toggleDisableLlm = () => {
+    if (isDemoProject(appId)) return;
     savePreferences({ disableLlm: !disableLlm });
   };
 

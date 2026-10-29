@@ -1,4 +1,4 @@
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs } from '../projectStore.js';
 import { db } from '../firebase.js';
 
 // context: https://www.reddit.com/r/google/comments/hw5nsz/default_google_profile_pics_colors_dont_know_if_i/

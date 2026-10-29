@@ -1,0 +1,12 @@
+{
+  "checks": [
+    "Two simultaneous visitors and another tab enter without authentication.",
+    "Code edits are invisible to the other visitor and tab.",
+    "Profile changes stay in memory without touching the account or another visitor.",
+    "Resetting a concurrent visitor leaves the first visitor’s edits intact.",
+    "Refresh discards edits and profile changes; demo data and preferences are not stored in the browser.",
+    "Walkthrough verified overlapping highlights, codebook, disagreement, history graph, passage coding, reflection, settings, corpus navigation and reset."
+  ],
+  "browserErrors": [],
+  "firebaseOrAiRequests": []
+}
