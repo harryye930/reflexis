@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot } from '../../../../lib/projectStore.js';
 import { db } from '../../../../lib/firebase.js';
 import { getUserDisplayName } from '../../../../lib/utils/hoverUtils.js';
 

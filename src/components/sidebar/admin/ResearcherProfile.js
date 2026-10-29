@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { isDemoProject } from '../../../lib/demo/seed.js';
 import { AuthService } from '../../../services/api/firebase/authService.js';
 import { ProjectService } from '../../../services/api/firebase/projectService.js';
 import { 
@@ -103,7 +104,7 @@ const ResearcherProfile = ({ projectId, currentUser, currentUserProfile, onMessa
         editInitialDataView
       );
 
-      const result = await authService.updateUserDocument(
+      const result = isDemoProject(projectId) ? { success: true } : await authService.updateUserDocument(
         currentUser.uid,
         {
           name: currentUserProfile.name,

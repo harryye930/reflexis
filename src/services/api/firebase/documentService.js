@@ -1,4 +1,4 @@
-import { collection, onSnapshot, addDoc, doc, setDoc, deleteDoc, query, orderBy, getDoc, where, getCountFromServer } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, doc, setDoc, deleteDoc, query, orderBy, getDoc, where, getCountFromServer } from '../../../lib/projectStore.js';
 import { db } from '../../../lib/firebase.js';
 
 export class DocumentService {

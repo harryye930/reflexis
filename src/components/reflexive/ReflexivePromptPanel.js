@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { PROMPT_SEQUENCE } from '../../constants/reflexivePrompts.js';
-import { Search, Person, Autorenew, NoteAlt } from '@mui/icons-material';
 import { ReflexiveService } from '../../services/api/firebase/reflexiveService.js';
 
 const ReflexivePromptPanel = ({ 
@@ -19,26 +18,11 @@ const ReflexivePromptPanel = ({
   const [currentResponse, setCurrentResponse] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [reflexiveService] = useState(() => new ReflexiveService(projectId));
-  const [isSliding, setIsSliding] = useState(false);
   
   // Generate unique session ID for this reflection session
   const [reflexiveLensId] = useState(() => `reflexive-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
 
   const currentPrompt = prompts[currentPromptIndex];
-  const renderPromptIcon = (type) => {
-    switch (type) {
-      case 'justification':
-        return <Search sx={{ fontSize: 20 }} />;
-      case 'positionality':
-        return <Person sx={{ fontSize: 20 }} />;
-      case 'alternative':
-        return <Autorenew sx={{ fontSize: 20 }} />;
-      case 'note':
-        return <NoteAlt sx={{ fontSize: 20 }} />;
-      default:
-        return <Search sx={{ fontSize: 20 }} />;
-    }
-  };
   const isLastPrompt = currentPromptIndex === prompts.length - 1;
   const isFirstPrompt = currentPromptIndex === 0;
 
@@ -80,13 +64,8 @@ const ReflexivePromptPanel = ({
         // Complete the process
         onComplete(newResponses);
       } else {
-        // Move to next prompt with sliding animation
-        setIsSliding(true);
-        setTimeout(() => {
-          setCurrentPromptIndex(prev => prev + 1);
-          setCurrentResponse('');
-          setIsSliding(false);
-        }, 200);
+        setCurrentPromptIndex(prev => prev + 1);
+        setCurrentResponse('');
       }
     }
     
@@ -102,131 +81,58 @@ const ReflexivePromptPanel = ({
       [currentPrompt.id]: currentResponse.trim()
     }));
 
-    setIsSliding(true);
-    setTimeout(() => {
-      setCurrentPromptIndex(prev => prev - 1);
-      setIsSliding(false);
-    }, 200);
+    setCurrentPromptIndex(prev => prev - 1);
   };
 
   const handleSkip = () => {
     if (isLastPrompt) {
       onComplete(responses);
     } else {
-      setIsSliding(true);
-      setTimeout(() => {
-        setCurrentPromptIndex(prev => prev + 1);
-        setCurrentResponse('');
-        setIsSliding(false);
-      }, 200);
+      setCurrentPromptIndex(prev => prev + 1);
+      setCurrentResponse('');
     }
   };
 
   return (
-    <div className="reflexive-prompt-panel max-w-lg animate-contemplative-entrance">
-      {/* Header */}
-      <div className="bg-teal-50 p-6 border-b border-teal-100">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl animate-gentle-float">{renderPromptIcon(currentPrompt.type)}</span>
-            <h3 className="font-light text-slate-800 text-lg tracking-wide">Reflexive <span className="font-medium text-teal-700">Lens</span></h3>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 transition-all duration-300 hover:bg-slate-100 rounded-lg p-2"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+    <div className="reflexive-prompt-panel">
+      <header className="reflection-writing-header">
+        <div className="reflection-writing-topline">
+          <span className="reflection-title">Reflection</span>
+          <span className="reflection-progress-label" aria-live="polite">Question {currentPromptIndex + 1} of {prompts.length}</span>
+          <button type="button" onClick={onClose} className="reflection-close" aria-label="Close reflection">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
           </button>
         </div>
-        
-        {/* Progress indicator with contemplative styling */}
-        <div className="flex gap-2 mb-4">
-          {prompts.map((_, index) => (
-            <div
-              key={index}
-              className={`h-1.5 flex-1 rounded-full transition-all duration-700 ease-out ${
-                index <= currentPromptIndex
-                  ? 'bg-teal-600'
-                  : 'bg-slate-200'
-              }`}
-            />
-          ))}
+        <div className="reflection-context">
+          <span className="reflection-code"><span className={`reflection-code-dot ${selectedCode.color}`} aria-hidden="true" />{selectedCode.label}</span>
+          <blockquote>{selectedText}</blockquote>
         </div>
-        
-        {/* Code context with contemplative styling */}
-        <div className="flex items-center gap-3 text-sm">
-          <span className={`px-3 py-1.5 rounded-full text-xs font-light transition-colors duration-200 border shadow-sm ${selectedCode.color} ${selectedCode.textColor}`}>
-            {selectedCode.label}
-          </span>
-          <span className="text-slate-600 font-light italic">
-            &ldquo;{selectedText.length > 50 ? selectedText.substring(0, 50) + '...' : selectedText}&rdquo;
-          </span>
-        </div>
-      </div>
+      </header>
 
-      {/* Content with enhanced contemplative sliding animation */}
-      <div className={`p-7 transition-opacity duration-200 ease-out ${isSliding ? 'opacity-40 blur-sm' : 'opacity-100 blur-0'}`}>
-        {/* Current prompt */}
-        <div className="mb-7">
-          <h4 className="font-light text-slate-900 mb-3 flex items-center gap-3 text-lg">
-            <span className="text-2xl animate-gentle-float">{renderPromptIcon(currentPrompt.type)}</span>
-            <span className="tracking-wide">{currentPrompt.title}</span>
-          </h4>
-          <p className="text-sm text-slate-700 mb-5 leading-relaxed font-light bg-slate-50 p-4 rounded-xl border border-slate-200">
-            {currentPrompt.prompt(selectedCode.label, selectedText)}
-          </p>
+      <div className="reflection-writing-body">
+        <h2 id="reflection-question" className="reflection-question">{currentPrompt.prompt(selectedCode.label, selectedText)}</h2>
+        <label htmlFor="reflection-response" className="sr-only">Your reflection</label>
+        <textarea
+          id="reflection-response"
+          aria-labelledby="reflection-question"
+          value={currentResponse}
+          onChange={(event) => setCurrentResponse(event.target.value)}
+          placeholder="Write your thoughts here…"
+          className="reflection-input"
+          disabled={isSubmitting}
+        />
 
-          <textarea
-            value={currentResponse}
-            onChange={(e) => setCurrentResponse(e.target.value)}
-            placeholder={currentPrompt.placeholder}
-            className="w-full h-36 p-4 border border-slate-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all duration-300 hover:border-slate-300 bg-white font-light placeholder-slate-400 shadow-sm"
-            disabled={isSubmitting}
-          />
-        </div>
-
-        {/* Actions with contemplative styling */}
-        <div className="flex items-center justify-between">
-          <div className="flex gap-3">
-            {!isFirstPrompt && (
-              <button
-                onClick={handlePrevious}
-                className="px-4 py-2.5 text-sm text-slate-600 hover:text-slate-800 font-light transition-all duration-300 hover:bg-slate-100 rounded-xl border border-slate-200 hover:border-slate-300"
-                disabled={isSubmitting}
-              >
-                ← Previous
-              </button>
-            )}
+        <footer className="reflection-actions">
+          <div>
+            {!isFirstPrompt && <button type="button" onClick={handlePrevious} className="reflection-button-quiet" disabled={isSubmitting}>← Previous</button>}
           </div>
-          
-          <div className="flex gap-3">
-            <button
-              onClick={handleSkip}
-              className="px-4 py-2.5 text-sm text-slate-500 hover:text-slate-700 font-light transition-all duration-300 hover:bg-slate-100 rounded-xl"
-              disabled={isSubmitting}
-            >
-              Skip
-            </button>
-            <button
-              onClick={handleNext}
-              disabled={!currentResponse.trim() || isSubmitting}
-              className="px-5 py-2.5 bg-teal-600 text-white text-sm font-light rounded-xl hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-            >
-              {isSubmitting ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/60 border-t-white rounded-full animate-spin"></div>
-                  <span>Saving...</span>
-                </div>
-              ) : isLastPrompt ? (
-                'Complete'
-              ) : (
-                'Next →'
-              )}
+          <div className="reflection-actions-end">
+            <button type="button" onClick={handleSkip} className="reflection-button-quiet" disabled={isSubmitting}>Skip</button>
+            <button type="button" onClick={handleNext} disabled={!currentResponse.trim() || isSubmitting} className="reflection-button-primary">
+              {isSubmitting ? 'Saving…' : isLastPrompt ? 'Complete' : 'Next →'}
             </button>
           </div>
-        </div>
+        </footer>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { collection, onSnapshot, addDoc, deleteDoc, doc, query, where, orderBy, updateDoc, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, deleteDoc, doc, query, where, orderBy, updateDoc, getDocs } from '../../../lib/projectStore.js';
 import { db } from '../../../lib/firebase.js';
 
 export class ReflexiveService {

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { AuthService } from '../services/api/firebase/authService.js';
 import { UserService } from '../services/api/firebase/userService.js';
+import { isDemoProject } from '../lib/demo/seed.js';
 
 export const useUserActivity = (currentUser, projectId = null) => {
   useEffect(() => {
@@ -11,7 +12,7 @@ export const useUserActivity = (currentUser, projectId = null) => {
 
     const updateActivity = async () => {
       try {
-        await authService.updateLastSeen(currentUser.uid);
+        if (!isDemoProject(projectId)) await authService.updateLastSeen(currentUser.uid);
         if (userService) {
           await userService.updateLastSeen(currentUser.uid);
         }

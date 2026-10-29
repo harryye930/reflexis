@@ -2,6 +2,7 @@ import React from 'react';
 import AdminToggles from './AdminToggles.js';
 
 const AdminControls = ({ 
+  projectId,
   showHoverTooltips,
   showAuthorInfo,
   onToggleHoverTooltips,
@@ -22,6 +23,7 @@ const AdminControls = ({
       {/* Hover Settings */}
       <div>
         <AdminToggles
+          projectId={projectId}
           showHoverTooltips={showHoverTooltips}
           showAuthorInfo={showAuthorInfo}
           onToggleHoverTooltips={onToggleHoverTooltips}

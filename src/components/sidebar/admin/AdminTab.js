@@ -65,6 +65,7 @@ const AdminTab = ({
       </div>
       
       <AdminControls 
+        projectId={projectId}
         onMessage={onMessage}
         showHoverTooltips={showHoverTooltips}
         showAuthorInfo={showAuthorInfo}

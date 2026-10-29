@@ -1,4 +1,4 @@
-import { collection, doc, onSnapshot, query, updateDoc } from 'firebase/firestore';
+import { collection, doc, onSnapshot, query, updateDoc } from '../../../lib/projectStore.js';
 import { db } from '../../../lib/firebase.js';
 
 const buildProfileFromMemberData = (data) => ({

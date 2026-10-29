@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot } from '../lib/projectStore.js';
 import { db } from '../lib/firebase.js';
 import { calculateCodeDisagreement } from '../lib/utils/disagreementUtils.js';
 

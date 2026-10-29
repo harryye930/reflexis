@@ -329,7 +329,7 @@ const DocumentBrowser = ({
         <div className="text-xs text-gray-500 text-center">
           {documents.length} document{documents.length !== 1 ? 's' : ''}
           {!isOwner && documents.length > 0 && (
-            <span className="ml-1 text-slate-400">· delete restricted to admins</span>
+            <span className="ml-1 text-slate-400">Delete restricted to admins.</span>
           )}
         </div>
       </div>

@@ -1,6 +1,8 @@
-import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc } from '../lib/projectStore.js';
 import { useState, useEffect, useCallback } from 'react';
 import { db } from '../lib/firebase.js';
+import { isDemoProject } from '../lib/demo/seed.js';
+import { useOpenAIKey } from './useOpenAIKey.js';
 
 const DEFAULT_PREFERENCES = {
   showHoverTooltips: true,
@@ -41,7 +43,7 @@ const normalizePreferenceValue = (preferences = {}) => ({
 });
 
 const getStoredPreferences = (appId) => {
-  if (!appId) return null;
+  if (!appId || isDemoProject(appId)) return null;
 
   try {
     const savedPrefs = localStorage.getItem(`hoverPrefs_${appId}`);
@@ -81,6 +83,9 @@ export const useHoverPreferences = (appId, currentUser = null) => {
   const [hiddenCodeOwnerIds, setHiddenCodeOwnerIds] = useState([]);
   // List of collaborator user IDs whose highlights are currently hidden
   const [hiddenUserIds, setHiddenUserIds] = useState([]);
+  // The demo has no deployment key, so its AI features need the visitor's own.
+  const openAIKey = useOpenAIKey();
+  const llmUnavailable = isDemoProject(appId) && !openAIKey;
 
   const currentPreferences = {
     showHoverTooltips,
@@ -156,6 +161,7 @@ export const useHoverPreferences = (appId, currentUser = null) => {
 
   // Save preferences to localStorage when they change
   useEffect(() => {
+    if (isDemoProject(appId)) return;
     const prefs = {
       showHoverTooltips,
       showAuthorInfo: showAuthor,
@@ -168,7 +174,9 @@ export const useHoverPreferences = (appId, currentUser = null) => {
       hiddenUserIds,
       preferencesVersion: 2
     };
-    localStorage.setItem(`hoverPrefs_${appId}`, JSON.stringify(prefs));
+    try {
+      localStorage.setItem(`hoverPrefs_${appId}`, JSON.stringify(prefs));
+    } catch { /* Preferences still work in memory when browser storage is unavailable. */ }
   }, [appId, showHoverTooltips, showAuthor, disableHighlightManagement, disableCodeDriftDetection, disableLlm, showCodeDetails, hideSameCodeHighlights, hiddenCodeOwnerIds, hiddenUserIds]);
 
   const savePreferences = (updates) => {
@@ -210,6 +218,7 @@ export const useHoverPreferences = (appId, currentUser = null) => {
   };
 
   const toggleDisableLlm = () => {
+    if (llmUnavailable) return;
     savePreferences({ disableLlm: !disableLlm });
   };
 
@@ -248,7 +257,7 @@ export const useHoverPreferences = (appId, currentUser = null) => {
     toggleDisableHighlightManagement,
     disableCodeDriftDetection,
     toggleDisableCodeDriftDetection,
-    disableLlm,
+    disableLlm: llmUnavailable || disableLlm,
     toggleDisableLlm,
     showCodeDetails,
     toggleShowCodeDetails,

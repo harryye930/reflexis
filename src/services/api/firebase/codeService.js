@@ -1,4 +1,4 @@
-import { collection, onSnapshot, addDoc, deleteDoc, doc, updateDoc, query, setDoc, getDoc, where, getDocs, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, deleteDoc, doc, updateDoc, query, setDoc, getDoc, where, getDocs, writeBatch, serverTimestamp } from '../../../lib/projectStore.js';
 import { db } from '../../../lib/firebase.js';
 import { CodeHistoryService } from './codeHistoryService.js';
 

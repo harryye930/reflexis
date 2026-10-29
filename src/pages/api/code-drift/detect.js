@@ -1,9 +1,4 @@
-import OpenAI from 'openai';
-import { requireFirebaseAuth } from '../../../lib/api/requireFirebaseAuth.js';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { getOpenAIForRequest } from '../../../lib/api/openaiForRequest.js';
 
 // Local test flag - set to true to always return drift detected (for testing)
 const FORCE_DRIFT_FOR_TESTING = false;
@@ -26,7 +21,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  if (!(await requireFirebaseAuth(req, res))) return;
+  const openai = await getOpenAIForRequest(req, res);
+  if (!openai) return;
 
   try {
     const { codeName, codeDefinition, existingExamples, newPassage, context, llmEnabled = true } = req.body || {};
